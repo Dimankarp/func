@@ -14,7 +14,7 @@ param_list:
 	| params
 params:
 	| param
-	| param ',' params
+	| params ',' param
 param:
 	type id
 
@@ -33,7 +33,7 @@ statement:
 	type id ;
 	| type id = expr;
 	| id = expr;
-	| id( args_list );
+	| id( arg_list );
 	| if ( expr ) block
 	| if ( expr ) block else block
 	| while ( expr ) block
