@@ -1,0 +1,73 @@
+
+
+program: functions
+
+functions:
+	empty
+	| functions function
+
+function:
+	func_res_type id ( param_list ) block
+
+param_list:
+	empty
+	| params
+params:
+	| param
+	| param ',' params
+param:
+	type id
+
+
+
+block:
+	{ empty }
+	| statement
+	|{ statements }
+
+statements:
+	statement
+	| statements statement
+
+statement:
+	type id ;
+	| type id = expr;
+	| id = expr;
+	| id( args_list );
+	| if ( expr ) block
+	| if ( expr ) block else block
+	| while ( expr ) block
+	| return expr;
+
+expr:
+	| expr <binop> expr
+	| <unop> expr
+	| id
+	| id( args_list );
+	| <literal>
+
+
+args_list:
+	empty
+	|args
+args:
+	expr
+	| expr ',' args
+
+	
+type: 
+    INT_T 
+    | BOOL_T 
+    | STRING_T 
+    | ‘(’ func_type ‘)’;
+func_res_type:
+    type 
+    | VOID_T;
+func_type:  
+    func_type_rec
+    | VOID_T ‘-’ func_res_type ;
+func_type_rec:
+     type '-' func_type_rec 
+     | func_res_type;
+
+

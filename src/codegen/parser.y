@@ -33,38 +33,46 @@
 
 %define api.token.prefix {TOK_}
 %token
-  END  0  "end of file"
-  EOS     ";" // end of statement
+  END  0    "end of file"
+  EOS       ";" // end of statement
+  COMMA     ","
   
-  MINUS   "-"
-  PLUS    "+"
-  MUL     "*"
-  DIV     "/"
-  MOD     "%"
-  LPAR    "("
-  RPAR    ")"
-  ASSIGN  "="
-  LESS    "<"
-  GRTR    ">"
-  LESS_EQ "<="
-  GRTR_EQ ">="
-  EQUALS  "=="
-  NOTEQ   "!="
-  LCURL   "{"
-  RCURL   "}"
-  WHILE   "while"
-  IF      "if"
-  ELSE    "else"
+  MINUS     "-"
+  PLUS      "+"
+  MUL       "*"
+  DIV       "/"
+  MOD       "%"
+  LPAR      "("
+  RPAR      ")"
+  ASSIGN    "="
+  LESS      "<"
+  GRTR      ">"
+  EQUALS    "=="
+  NOTEQ     "!="
+  OR        "||"
+  AND       "&&"
+  NOT       "!"
+  LCURL     "{"
+  RCURL     "}"
+  WHILE     "while"
+  IF        "if"
+  ELSE      "else"
 
-  PRINT   "print"
+  RETURN    "return"
+  INT_T     "int"
+  BOOL_T    "bool"
+  STRING_T  "string"
+  VOID_T    "void"
 ;
 
-%token <std::string> STR "string"
-%token <std::string> ID "identifier"
-%token <int> NUM "number"
+%token <std::string> STR "str"
+%token <std::string> ID "id"
+%token <int> NUM "num"
 %type  <std::unique_ptr<intrp::expression>> exp
 %type  <std::unique_ptr<intrp::statement>> statement
 %type  <std::unique_ptr<intrp::block_statement>> statements
+%type  <std::unique_ptr<intrp::function>> function
+
 
 
 // %printer { yyoutput << $$; } <*>;

@@ -16,9 +16,9 @@
 
 %option noyywrap nounput batch debug noinput
 
-id    [a-zA-Z][a-zA-Z_0-9]*
-int   [0-9]+
-str   \"[^"\n]*\"
+id    [a-zA-Z_][a-zA-Z_0-9]*
+int   [+\-]?[0-9]+
+str   \"([^\n"\\]|\\.)*\" 
 spc   [ \t]
 
 %{
@@ -40,6 +40,7 @@ spc   [ \t]
 [\n]+    loc.lines (yyleng); loc.step();
 
 ";"      return yy::parser::make_EOS(loc);
+","      return yy::parser::make_COMMA(loc);
 
 "-"      return yy::parser::make_MINUS(loc);
 "+"      return yy::parser::make_PLUS(loc);
@@ -52,10 +53,11 @@ spc   [ \t]
 
 "<"      return yy::parser::make_LESS(loc);
 ">"      return yy::parser::make_GRTR(loc);
-"<="     return yy::parser::make_LESS_EQ(loc);
-">="     return yy::parser::make_GRTR_EQ(loc);
 "=="     return yy::parser::make_EQUALS(loc);
 "!="     return yy::parser::make_NOTEQ(loc);
+"||"     return yy::parser::make_OR(loc);
+"&&"     return yy::parser::make_AND(loc);
+"!"      return yy::parser::make_NOT(loc);
 
 "{"      return yy::parser::make_LCURL(loc); 
 "}"      return yy::parser::make_RCURL(loc); 
@@ -63,7 +65,14 @@ spc   [ \t]
 "if"     return yy::parser::make_IF(loc); 
 "else"   return yy::parser::make_ELSE(loc); 
 
-"print"  return yy::parser::make_PRINT(loc);
+"return"  return yy::parser::make_RETURN(loc);
+
+
+"int"    return yy::parser::make_INT_T(loc);
+"bool"   return yy::parser::make_BOOL_T(loc);
+"string" return yy::parser::make_STRING_T(loc);
+"void"   return yy::parser::make_VOID_T(loc);
+{id}     return yy::parser::make_ID(yytext, loc);
 
 
 {str}      {
@@ -72,28 +81,30 @@ spc   [ \t]
   str_lit.erase(0, 1).erase(len-2, len);
 
   // replacing \n with newline character
-  const std::string from = "\\n";
-  const std::string to = "\n";
+  const std::string from_arr[] = {"\\n", "\\\""};
+  const std::string to_arr[] = {"\n", "\""};
 
-  size_t pos =0;
-  while((pos=str_lit.find(from, pos)) != std::string::npos) {
-    str_lit.replace(pos, from.length(), to);
-    pos += to.length();
+  for(int i = 0; i < 2; i++) {
+    const std::string& from = from_arr[i];
+    const std::string& to = to_arr[i];
+
+    size_t pos =0;
+    while((pos=str_lit.find(from, pos)) != std::string::npos) {
+      str_lit.replace(pos, from.length(), to);
+      pos += to.length();
+    }
   }
-
   return yy::parser::make_STR(str_lit, loc);
 }
 
 {int}      {
   errno = 0;
-  long n = strtol (yytext, NULL, 10);
+  long n = strtol(yytext, NULL, 10);
   if (! (INT_MIN <= n && n <= INT_MAX && errno != ERANGE))
     throw yy::parser::syntax_error (loc, "integer is out of range: "
                                     + std::string(yytext));
-  return yy::parser::make_NUM (n, loc);
+  return yy::parser::make_NUM(n, loc);
 }
-
-{id}       return yy::parser::make_ID(yytext, loc);
 
 .          {
              throw yy::parser::syntax_error
