@@ -1,0 +1,8 @@
+### Make Build ###
+build
+
+## Clangd ###
+.cache
+
+### Bear ###
+compile_commands.json

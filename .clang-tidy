@@ -1,0 +1,29 @@
+FormatStyle: file
+Checks: "-*,
+  boost-use-to-string,
+  bugprone-*,
+  -bugprone-suspicious-include,
+  google-*,
+  -google-explicit-constructor,
+  -google-runtime-operator,
+  -google-readability-braces-around-statements,
+  llvm-include-order,
+  misc-*,
+  modernize-*,
+  -modernize-return-braced-init-list,
+  -modernize-use-nodiscard,
+  -modernize-use-trailing-return-type,
+  performance-*,
+  readability-*,
+  -readability-convert-member-functions-to-static,
+  -readability-braces-around-statements,
+  -readability-identifier-length,
+  clang-analyzer-*,
+  -clang-analyzer-security.insecureAPI.*"
+HeaderFilterRegex: '[\w+\\]*\w+.h'
+CheckOptions:
+  # Classes with only public members can be quite useful.
+  - {
+      key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic,
+      value: 1,
+    }

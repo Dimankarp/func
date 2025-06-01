@@ -1,0 +1,10 @@
+target = 5;
+fac = 1;
+i = 2;
+
+while i <= target {
+    fac = fac * i;
+    i = i + 1;
+}
+print fac;
+print "\n";
