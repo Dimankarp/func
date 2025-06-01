@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.27)
 
 project(Interpreter CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
