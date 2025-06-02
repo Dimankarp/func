@@ -108,20 +108,37 @@ void print_visitor::visit_while(const while_statement & statem) {
   statem.get_condition()->accept(*this);
   offset--;
 
-  statem.get_then_block()->accept(*this);
+  statem.get_block()->accept(*this);
 };
 
 void print_visitor::visit_function_call(const function_call & func) {
-  out << func.get_identifier() << "( ";
+  *this << func.get_identifier() << "\n";
 
+  offset++;
   for (auto& arg : func.get_arg_list()){
     arg->accept(*this);
-    out << ",";
+    out << "\n";
   }
+  offset--;
+
+  if (func.get_arg_list().size() == 0)
+    *this << "\n";
 };
 
-void print_visitor::visit_binop(const binop_expression &) {};
-void print_visitor::visit_unarop(const unarop_expression &) {};
+void print_visitor::visit_binop(const binop_expression & op) {
+  *this << "BINOP: " << op.get_op() << "\n";
+  offset++;
+  op.get_left()->accept(*this);
+  op.get_right()->accept(*this);
+  offset--;
+};
+
+void print_visitor::visit_unarop(const unarop_expression & op) {
+  *this << "UNOP: " << op.get_op() << "\n";
+  offset++;
+  op.get_exp()->accept(*this);
+  offset--;
+};
 
 void print_visitor::visit_literal(const literal_expression & lit) {
   *this << "<lit>" << "\n";
@@ -137,7 +154,7 @@ void print_visitor::visit_literal(const literal_expression & lit) {
 };
 
 void print_visitor::visit_identifier(const identifier_expression & id) {
-  out << id.get_identificator();
+  *this << id.get_identificator() << "\n";
 };
 
 
