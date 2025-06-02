@@ -195,7 +195,6 @@ statement:
 %left "%";
 %precedence UMINUS;
 %precedence "!";
-
 %left "("; 
 
 exp:
@@ -216,7 +215,8 @@ exp:
 | "num"                 {$$ = std::make_unique<intrp::literal_expression>(intrp::lit_val($1), @$);}
 | "bools"               {$$ = std::make_unique<intrp::literal_expression>(intrp::lit_val($1), @$);}
 | "id"                  {$$ = std::make_unique<intrp::identifier_expression>($1, @$);}
-| exp "(" arg_list ")" {$$ = std::make_unique<intrp::function_call>(std::move($1), std::move($3), @$);};
+| exp "(" arg_list ")"  {$$ = std::make_unique<intrp::function_call>(std::move($1), std::move($3), @$);}
+| "(" exp ")"           {$$ = std::move($2);};
 
 
 
