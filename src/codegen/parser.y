@@ -14,6 +14,7 @@
   #include <variant>
 
   class driver;
+  using std::vector, std::unique_ptr, std::string;
 }
 
 // The parsing context.
@@ -87,10 +88,10 @@
 %type  <std::vector<intrp::expression>> arg_list
 %type  <std::vector<intrp::expression>> args
 
-%type  <intrp::type>  type 
-%type  <intrp::type>  func_res_type
-%type  <intrp::type>  func_type
-%type  std::vector<intrp::type>>  func_type_rec
+%type  <unique_ptr<intrp::type>>  type 
+%type  <unique_ptr<intrp::type>>  func_res_type
+%type  <std::vector<unique_ptr<intrp::type>>>  func_type
+%type  <std::vector<unique_ptr<intrp::type>>>  func_type_rec
 
 
 
@@ -234,37 +235,37 @@ args:
 
 
 type:
-  "int"     {$$ = intrp::type(intrp::types::INT);}
-| "bool"    {$$ = intrp::type(intrp::types::BOOL);}
-| "string"  {$$ = intrp::type(intrp::types::STRING);}
-| "(" func_type ")"  {$$ = intrp::type($2);};
+  "int"     {$$ = intrp::int_type();}
+| "bool"    {$$ = intrp::bool_type();}
+| "string"  {$$ = intrp::string_type();}
+| "(" func_type ")"  {$$ = intrp::function_type(std::move($2));};
 
 
 func_type:
   type "-" func_type_rec {
-    $3.push_front($1);
-    $$ = intrp::type(std::move($3));
+    $3.push_front(std::move($1));
+    $$ = std::move($3);
     }
 | "void" "-" func_res_type {
-  auto typevec = std::vector<intrp::type>();
-  typevec.push_back(intrp::type(intrp::types::VOID));
-  typevec.push_back($3);
-  $$ = intrp::type(std::move(typevec));
+  auto typevec = vector<unique_ptr<intrp::type>>();
+  typevec.push_back(std::make_unique(intrp::void_type()));
+  typevec.push_back(std::move($3));
+  $$ = std::move(typevec);
   };
 
 func_res_type:
-  type {$$ = std::move($1);}
-| "void" {$$ = intrp::type(intrp::types::VOID);};
+  type {$$ = std::move(std::move($1));}
+| "void" {$$ = std::make_unique(intrp::void_type());};
 
 
  func_type_rec:
   type "-" func_type_rec {
-  $3.push_front($1);
+  $3.push_front(std::move($1));
   $$ = std::move($3);
   }
 | func_res_type {
-  $$ = std::vector<intrp::type>();
-  $$.push_back(intrp::type(intrp::types::STRING));
+  $$ = vector<unique_ptr<intrp::type>>;
+  $$.push_back(std::move($1));
 };
 
 %%
