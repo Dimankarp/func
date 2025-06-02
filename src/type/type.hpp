@@ -28,11 +28,16 @@ public:
   types get_type() override;
 };
 
+class void_type : public type {
+public:
+  types get_type() override;
+};
+
 class function_type : public type {
   std::vector<std::unique_ptr<type>> signature;
 
 public:
-  function_type(std::vector<std::unique_ptr<type>>&& sign);
+  function_type(std::vector<std::unique_ptr<type>> &&sign);
   types get_type() override;
 };
 

@@ -8,7 +8,7 @@ namespace intrp {
 
 class expression_visitor;
 using std::unique_ptr;
-using expr_t = std::variant<std::string, int>;
+using lit_val = std::variant<std::string, int, bool>;
 
 class expression {
 private:
@@ -29,10 +29,10 @@ enum class binop : char {
   MOD,
   LESS,
   GRTR,
-  LEQ,
-  GREQ,
   EQ,
-  NEQ
+  NEQ,
+  OR,
+  AND
 };
 
 class binop_expression : public expression {
@@ -50,7 +50,7 @@ public:
   const unique_ptr<expression> &get_right() const;
 };
 
-enum class unarop : char { MINUS };
+enum class unarop : char { MINUS, NOT };
 
 class unarop_expression : public expression {
 private:
@@ -66,12 +66,12 @@ public:
 
 class literal_expression : public expression {
 private:
-  expr_t val;
+  lit_val val;
 
 public:
-  literal_expression(expr_t val, yy::location loc);
+  literal_expression(lit_val val, yy::location loc);
   void accept(expression_visitor &visitor) override;
-  expr_t get_val() const;
+  lit_val get_val() const;
 };
 
 class identifier_expression : public expression {

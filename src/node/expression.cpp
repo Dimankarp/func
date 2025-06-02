@@ -35,12 +35,12 @@ unarop unarop_expression::get_op() const { return op; }
 const unique_ptr<expression> &unarop_expression::get_exp() const { return exp; }
 
 // Literal
-literal_expression::literal_expression(expr_t val, yy::location loc)
+literal_expression::literal_expression(lit_val val, yy::location loc)
     : val(std::move(val)), expression(loc) {};
 void literal_expression::accept(expression_visitor &visitor) {
   visitor.visit_literal(*this);
 };
-expr_t literal_expression::get_val() const { return val; }
+lit_val literal_expression::get_val() const { return val; }
 
 // Identifier
 identifier_expression::identifier_expression(std::string identificator,

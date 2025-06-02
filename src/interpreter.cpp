@@ -17,10 +17,10 @@ int main(int argc, char *argv[]) {
         exit(1);
       };
       auto variables = std::make_shared<var_table>();
-      intrp::statement_executor exec{variables};
+      // intrp::statement_executor exec{variables};
       auto tree = std::move(drv.result);
       try {
-        tree->accept(exec);
+        // tree->accept(exec);
       } catch (intrp::unexpected_type_exception &e) {
         std::cout << "Syntax error: unexpected type " << e <<"\n";
         exit(1);
