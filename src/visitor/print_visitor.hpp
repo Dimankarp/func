@@ -17,7 +17,7 @@ public:
   print_visitor(std::ostream& ostream) : out{ostream} {}
 
   std::string tabs(){
-    return std::string(offset, '\t');
+    return std::string(offset * 3, ' ');
   };
 
   std::ostream& get_out(){

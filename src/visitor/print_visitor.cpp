@@ -27,9 +27,11 @@ namespace{
 
 void print_visitor::visit_program(const program & progr){
   *this << "program:" << "\n";
+  offset++;
   for (auto& func : progr.get_funcs()){
-    func.get()->accept(*this);
+    func->accept(*this);
   }
+  offset--;
 }
 
 void print_visitor::visit_function(const function & func){
@@ -37,37 +39,69 @@ void print_visitor::visit_function(const function & func){
   *this << type_name[func.get_type()->get_type()] 
         << " "
         << func.get_identifier()
+        << " "
   ;
 
-  out << "( ";
+  out << "(\n";
+  offset++;
   for (auto& param : func.get_params()){
-    out << type_name[param.get_type()->get_type()] 
-        << " "
-        << param.get_identifier()
-        << ","
+    *this << type_name[param.get_type()->get_type()] 
+          << " "
+          << param.get_identifier()
+          << ","
     ;
   }
-  out << ")";
+  out << "\n" << ")" << "\n"
+  ;
 
-  offset++;
   func.get_block()->accept(*this);
   offset--;
 }
 
 void print_visitor::visit_block(const block_statement & block){
-
+  *this << "{" << "\n";
+  offset++;
+  for (auto& statement : block.get_statements()){
+    statement->accept(*this);
+  }
+  offset--;
+  *this << "}" << "\n";
 }
 
+void print_visitor::visit_assign(const assign_statement & statem) {
+  if (statem.get_type() != null ){
+    *this << type_name[statem.get_type()->get_type()] << " ";
+  }
+
+  *this << statem.get_identifier() << "=" << "\n";
+
+  offset++;
+  if (statem.get_exp() != null ){
+    statem.get_exp()->accept(*this);
+  }
+  offset--;
+};
 
 void print_visitor::visit_return(const return_statement &) {};
-void print_visitor::visit_assign(const assign_statement &) {};
 void print_visitor::visit_if(const if_statement &) {};
 void print_visitor::visit_while(const while_statement &) {};
 void print_visitor::visit_function_call(const function_call &) {};
 
 void print_visitor::visit_binop(const binop_expression &) {};
 void print_visitor::visit_unarop(const unarop_expression &) {};
-void print_visitor::visit_literal(const literal_expression &) {};
+
+void print_visitor::visit_literal(const literal_expression & lit) {
+  if (auto* v = std::get_if<int>(lit.get_val())) {
+    *this << v;
+  } else if auto* v = std::get_if<bool>(lit.get_val())) {
+    *this << v;
+  } else if (auto* v = std::get_if<std::string>(lit.get_val())) {
+    *this << v;
+  } else {
+    *this << "UNKNOWN LITYERAL";
+  }
+};
+
 void print_visitor::visit_identifier(const identifier_expression &) {};
 
 
