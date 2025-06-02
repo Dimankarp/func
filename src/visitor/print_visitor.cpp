@@ -5,6 +5,8 @@
 #include "visitor/print_visitor.hpp"
 #include "function/function.hpp"
 
+#include <iostream>
+
 namespace intrp {
 
 
@@ -44,6 +46,15 @@ namespace{
       {intrp::unarop::MINUS, "-"},
       {intrp::unarop::NOT, "!"}
   };  
+}
+
+void print_visitor::print_type(intrp::type& type){
+  if (type.get_type() != intrp::types::FUNCTION)
+    out << type_name[type.get_type()];
+  else{
+    function_type& func = dynamic_cast<function_type&>(type);
+    out << "<func>";
+  }
 }
 
 void print_visitor::visit_program(const program & progr){
@@ -138,7 +149,6 @@ void print_visitor::visit_function_call(const function_call & func) {
   offset++;
   for (auto& arg : func.get_arg_list()){
     arg->accept(*this);
-    out << "\n";
   }
   offset--;
 
@@ -162,16 +172,17 @@ void print_visitor::visit_unarop(const unarop_expression & op) {
 };
 
 void print_visitor::visit_literal(const literal_expression & lit) {
-  *this << "<lit>" << "\n";
-  // if (auto* v = std::get_if<int>(lit.get_val())) {
-  //   *this << v;
-  // } else if (auto* v = std::get_if<bool>(lit.get_val())) {
-  //   *this << v;
-  // } else if (auto* v = std::get_if<std::string>(lit.get_val())) {
-  //   *this << v;
-  // } else {
-  //   *this << "UNKNOWN LITYERAL";
-  // }
+  intrp::lit_val val = lit.get_val();
+  if (auto* v = std::get_if<int>(&val)) {
+    *this << *v;
+  } else if (auto* v = std::get_if<bool>(&val)) {
+    *this << std::boolalpha << *v;
+  } else if (auto* v = std::get_if<std::string>(&val)) {
+    *this << *v;
+  } else {
+    *this << "UNKNOWN LITYERAL";
+  }
+  out << "\n";
 };
 
 void print_visitor::visit_identifier(const identifier_expression & id) {
