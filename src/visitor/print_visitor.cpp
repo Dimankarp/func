@@ -4,7 +4,6 @@
 #include "visitor/operation.hpp"
 #include "visitor/print_visitor.hpp"
 #include "function/function.hpp"
-#include <variant>
 
 namespace intrp {
 
@@ -43,17 +42,15 @@ void print_visitor::visit_function(const function & func){
         << " "
   ;
 
-  out << "(\n";
+  out << "\n";
   offset++;
   for (auto& param : func.get_params()){
     *this << type_name[param.get_type()->get_type()] 
           << " "
           << param.get_identifier()
-          << ","
+          << "\n"
     ;
   }
-  out << "\n" << ")" << "\n"
-  ;
 
   func.get_block()->accept(*this);
   offset--;
@@ -70,11 +67,12 @@ void print_visitor::visit_block(const block_statement & block){
 }
 
 void print_visitor::visit_assign(const assign_statement & statem) {
-  if (statem.get_type() != nullptr ){
+  if (statem.get_type() != nullptr )
     *this << type_name[statem.get_type()->get_type()] << " ";
-  }
+  else
+    *this << "";  // to keep offset 
 
-  *this << statem.get_identifier() << "=" << "\n";
+  out << statem.get_identifier() << " =" << "\n";
 
   offset++;
   if (statem.get_exp() != nullptr ){
@@ -83,27 +81,64 @@ void print_visitor::visit_assign(const assign_statement & statem) {
   offset--;
 };
 
-void print_visitor::visit_return(const return_statement &) {};
-void print_visitor::visit_if(const if_statement &) {};
-void print_visitor::visit_while(const while_statement &) {};
-void print_visitor::visit_function_call(const function_call &) {};
+void print_visitor::visit_return(const return_statement & ret) {
+  *this << "return" << "\n";
+  offset++;
+  ret.get_exp()->accept(*this);
+  offset--;
+};
+
+void print_visitor::visit_if(const if_statement & statem) {
+  *this << "if" << "\n";
+  offset++;
+  statem.get_condition()->accept(*this);
+  offset--;
+
+  statem.get_then_block()->accept(*this);
+
+  if (statem.get_else_block() != nullptr){
+    *this << "else" << "\n";
+    statem.get_else_block()->accept(*this);
+  }
+};
+
+void print_visitor::visit_while(const while_statement & statem) {
+  *this << "while" << "\n";
+  offset++;
+  statem.get_condition()->accept(*this);
+  offset--;
+
+  statem.get_then_block()->accept(*this);
+};
+
+void print_visitor::visit_function_call(const function_call & func) {
+  out << func.get_identifier() << "( ";
+
+  for (auto& arg : func.get_arg_list()){
+    arg->accept(*this);
+    out << ",";
+  }
+};
 
 void print_visitor::visit_binop(const binop_expression &) {};
 void print_visitor::visit_unarop(const unarop_expression &) {};
 
 void print_visitor::visit_literal(const literal_expression & lit) {
-  if (auto* v = std::get_if<int>(lit.get_val())) {
-    *this << v;
-  } else if (auto* v = std::get_if<bool>(lit.get_val())) {
-    *this << v;
-  } else if (auto* v = std::get_if<std::string>(lit.get_val())) {
-    *this << v;
-  } else {
-    *this << "UNKNOWN LITYERAL";
-  }
+  *this << "<lit>" << "\n";
+  // if (auto* v = std::get_if<int>(lit.get_val())) {
+  //   *this << v;
+  // } else if (auto* v = std::get_if<bool>(lit.get_val())) {
+  //   *this << v;
+  // } else if (auto* v = std::get_if<std::string>(lit.get_val())) {
+  //   *this << v;
+  // } else {
+  //   *this << "UNKNOWN LITYERAL";
+  // }
 };
 
-void print_visitor::visit_identifier(const identifier_expression &) {};
+void print_visitor::visit_identifier(const identifier_expression & id) {
+  out << id.get_identificator();
+};
 
 
 } // namespace intrp
