@@ -13,6 +13,8 @@ private:
   std::reference_wrapper<std::ostream> out;
   int offset = 0; 
 
+  void print_type(intrp::type &);
+
 public:
   print_visitor(std::ostream& ostream) : out{ostream} {}
 
