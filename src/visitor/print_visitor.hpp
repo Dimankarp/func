@@ -1,0 +1,44 @@
+#pragma once
+
+#include "driver.hpp"
+#include "function/function.hpp"
+#include "node/expression.hpp"
+#include "node/program.hpp"
+#include "node/statement.hpp"
+namespace intrp {
+  
+
+class print_visitor : public expression_visitor, public statement_visitor{
+private:
+  std::reference_wrapper<std::ostream> out;
+  int offset = 0; 
+
+public:
+  print_visitor(std::ostream& ostream) : out{ostream} {}
+
+  std::string tabs(){
+    return std::string(offset, '\t');
+  };
+
+  std::ostream& get_out(){
+    return out;
+  };
+
+  void visit_binop(const binop_expression &) override;
+  void visit_unarop(const unarop_expression &) override;
+  void visit_literal(const literal_expression &) override;
+  void visit_identifier(const identifier_expression &) override;
+  void visit_function_call(const function_call &) override;
+
+  void visit_program(const program &) override;
+  void visit_block(const block_statement &) override;
+  void visit_return(const return_statement &) override;
+  void visit_assign(const assign_statement &) override;
+  void visit_if(const if_statement &) override;
+  void visit_while(const while_statement &) override;
+  void visit_function(const function &) override;
+  void visit_function_call(const function_call &) override;
+};
+
+
+} // namespace intrp
