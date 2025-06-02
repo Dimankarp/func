@@ -4,6 +4,7 @@
 #include "visitor/operation.hpp"
 #include "visitor/print_visitor.hpp"
 #include "function/function.hpp"
+#include <variant>
 
 namespace intrp {
 
@@ -69,14 +70,14 @@ void print_visitor::visit_block(const block_statement & block){
 }
 
 void print_visitor::visit_assign(const assign_statement & statem) {
-  if (statem.get_type() != null ){
+  if (statem.get_type() != nullptr ){
     *this << type_name[statem.get_type()->get_type()] << " ";
   }
 
   *this << statem.get_identifier() << "=" << "\n";
 
   offset++;
-  if (statem.get_exp() != null ){
+  if (statem.get_exp() != nullptr ){
     statem.get_exp()->accept(*this);
   }
   offset--;
@@ -93,7 +94,7 @@ void print_visitor::visit_unarop(const unarop_expression &) {};
 void print_visitor::visit_literal(const literal_expression & lit) {
   if (auto* v = std::get_if<int>(lit.get_val())) {
     *this << v;
-  } else if auto* v = std::get_if<bool>(lit.get_val())) {
+  } else if (auto* v = std::get_if<bool>(lit.get_val())) {
     *this << v;
   } else if (auto* v = std::get_if<std::string>(lit.get_val())) {
     *this << v;
