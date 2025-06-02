@@ -6,5 +6,7 @@ int main(string arg){
 	while(a > 0){
 		print(a);
 		a = a - 1;
+        a = 1 - print(a);
+        b = !predic(a, b, c, d);
 	}
 }

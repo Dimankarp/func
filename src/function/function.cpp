@@ -6,9 +6,9 @@
 namespace intrp {
 
 function_call::function_call(
-    std::string &id, std::vector<unique_ptr<intrp::expression>> &&arg_list,
-    yy::location loc)
-    : identifier{id}, arg_list{std::move(arg_list)}, statement{loc},
+    std::unique_ptr<intrp::expression> func,
+    std::vector<unique_ptr<intrp::expression>> &&arg_list, yy::location loc)
+    : func{std::move(func)}, arg_list{std::move(arg_list)}, statement{loc},
       expression{loc} {}
 void function_call::accept(statement_visitor &visitor) {
   visitor.visit_function_call(*this);
@@ -27,5 +27,7 @@ function::function(unique_ptr<type> type_obj, std::string &identifier,
     : type_obj{std::move(type_obj)}, identifier{identifier},
       param_list{std::move(param_list)}, block{std::move(block)},
       statement{loc} {}
-void function::accept(statement_visitor &visitor) { visitor.visit_function(*this); };
+void function::accept(statement_visitor &visitor) {
+  visitor.visit_function(*this);
+};
 } // namespace intrp

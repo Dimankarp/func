@@ -144,7 +144,7 @@ void print_visitor::visit_while(const while_statement & statem) {
 };
 
 void print_visitor::visit_function_call(const function_call & func) {
-  *this << func.get_identifier() << "\n";
+  func.get_func()->accept(*this);
 
   offset++;
   for (auto& arg : func.get_arg_list()){

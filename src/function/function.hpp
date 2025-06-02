@@ -8,16 +8,16 @@
 namespace intrp {
 
 class function_call : public expression, public statement {
-  std::string identifier;
+  std::unique_ptr<intrp::expression> func;
   std::vector<unique_ptr<intrp::expression>> arg_list;
 
 public:
-  function_call(std::string &id,
+  function_call(std::unique_ptr<intrp::expression> func,
                 std::vector<unique_ptr<intrp::expression>> &&arg_list,
                 yy::location loc);
   void accept(statement_visitor &visitor) override;
   void accept(expression_visitor &visitor) override;
-  const std::string &get_identifier() const { return identifier; };
+  const std::unique_ptr<intrp::expression> &get_func() const { return func; };
   const std::vector<unique_ptr<intrp::expression>> &get_arg_list() const {
     return arg_list;
   };
