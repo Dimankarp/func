@@ -37,7 +37,6 @@ public:
   void visit_if(const if_statement &) override;
   void visit_while(const while_statement &) override;
   void visit_function(const function &) override;
-  void visit_function_call(const function_call &) override;
 };
 
 

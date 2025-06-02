@@ -176,7 +176,7 @@ statement:
   type "id" ";" {$$ = std::make_unique<intrp::assign_statement>(std::move($1), $2, @$);}
 | type "id" "=" exp ";" {$$ = std::make_unique<intrp::assign_statement>(std::move($1), $2, std::move($4), @$);}
 | "id" "=" exp ";" {$$ = std::make_unique<intrp::assign_statement>($1, std::move($3), @$);}
-| "id" "(" arg_list ")" %prec FCALL {$$ = std::make_unique<intrp::function_call>($1, std::move($3), @$);}
+| "id" "(" arg_list ")" ";" %prec FCALL {$$ = std::make_unique<intrp::function_call>($1, std::move($3), @$);}
 | "if" "(" exp ")" block %prec "if" {$$ = std::make_unique<intrp::if_statement>(std::move($3), std::move($5), @$);}
 | "if" "(" exp ")" block "else" block %prec "else" {
   auto s = std::make_unique<intrp::if_statement>(std::move($3), std::move($5), @$);
