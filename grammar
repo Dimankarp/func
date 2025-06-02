@@ -52,22 +52,22 @@ args_list:
 	|args
 args:
 	expr
-	| expr ',' args
+	| args ',' expr
 
 	
 type: 
     INT_T 
     | BOOL_T 
     | STRING_T 
-    | ‘(’ func_type ‘)’;
+    | ‘(’ func_type ‘)’
 func_res_type:
     type 
-    | VOID_T;
+    | VOID_T
 func_type:  
-    func_type_rec
-    | VOID_T ‘-’ func_res_type ;
+    type '-' func_type_rec
+    | VOID_T ‘-’ func_res_type 
 func_type_rec:
      type '-' func_type_rec 
-     | func_res_type;
+     | func_res_type
 
 

@@ -9,6 +9,7 @@
 %code requires {
   #include "node/expression.hpp"
   #include "node/statement.hpp"
+  #include "type/type.hpp"
   #include <string>
   #include <variant>
 
@@ -67,7 +68,8 @@
 
 %token <std::string> STR "str"
 %token <std::string> ID "id"
-%token <int> NUM "num"
+%token <int>  NUM "num"
+%token <bool> BOOLS "bools"
 
 %type  <std::unique_ptr<intrp::expression>> exp
 %type  <std::unique_ptr<intrp::statement>> statement
@@ -85,7 +87,12 @@
 %type  <std::vector<intrp::expression>> arg_list
 %type  <std::vector<intrp::expression>> args
 
-%type  <std::vector<intrp::type> type
+%type  <intrp::type>  type 
+%type  <intrp::type>  func_res_type
+%type  <intrp::type>  func_type
+%type  std::vector<intrp::type>>  func_type_rec
+
+
 
 // %printer { yyoutput << $$; } <*>;
 
@@ -200,6 +207,7 @@ exp:
 | "!" exp               {$$ = std::make_unique<intrp::unarop_expression>(intrp::unarop::NOT, std::move($2), @$);}
 | "str"                 {$$ = std::make_unique<intrp::literal_expression>(intrp::expr_t($1), @$);}
 | "num"                 {$$ = std::make_unique<intrp::literal_expression>(intrp::expr_t($1), @$);}
+| "bools"               {$$ = std::make_unique<intrp::literal_expression>(intrp::expr_t($1), @$);}
 | "id"                  {$$ = std::make_unique<intrp::identifier_expression>($1, @$);}
 | "id" "(" arg_list ")" %prec FCALL {$$ = std::make_unique<intrp::function_call>($1, std::move($3), @$);};
 
@@ -221,14 +229,43 @@ args:
 | args "," exp {
   $1.push_back(std::move($3));
   $$ = std::move($1);
-}
+};
 
 
-// Choose types types
 
 type:
-  "int" {$$ = intrp::type()}
+  "int"     {$$ = intrp::type(intrp::types::INT);}
+| "bool"    {$$ = intrp::type(intrp::types::BOOL);}
+| "string"  {$$ = intrp::type(intrp::types::STRING);}
+| "(" func_type ")"  {$$ = intrp::type($2);};
 
+
+func_type:
+  type "-" func_type_rec {
+    $3.push_front($1);
+    $$ = intrp::type(std::move($3));
+    }
+| "void" "-" func_res_type {
+  auto typevec = std::vector<intrp::type>();
+  typevec.push_back(intrp::type(intrp::types::VOID));
+  typevec.push_back($3);
+  $$ = intrp::type(std::move(typevec));
+  };
+
+func_res_type:
+  type {$$ = std::move($1);}
+| "void" {$$ = intrp::type(intrp::types::VOID);};
+
+
+ func_type_rec:
+  type "-" func_type_rec {
+  $3.push_front($1);
+  $$ = std::move($3);
+  }
+| func_res_type {
+  $$ = std::vector<intrp::type>();
+  $$.push_back(intrp::type(intrp::types::STRING));
+};
 
 %%
 

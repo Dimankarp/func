@@ -20,7 +20,7 @@ id    [a-zA-Z_][a-zA-Z_0-9]*
 int   [+\-]?[0-9]+
 str   \"([^\n"\\]|\\.)*\" 
 spc   [ \t]
-
+bools (true|false)
 %{
   // Code run each time a pattern is matched.
   // Updates current column of loc.
@@ -67,13 +67,10 @@ spc   [ \t]
 
 "return"  return yy::parser::make_RETURN(loc);
 
-
 "int"    return yy::parser::make_INT_T(loc);
 "bool"   return yy::parser::make_BOOL_T(loc);
 "string" return yy::parser::make_STRING_T(loc);
 "void"   return yy::parser::make_VOID_T(loc);
-{id}     return yy::parser::make_ID(yytext, loc);
-
 
 {str}      {
   std::string str_lit {yytext};
@@ -105,6 +102,13 @@ spc   [ \t]
                                     + std::string(yytext));
   return yy::parser::make_NUM(n, loc);
 }
+
+{bools} {
+  std::string bool_str{yytext};
+  return yy::parser::make_BOOLS(bool_str=="true", loc);
+}
+
+{id}     return yy::parser::make_ID(yytext, loc);
 
 .          {
              throw yy::parser::syntax_error
