@@ -176,7 +176,7 @@ statement:
   type "id" ";" {$$ = std::make_unique<intrp::assign_statement>(std::move($1), $2, @$);}
 | type "id" "=" exp ";" {$$ = std::make_unique<intrp::assign_statement>(std::move($1), $2, std::move($4), @$);}
 | "id" "=" exp ";" {$$ = std::make_unique<intrp::assign_statement>($1, std::move($3), @$);}
-| exp "(" arg_list ")" ";" %prec FCALL {$$ = std::make_unique<intrp::function_call>(std::move($1), std::move($3), @$);}
+| exp "(" arg_list ")" ";" {$$ = std::make_unique<intrp::function_call>(std::move($1), std::move($3), @$);}
 | "if" "(" exp ")" block %prec "if" {$$ = std::make_unique<intrp::if_statement>(std::move($3), std::move($5), @$);}
 | "if" "(" exp ")" block "else" block %prec "else" {
   auto s = std::make_unique<intrp::if_statement>(std::move($3), std::move($5), @$);
@@ -195,8 +195,8 @@ statement:
 %left "%";
 %precedence UMINUS;
 %precedence "!";
-%left "(" "id" "str" "num" "bools"; 
-%precedence FCALL;
+
+%left "("; 
 
 exp:
   exp "+" exp           {$$ = std::make_unique<intrp::binop_expression>(intrp::binop::ADD, std::move($1), std::move($3), @$);}
@@ -216,7 +216,7 @@ exp:
 | "num"                 {$$ = std::make_unique<intrp::literal_expression>(intrp::lit_val($1), @$);}
 | "bools"               {$$ = std::make_unique<intrp::literal_expression>(intrp::lit_val($1), @$);}
 | "id"                  {$$ = std::make_unique<intrp::identifier_expression>($1, @$);}
-| exp "(" arg_list ")" %prec FCALL {$$ = std::make_unique<intrp::function_call>(std::move($1), std::move($3), @$);};
+| exp "(" arg_list ")" {$$ = std::make_unique<intrp::function_call>(std::move($1), std::move($3), @$);};
 
 
 
