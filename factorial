@@ -1,4 +1,10 @@
 int main(string arg){
 	int a = 5;
-	print(a);
+	b = "mew";
+	c = false;
+	
+	while(a > 0){
+		print(a);
+		a = a - 1;
+	}
 }

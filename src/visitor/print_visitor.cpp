@@ -16,13 +16,34 @@ namespace{
   } 
 
   std::unordered_map<intrp::types, std::string> type_name =
-    {
-        {intrp::types::INT, "int"},
-        {intrp::types::STRING, "string"},
-        {intrp::types::BOOL, "bool"},
-        {intrp::types::VOID, "void"},
-        {intrp::types::FUNCTION, "..func.."}
-    };
+  {
+      {intrp::types::INT, "int"},
+      {intrp::types::STRING, "string"},
+      {intrp::types::BOOL, "bool"},
+      {intrp::types::VOID, "void"},
+      {intrp::types::FUNCTION, "..func.."}
+  };
+  
+  std::unordered_map<intrp::binop, std::string> binop_name =
+  {
+      {intrp::binop::ADD, "+"},
+      {intrp::binop::SUB, "-"},
+      {intrp::binop::MUL, "*"},
+      {intrp::binop::DIV, "/"},
+      {intrp::binop::MOD, "%"},
+      {intrp::binop::LESS, "<"},
+      {intrp::binop::GRTR, ">"},
+      {intrp::binop::EQ, "=="},
+      {intrp::binop::NEQ, "!="},
+      {intrp::binop::OR, "||"},
+      {intrp::binop::AND, "&&"}
+  };  
+
+  std::unordered_map<intrp::unarop, std::string> unarop_name =
+  {
+      {intrp::unarop::MINUS, "-"},
+      {intrp::unarop::NOT, "!"}
+  };  
 }
 
 void print_visitor::visit_program(const program & progr){
@@ -126,7 +147,7 @@ void print_visitor::visit_function_call(const function_call & func) {
 };
 
 void print_visitor::visit_binop(const binop_expression & op) {
-  *this << "BINOP: " << op.get_op() << "\n";
+  *this << binop_name[op.get_op()] << "\n";
   offset++;
   op.get_left()->accept(*this);
   op.get_right()->accept(*this);
@@ -134,7 +155,7 @@ void print_visitor::visit_binop(const binop_expression & op) {
 };
 
 void print_visitor::visit_unarop(const unarop_expression & op) {
-  *this << "UNOP: " << op.get_op() << "\n";
+  *this << unarop_name[op.get_op()] << "\n";
   offset++;
   op.get_exp()->accept(*this);
   offset--;
