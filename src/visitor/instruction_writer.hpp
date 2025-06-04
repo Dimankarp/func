@@ -3,7 +3,7 @@
 #include "exception.hpp"
 #include "location.hh"
 #include "type/type.hpp"
-#include "visitor/code_visitor.hpp"
+#include "visitor/register_allocator.hpp"
 #include "visitor/visitor.hpp"
 #include <array>
 #include <cstdint>
@@ -27,17 +27,27 @@ public:
   instruction_writer(std::ostream &out) : out{out} {}
   uint16_t get_next_addr() const { return next_addr; }
 
-  void lui(uint8_t d, uint32_t imm) {
+  void lui(uint8_t d, int32_t imm) {
     out << "lui " << reg(d) << ", " << imm << "\n";
     next_addr++;
   }
 
-  void addi(uint8_t d, uint8_t s, uint32_t imm) {
+  void addi(uint8_t d, uint8_t s, int32_t imm) {
     out << "addi " << reg(d) << ", " << reg(s) << ", " << imm << "\n";
     next_addr++;
   }
 
-  void xori(uint8_t d, uint8_t s, uint32_t imm) {
+  void li(uint8_t d, int32_t imm) {
+    out << "li " << reg(d) << ", " << imm << "\n";
+    next_addr++;
+  }
+
+  void li_label(uint8_t d, std::string label) {
+    out << "li " << reg(d) << ", " << label << "\n";
+    next_addr++;
+  }
+
+  void xori(uint8_t d, uint8_t s, int32_t imm) {
     out << "xori " << reg(d) << ", " << reg(s) << ", " << imm << "\n";
     next_addr++;
   }
@@ -117,23 +127,23 @@ public:
   }
 
   // Memory Access
-  void lw(uint8_t d, uint8_t s, uint32_t imm) {
+  void lw(uint8_t d, uint8_t s, int32_t imm) {
     out << "lw " << reg(d) << ", " << reg(s) << ", " << imm << "\n";
     next_addr++;
   }
 
-  void sw(uint8_t s1, uint32_t imm, uint8_t s2) {
+  void sw(uint8_t s1, int32_t imm, uint8_t s2) {
     out << "sw " << reg(s1) << ", " << imm << ", " << reg(s2) << "\n";
     next_addr++;
   }
 
   // Jump and Link
-  void jalr(uint8_t d, uint8_t s, uint32_t imm) {
+  void jalr(uint8_t d, uint8_t s, int32_t imm) {
     out << "jalr " << reg(d) << ", " << reg(s) << ", " << imm << "\n";
     next_addr++;
   }
 
-  void jal(uint8_t d, uint32_t imm) {
+  void jal(uint8_t d, int32_t imm) {
     out << "jal " << reg(d) << ", " << imm << "\n";
     next_addr++;
   }
@@ -144,22 +154,22 @@ public:
   }
 
   // Branches
-  void beq(uint8_t s1, uint8_t s2, uint32_t imm) {
+  void beq(uint8_t s1, uint8_t s2, int32_t imm) {
     out << "beq " << reg(s1) << ", " << reg(s2) << ", " << imm << "\n";
     next_addr++;
   }
 
-  void bne(uint8_t s1, uint8_t s2, uint32_t imm) {
+  void bne(uint8_t s1, uint8_t s2, int32_t imm) {
     out << "bne " << reg(s1) << ", " << reg(s2) << ", " << imm << "\n";
     next_addr++;
   }
 
-  void blt(uint8_t s1, uint8_t s2, uint32_t imm) {
+  void blt(uint8_t s1, uint8_t s2, int32_t imm) {
     out << "blt " << reg(s1) << ", " << reg(s2) << ", " << imm << "\n";
     next_addr++;
   }
 
-  void bge(uint8_t s1, uint8_t s2, uint32_t imm) {
+  void bge(uint8_t s1, uint8_t s2, int32_t imm) {
     out << "bge " << reg(s1) << ", " << reg(s2) << ", " << imm << "\n";
     next_addr++;
   }
@@ -189,6 +199,8 @@ public:
     lw(src, SP, 0);
     addi(SP, SP, 1);
   }
+
+  
 
   // Arg num starts from 1
   void get_arg(uint8_t dest, uint8_t arg_num) { lw(dest, BP, -arg_num); }

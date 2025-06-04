@@ -4,6 +4,7 @@
 #include "location.hh"
 #include "type/type.hpp"
 #include "visitor/instruction_writer.hpp"
+#include "visitor/register_allocator.hpp"
 #include "visitor/visitor.hpp"
 #include <array>
 #include <cstdint>
@@ -33,7 +34,7 @@ public:
   void start_block() {
     sym_info delim{};
     delim.is_delimeter = true;
-    table.push_back(delim);
+    table.push_back(std::move(delim));
   }
 
   void end_block() {
@@ -46,7 +47,7 @@ public:
   void add(sym_info &&sym) {
 
     auto iter = table.rbegin();
-    while (!iter->is_delimeter) {
+    while (iter != table.rend() && !iter->is_delimeter) {
       if (iter->name == sym.name)
         throw symbol_redeclaratione_exception{sym.name, iter->declare_loc,
                                               sym.declare_loc};
@@ -54,33 +55,6 @@ public:
     }
     table.push_back(std::move(sym));
   }
-};
-
-class reg_allocator {
-
-  /*
-  x31 - stack head points to curr value
-  x30 - stack bottom
-  x29 - return register
-  ...
-  x0 - always 0
-  */
-  const static uint8_t GENERAL_USE_REGISTER_NUM = 32 - 3;
-
-  std::array<bool, GENERAL_USE_REGISTER_NUM> regs;
-
-public:
-  uint8_t alloc() {
-    for (int i = 1; i < regs.size(); i++) {
-      if (!regs[i]) {
-        regs[i] = true;
-        return i;
-      }
-    }
-    throw not_enough_registers_exceptions{};
-  }
-
-  void dealloc(uint8_t reg) { regs[reg] = false; }
 };
 
 class code_visitor : public expression_visitor, public statement_visitor {
