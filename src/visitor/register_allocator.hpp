@@ -1,6 +1,7 @@
 #pragma once
 #include "exception.hpp"
 #include <array>
+#include <cassert>
 #include <cstdint>
 namespace intrp {
 
@@ -21,6 +22,8 @@ public:
   uint8_t alloc() {
     for (int i = 1; i < regs.size(); i++) {
       if (!regs[i]) {
+        std::cout << "#Allocating: " << std::to_string(i) << "\n";
+    
         regs[i] = true;
         return i;
       }
@@ -28,7 +31,23 @@ public:
     throw not_enough_registers_exceptions{};
   }
 
-  void dealloc(uint8_t reg) { regs[reg] = false; }
+  uint8_t alloc(std::string reason) {
+    for (int i = 1; i < regs.size(); i++) {
+      if (!regs[i]) {
+        std::cout << "#Allocating: " << std::to_string(i) << " " << reason << "\n";
+    
+        regs[i] = true;
+        return i;
+      }
+    }
+    throw not_enough_registers_exceptions{};
+  }
+
+  void dealloc(uint8_t reg) {
+    std::cout << "#Deallocating: " << std::to_string(reg) << "\n";
+    assert(regs[reg] == true);
+    regs[reg] = false;
+  }
 };
 
 } // namespace intrp

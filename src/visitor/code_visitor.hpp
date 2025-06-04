@@ -10,6 +10,8 @@
 #include <cstdint>
 #include <list>
 #include <memory>
+#include <string>
+#include <utility>
 
 namespace intrp {
 
@@ -25,6 +27,21 @@ struct sym_info {
   uint16_t offset;
   yy::location declare_loc = yy::location{};
   bool is_delimeter = false;
+
+public:
+  sym_info(const std::string &name,
+           const std::unique_ptr<intrp::type> &type_obj,
+           decltype(STACK) access_type, uint16_t offset,
+           yy::location declare_loc = yy::location{}, bool is_delimeter = false)
+      : name{name}, type_obj{type_obj->clone()}, access_type{access_type},
+        offset{offset}, declare_loc{declare_loc}, is_delimeter{is_delimeter} {}
+  sym_info() = default;
+  sym_info(const sym_info &sym)
+      : name{sym.name}, access_type{sym.access_type}, offset{sym.offset},
+        declare_loc{sym.declare_loc}, is_delimeter{sym.is_delimeter} {
+    if (sym.type_obj != nullptr)
+      type_obj = sym.type_obj->clone();
+  }
 };
 
 class sym_table {
@@ -55,6 +72,16 @@ public:
     }
     table.push_back(std::move(sym));
   }
+
+  const sym_info &find(string sym) {
+    auto iter = table.rbegin();
+    while (iter != table.rend()) {
+      if (!iter->is_delimeter && iter->name == sym)
+        return *iter;
+      iter++;
+    }
+    throw symbol_not_found_exception{};
+  }
 };
 
 class code_visitor : public expression_visitor, public statement_visitor {
@@ -64,6 +91,7 @@ private:
   sym_table table;
   reg_allocator alloc;
   intrp::instr::instruction_writer writer;
+  uint16_t stack_height = 0;
 
 public:
   code_visitor(std::ostream &out);

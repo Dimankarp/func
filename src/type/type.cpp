@@ -24,6 +24,9 @@ std::unique_ptr<type> void_type::clone() {
 };
 
 types function_type::get_type() { return types::FUNCTION; }
+const std::vector<std::unique_ptr<type>>& function_type::get_signature(){
+  return signature;
+}
 
 function_type::function_type(std::vector<std::unique_ptr<type>> &&sign)
     : signature{std::move(sign)} {}

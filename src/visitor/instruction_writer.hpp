@@ -39,12 +39,12 @@ public:
 
   void li(uint8_t d, int32_t imm) {
     out << "li " << reg(d) << ", " << imm << "\n";
-    next_addr++;
+    next_addr += imm >= (1 << 20) ? 2 : 1;
   }
 
   void li_label(uint8_t d, std::string label) {
     out << "li " << reg(d) << ", " << label << "\n";
-    next_addr++;
+    next_addr += 2;
   }
 
   void xori(uint8_t d, uint8_t s, int32_t imm) {
@@ -200,15 +200,15 @@ public:
     addi(SP, SP, 1);
   }
 
-  
-
   // Arg num starts from 1
   void get_arg(uint8_t dest, uint8_t arg_num) { lw(dest, BP, -arg_num); }
 
   void label(std::string label) { out << label << ": " << "\n"; }
 
+  void mov(uint8_t dest, uint8_t src) { addi(dest, src, 0); }
+
   void call_start(reg_allocator &alloc, uint8_t args_count) {
-    auto r = alloc.alloc();
+    auto r = alloc.alloc("Call_Start push pc & puch bp");
     // Push pc
     jal(r, 0);
     addi(r, r, 7 + (args_count * 2)); // push of arg is 2 instr
@@ -218,7 +218,7 @@ public:
     push(BP);
 
     // BP <- SP
-    addi(BP, SP, 0);
+    mov(BP, SP);
     alloc.dealloc(r);
   }
 
@@ -234,11 +234,13 @@ public:
     pop(BP);
 
     // Pop PC
-    auto r = alloc.alloc();
+    auto r = alloc.alloc("Pop PC");
     pop(r);
     jalr(0, r, 0);
     alloc.dealloc(r);
   }
+
+
 
 private:
   std::string reg(uint8_t n) { return "x" + std::to_string(n); }

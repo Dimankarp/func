@@ -43,6 +43,7 @@ class function_type : public type {
 
 public:
   function_type(std::vector<std::unique_ptr<type>> &&sign);
+  const std::vector<std::unique_ptr<type>>& get_signature();
   types get_type() override;
   std::unique_ptr<type> clone() override;
 };

@@ -1,3 +1,6 @@
-int main(string a){
-
+int print_5(){
+    return 99;
+}
+int main(){
+    print(print_5());
 }

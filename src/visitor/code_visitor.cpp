@@ -15,7 +15,7 @@ code_visitor::code_visitor(std::ostream &out) : out{out}, writer{out} {}
 
 void code_visitor::declare_print_func() {
   writer.label("PRINT");
-  auto r = alloc.alloc();
+  auto r = alloc.alloc("Get PRINT arg from stack");
   writer.get_arg(r, 1);
   writer.ewrite(r);
   alloc.dealloc(r);
@@ -25,8 +25,10 @@ void code_visitor::declare_print_func() {
 void code_visitor::visit_program(const program &progr) {
   out << "#Enter program\n";
   writer.label("_START");
-  auto r = alloc.alloc();
-  writer.li_label(r, "MAIN");
+  writer.li(instr::SP, (1 << 16));
+  writer.li(instr::BP, (1 << 16));
+  auto r = alloc.alloc("Store addres for main");
+  writer.li_label(r, "main");
   writer.call_start(alloc, 0);
   writer.call_end(r);
   alloc.dealloc(r);
@@ -46,6 +48,7 @@ void code_visitor::visit_program(const program &progr) {
   for (const auto &func : progr.get_funcs()) {
     func->accept(*this);
   }
+  out << "#Done program\n";
 }
 
 void code_visitor::visit_function(const function &f) {
@@ -62,28 +65,107 @@ void code_visitor::visit_function(const function &f) {
 
   table.add(std::move(info));
   writer.label(f.get_identifier()); // TODO: MANGLE
+
+  this->stack_height = f.get_params().size();
+
   f.get_block()->accept(*this);
+  out << "#Done function " << f.get_identifier() << "\n";
 }
 
 void code_visitor::visit_block(const block_statement &b) {
+  out << "#Enter block " << "\n";
   table.start_block();
 
   for (const auto &st : b.get_statements()) {
     st->accept(*this);
   }
   table.end_block();
+  out << "#Done block " << "\n";
 }
+
+void code_visitor::visit_function_call(const function_call &fc) {
+  out << "#Enter function call" << "\n";
+  fc.get_func()->accept(*this);
+  expr_result func = std::move(this->result);
+
+  auto r = alloc.alloc("Get function result from RR");
+
+  // TODO: Typecheck
+
+  std::vector<uint8_t> arg_regs{};
+  for (const auto &e : fc.get_arg_list()) {
+    e->accept(*this);
+    arg_regs.push_back(this->result.reg_num);
+  }
+  writer.call_start(alloc, arg_regs.size());
+  for (auto &arg : arg_regs) {
+    writer.push(arg);
+    alloc.dealloc(arg);
+  }
+  writer.call_end(func.reg_num);
+  alloc.dealloc(func.reg_num);
+
+  this->result.type_obj =
+      std::move((dynamic_cast<function_type *>(func.type_obj.get()))
+                    ->get_signature()
+                    .back()
+                    ->clone());
+  writer.mov(r, instr::RR);
+  this->result.reg_num = r;
+  out << "#Done function call" << "\n";
+};
+
+void code_visitor::visit_identifier(const identifier_expression &id) {
+  out << "#Enter identifier " << id.get_identificator() << "\n";
+  auto sym = table.find(id.get_identificator());
+  auto r = alloc.alloc("Identifier return register");
+  switch (sym.access_type) {
+
+  case sym_info::STACK:
+    writer.get_arg(r, sym.offset);
+    break;
+  case sym_info::ABS:
+    writer.li(r, sym.offset);
+    break;
+  }
+  this->result.reg_num = r;
+  this->result.type_obj = std::move(sym.type_obj->clone());
+
+  out << "#Done identifier " << id.get_identificator() << "\n";
+};
+
+void code_visitor::visit_literal(const literal_expression &lit) {
+  out << "#Enter literal " << "\n";
+  intrp::lit_val val = lit.get_val();
+  auto r = alloc.alloc("Literal return register");
+  if (auto *v = std::get_if<int>(&val)) {
+    writer.li(r, *v);
+    result.type_obj = std::make_unique<int_type>();
+  } else if (auto *v = std::get_if<bool>(&val)) {
+    writer.li(r, *v ? 1 : 0);
+    result.type_obj = std::make_unique<bool_type>();
+  } else if (auto *v = std::get_if<std::string>(&val)) {
+    // TODO:
+  }
+
+  result.reg_num = r;
+  out << "#Done literal " << "\n";
+};
+
+void code_visitor::visit_return(const return_statement &ret) {
+  if (ret.get_exp() != nullptr) {
+    ret.get_exp()->accept(*this);
+    writer.mov(instr::RR, result.reg_num);
+    alloc.dealloc(result.reg_num);
+  }
+  writer.ret(alloc);
+};
 
 void code_visitor::visit_binop(const binop_expression &) {};
 void code_visitor::visit_unarop(const unarop_expression &) {};
-void code_visitor::visit_literal(const literal_expression &) {};
-void code_visitor::visit_identifier(const identifier_expression &) {};
-void code_visitor::visit_function_call(const function_call &) {};
 
-void code_visitor::visit_return(const return_statement &) {};
 void code_visitor::visit_assign(const assign_statement &) {};
 void code_visitor::visit_if(const if_statement &) {};
 void code_visitor::visit_while(const while_statement &) {};
-
 
 } // namespace intrp

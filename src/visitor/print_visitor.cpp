@@ -115,8 +115,9 @@ void print_visitor::visit_assign(const assign_statement & statem) {
 
 void print_visitor::visit_return(const return_statement & ret) {
   *this << "return" << "\n";
-  offset++;
-  ret.get_exp()->accept(*this);
+  offset++; 
+  if(ret.get_exp() != nullptr)
+    ret.get_exp()->accept(*this);
   offset--;
 };
 
