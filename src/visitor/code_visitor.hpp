@@ -3,6 +3,7 @@
 #include "exception.hpp"
 #include "location.hh"
 #include "type/type.hpp"
+#include "visitor/instruction_writer.hpp"
 #include "visitor/visitor.hpp"
 #include <array>
 #include <cstdint>
@@ -19,7 +20,7 @@ struct expr_result {
 struct sym_info {
   std::string name;
   std::unique_ptr<intrp::type> type_obj;
-  enum : char { STACK, LABEL } access_type;
+  enum : char { STACK, ABS } access_type;
   uint16_t offset;
   yy::location declare_loc = yy::location{};
   bool is_delimeter = false;
@@ -87,8 +88,12 @@ private:
   std::reference_wrapper<std::ostream> out;
   expr_result result;
   sym_table table;
+  reg_allocator alloc;
+  intrp::instr::instruction_writer writer;
 
 public:
+  code_visitor(std::ostream &out);
+
   void visit_binop(const binop_expression &) override;
   void visit_unarop(const unarop_expression &) override;
   void visit_literal(const literal_expression &) override;
@@ -102,60 +107,9 @@ public:
   void visit_if(const if_statement &) override;
   void visit_while(const while_statement &) override;
   void visit_function(const function &) override;
+
+private:
+  void declare_print_func();
 };
-
-namespace instr {
-
-const uint8_t SP = 31;
-const uint8_t BP = 30;
-const uint8_t RR = 29; // Return register
-
-inline std::string reg(uint8_t n) { return "x" + std::to_string(n); }
-
-inline void push(std::ostream &s, uint8_t src) {
-  s << "addi x31, x31, -1\n";
-  s << "sw x31, 0, " << reg(src) << "\n";
-}
-
-inline void pop(std::ostream &s, uint8_t src) {
-  s << "lw " << reg(src) << ", " << reg(SP) << ", 0\n";
-  s << "addi x31, x31, 1\n";
-}
-
-inline void call(std::ostream &s, reg_allocator &alloc, std::string &label) {
-  auto r = alloc.alloc();
-  // Push pc
-  s << "jal " << reg(r) << ", 0" << "\n";
-  s << "addi " << reg(r) << ", " << reg(r) << ", 7\n"; // Potential BUG!!!!
-  instr::push(s, r);
-
-  // Push bp (x30)
-  instr::push(s, BP);
-
-  // BP <- SP
-  s << "addi " << reg(BP) << ", " << reg(SP) << ", 0\n";
-
-  // Jump
-  s << "jal  " << "x0, " << label << "\n";
-
-  alloc.dealloc(r);
-}
-
-inline void ret(std::ostream &s, reg_allocator &alloc) {
-  // SP <- BP
-  s << "addi " << reg(SP) << ", " << reg(BP) << ", 0\n";
-
-  // Pop BP
-  pop(s, BP);
-
-  // Pop PC
-  auto r = alloc.alloc();
-  pop(s, r);
-  s << "jalr " << "x0, " << reg(r) << ", " << "0\n";
-
-  alloc.dealloc(r);
-}
-
-} // namespace instr
 
 } // namespace intrp
