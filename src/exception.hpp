@@ -1,6 +1,7 @@
 #pragma once
 
 #include "location.hh"
+#include <sstream>
 #include <string>
 namespace intrp {
 
@@ -12,6 +13,19 @@ struct syntax_exception {
 struct undeclared_variable_exception : public syntax_exception {};
 
 struct unexpected_type_exception : public syntax_exception {};
+
+struct symbol_redeclaratione_exception : public syntax_exception {
+  symbol_redeclaratione_exception(std::string sym, yy::location origin_loc,
+                                  yy::location current_loc) {
+    this->loc = current_loc;
+    std::stringstream ss{};
+    ss << "Symbol redeclaration: " << sym << " originally declared at "
+       << origin_loc;
+    this->reason = ss.str();
+  }
+};
+
+struct not_enough_registers_exceptions {};
 
 std::ostream &operator<<(std::ostream &outs, const syntax_exception &e);
 } // namespace intrp
