@@ -21,6 +21,8 @@ int   [+\-]?[0-9]+
 str   \"([^\n"\\]|\\.)*\" 
 spc   [ \t]
 bools (true|false)
+ln_cmmnt \/\/[^\n]*\n
+mltln_cmmnt \/\*([^*]|\*+[^*\/])*\*+\/
 %{
   // Code run each time a pattern is matched.
   // Updates current column of loc.
@@ -38,6 +40,16 @@ bools (true|false)
 
 {spc}+   loc.step();
 [\n]+    loc.lines (yyleng); loc.step();
+{ln_cmmnt} loc.lines(1); loc.step();
+{mltln_cmmnt} {
+  int lines = 0;
+  
+  for(int i = 0; i < yyleng; i++)
+    lines+= yytext[i]=='\n';
+
+  if(lines > 0)loc.lines(lines);
+  loc.step();
+}
 
 ";"      return yy::parser::make_EOS(loc);
 ","      return yy::parser::make_COMMA(loc);

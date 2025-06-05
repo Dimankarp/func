@@ -1,5 +1,7 @@
+//This is a regular comment
 int print_5(){
     return 99;
+    /* This is a multiline comment */
 }
 int main(){
     print(print_5());
