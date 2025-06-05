@@ -211,41 +211,45 @@ void code_visitor::visit_binop(const binop_expression &bop) {
   expr_result left = std::move(this->result);
   bop.get_right()->accept(*this);
   expr_result right = std::move(this->result);
-
-  switch (bop.get_op()) {
-  case binop::ADD:
-    this->result = expr_add(writer, alloc, left, right);
-    break;
-  case binop::SUB:
-    this->result = expr_sub(writer, alloc, left, right);
-    break;
-  case binop::MUL:
-    this->result = expr_mul(writer, alloc, left, right);
-    break;
-  case binop::DIV:
-    this->result = expr_div(writer, alloc, left, right);
-    break;
-  case binop::MOD:
-    this->result = expr_rem(writer, alloc, left, right);
-    break;
-  case binop::LESS:
-    this->result = expr_less(writer, alloc, left, right);
-    break;
-  case binop::GRTR:
-    this->result = expr_grtr(writer, alloc, left, right);
-    break;
-  case binop::EQ:
-    this->result = expr_eq(writer, alloc, left, right);
-    break;
-  case binop::NEQ:
-    this->result = expr_neq(writer, alloc, left, right);
-    break;
-  case binop::OR:
-    this->result = expr_or(writer, alloc, left, right);
-    break;
-  case binop::AND:
-    this->result = expr_add(writer, alloc, left, right);
-    break;
+  try {
+    switch (bop.get_op()) {
+    case binop::ADD:
+      this->result = expr_add(writer, alloc, left, right);
+      break;
+    case binop::SUB:
+      this->result = expr_sub(writer, alloc, left, right);
+      break;
+    case binop::MUL:
+      this->result = expr_mul(writer, alloc, left, right);
+      break;
+    case binop::DIV:
+      this->result = expr_div(writer, alloc, left, right);
+      break;
+    case binop::MOD:
+      this->result = expr_rem(writer, alloc, left, right);
+      break;
+    case binop::LESS:
+      this->result = expr_less(writer, alloc, left, right);
+      break;
+    case binop::GRTR:
+      this->result = expr_grtr(writer, alloc, left, right);
+      break;
+    case binop::EQ:
+      this->result = expr_eq(writer, alloc, left, right);
+      break;
+    case binop::NEQ:
+      this->result = expr_neq(writer, alloc, left, right);
+      break;
+    case binop::OR:
+      this->result = expr_or(writer, alloc, left, right);
+      break;
+    case binop::AND:
+      this->result = expr_add(writer, alloc, left, right);
+      break;
+    }
+  } catch (unexpected_type_exception &e) {
+    e.loc = bop.get_loc();
+    throw e;
   }
   alloc.dealloc(left.reg_num);
   alloc.dealloc(right.reg_num);
