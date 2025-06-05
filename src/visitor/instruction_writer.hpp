@@ -265,6 +265,24 @@ public:
     jal_label(0, label);
   }
 
+  // Built in funcs 
+
+  void write_func(reg_allocator &alloc) { 
+    label("WRITE");
+    auto r = alloc.alloc("Get WRITE arg from stack");
+    get_arg(r, 1);
+    ewrite(r);
+    alloc.dealloc(r);
+    ret(alloc);
+  }
+
+  void read_func() { 
+    label("READ");
+    eread(RR);
+    ret(alloc);
+  }
+
+
 private:
   std::string reg(uint8_t n) { return "x" + std::to_string(n); }
 };

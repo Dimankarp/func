@@ -14,13 +14,32 @@ namespace intrp {
 
 code_visitor::code_visitor(std::ostream &out) : out{out}, writer{out} {}
 
-void code_visitor::declare_print_func() {
-  writer.label("PRINT");
-  auto r = alloc.alloc("Get PRINT arg from stack");
-  writer.get_arg(r, 1);
-  writer.ewrite(r);
-  alloc.dealloc(r);
-  writer.ret(alloc);
+void code_visitor::declare_write_func() {
+  auto func_addr = writer.get_next_addr();
+
+  writer.write_func(alloc);
+
+  std::vector<unique_ptr<intrp::type>> write_sign;
+  write_sign.push_back(std::make_unique<int_type>());
+  write_sign.push_back(std::make_unique<void_type>());
+  auto info = sym_info{
+      "write", std::make_unique<intrp::function_type>(std::move(func_addr)),
+      sym_info::ABS, print_addr};
+  table.add(std::move(info));
+}
+
+void code_visitor::declare_read_func() {
+  auto func_addr = writer.get_next_addr();
+
+  writer.read_func();
+
+  std::vector<unique_ptr<intrp::type>> read_sign;
+  read_sign.push_back(std::make_unique<void_type>());
+  read_sign.push_back(std::make_unique<int_type>());
+  auto info = sym_info{
+      "read", std::make_unique<intrp::function_type>(std::move(read_sign)),
+      sym_info::ABS, func_addr};
+  table.add(std::move(info));
 }
 
 void code_visitor::visit_program(const program &progr) {
@@ -35,16 +54,9 @@ void code_visitor::visit_program(const program &progr) {
   alloc.dealloc(r);
   writer.ebreak();
 
-  auto print_addr = writer.get_next_addr();
-
+  declare_write_func();
   declare_print_func();
-  std::vector<unique_ptr<intrp::type>> print_sign;
-  print_sign.push_back(std::make_unique<int_type>());
-  print_sign.push_back(std::make_unique<void_type>());
-  auto info = sym_info{
-      "print", std::make_unique<intrp::function_type>(std::move(print_sign)),
-      sym_info::ABS, print_addr};
-  table.add(std::move(info));
+  
   out << "#Iterating through functions\n";
   for (const auto &func : progr.get_funcs()) {
     func->accept(*this);
