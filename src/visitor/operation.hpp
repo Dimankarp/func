@@ -17,6 +17,28 @@ template <typename T> T expect(const expr_result &exp) {
 expr_result expr_add(instr::instruction_writer &w, reg_allocator &alloc,
                      const expr_result &a, const expr_result &b);
 
+expr_result expr_sub(instr::instruction_writer &w, reg_allocator &alloc,
+                     const expr_result &a, const expr_result &b);
 
+expr_result expr_mul(instr::instruction_writer &w, reg_allocator &alloc,
+                     const expr_result &a, const expr_result &b);
+expr_result expr_div(instr::instruction_writer &w, reg_allocator &alloc,
+                     const expr_result &a, const expr_result &b);
+
+expr_result expr_rem(instr::instruction_writer &w, reg_allocator &alloc,
+                     const expr_result &a, const expr_result &b);
+expr_result expr_less(instr::instruction_writer &w, reg_allocator &alloc,
+                      const expr_result &a, const expr_result &b);
+expr_result expr_grtr(instr::instruction_writer &w, reg_allocator &alloc,
+                      const expr_result &a, const expr_result &b);
+
+expr_result expr_eq(instr::instruction_writer &w, reg_allocator &alloc,
+                    const expr_result &a, const expr_result &b);
+expr_result expr_neq(instr::instruction_writer &w, reg_allocator &alloc,
+                     const expr_result &a, const expr_result &b);
+expr_result expr_or(instr::instruction_writer &w, reg_allocator &alloc,
+                    const expr_result &a, const expr_result &b);
+expr_result expr_and(instr::instruction_writer &w, reg_allocator &alloc,
+                     const expr_result &a, const expr_result &b);
 
 } // namespace intrp

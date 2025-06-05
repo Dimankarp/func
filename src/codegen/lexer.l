@@ -17,7 +17,7 @@
 %option noyywrap nounput batch debug noinput
 
 id    [a-zA-Z_][a-zA-Z_0-9]*
-int   [+\-]?[0-9]+
+int   [0-9]+
 str   \"([^\n"\\]|\\.)*\" 
 spc   [ \t]
 bools (true|false)
