@@ -3,6 +3,7 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
+#include <vector>
 namespace intrp {
 
 class reg_allocator {
@@ -15,15 +16,13 @@ class reg_allocator {
   x0 - always 0
   */
   const static uint8_t GENERAL_USE_REGISTER_NUM = 32 - 3;
-
-  std::array<bool, GENERAL_USE_REGISTER_NUM> regs;
+  std::array<bool, GENERAL_USE_REGISTER_NUM> regs{};
 
 public:
   uint8_t alloc() {
     for (int i = 1; i < regs.size(); i++) {
       if (!regs[i]) {
         std::cout << "#Allocating: " << std::to_string(i) << "\n";
-    
         regs[i] = true;
         return i;
       }
@@ -34,13 +33,22 @@ public:
   uint8_t alloc(std::string reason) {
     for (int i = 1; i < regs.size(); i++) {
       if (!regs[i]) {
-        std::cout << "#Allocating: " << std::to_string(i) << " " << reason << "\n";
-    
+        std::cout << "#Allocating: " << std::to_string(i) << " " << reason
+                  << "\n";
         regs[i] = true;
         return i;
       }
     }
     throw not_enough_registers_exceptions{};
+  }
+
+  std::vector<uint8_t> get_allocated_regs() {
+    std::vector<uint8_t> allocated;
+    for (int i = 1; i < regs.size(); i++) {
+      if (regs[i])
+        allocated.push_back(i);
+    }
+    return allocated;
   }
 
   void dealloc(uint8_t reg) {

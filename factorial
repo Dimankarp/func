@@ -3,4 +3,5 @@ int print_5(){
 }
 int main(){
     print(print_5());
+    return 0;
 }

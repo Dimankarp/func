@@ -4,6 +4,7 @@
 #include "node/statement.hpp"
 #include "type/type.hpp"
 #include "visitor/instruction_writer.hpp"
+#include "visitor/register_allocator.hpp"
 #include "visitor/visitor.hpp"
 #include <cstdint>
 #include <list>
@@ -82,9 +83,31 @@ void code_visitor::visit_block(const block_statement &b) {
   table.end_block();
   out << "#Done block " << "\n";
 }
+namespace {
+std::vector<uint8_t> push_regs_before_call(instr::instruction_writer &w,
+                                           reg_allocator &alloc) {
+  auto regs = alloc.get_allocated_regs();
+  for (auto r : regs) {
+    w.push(r);
+  }
+  return regs;
+}
 
+void pop_regs_after_call(instr::instruction_writer &w,
+                         std::vector<uint8_t> &regs) {
+  auto iter = regs.rbegin();
+  while (iter != regs.rend()) {
+    w.pop(*iter);
+    iter++;
+  }
+}
+
+} // namespace
 void code_visitor::visit_function_call(const function_call &fc) {
   out << "#Enter function call" << "\n";
+  out << "#Pushing regs" << "\n";
+  auto regs = push_regs_before_call(writer, alloc);
+
   fc.get_func()->accept(*this);
   expr_result func = std::move(this->result);
 
@@ -112,6 +135,9 @@ void code_visitor::visit_function_call(const function_call &fc) {
                     ->clone());
   writer.mov(r, instr::RR);
   this->result.reg_num = r;
+
+  out << "#Recovering regs" << "\n";
+  pop_regs_after_call(writer, regs);
   out << "#Done function call" << "\n";
 };
 
