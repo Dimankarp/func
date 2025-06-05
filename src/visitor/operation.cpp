@@ -111,4 +111,19 @@ expr_result expr_and(instr::instruction_writer &w, reg_allocator &alloc,
   return expr_result{std::make_unique<intrp::bool_type>(), r};
 }
 
+expr_result expr_minus(instr::instruction_writer &w, reg_allocator &alloc,
+                       const expr_result &a) {
+  expect<intrp::int_type>(a);
+  auto r = alloc.alloc();
+  w.sub(r, 0, a.reg_num);
+  return expr_result{std::make_unique<intrp::int_type>(), r};
+}
+expr_result expr_not(instr::instruction_writer &w, reg_allocator &alloc,
+                     const expr_result &a) {
+  expect<intrp::bool_type>(a);
+  auto r = alloc.alloc();
+  w.xori(r, a.reg_num, 1);
+  return expr_result{std::make_unique<intrp::bool_type>(), r};
+}
+
 } // namespace intrp

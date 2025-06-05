@@ -41,4 +41,9 @@ expr_result expr_or(instr::instruction_writer &w, reg_allocator &alloc,
 expr_result expr_and(instr::instruction_writer &w, reg_allocator &alloc,
                      const expr_result &a, const expr_result &b);
 
+                     expr_result expr_minus(instr::instruction_writer &w, reg_allocator &alloc,
+                      const expr_result &a);
+                      expr_result expr_not(instr::instruction_writer &w, reg_allocator &alloc,
+                        const expr_result &a);
+
 } // namespace intrp

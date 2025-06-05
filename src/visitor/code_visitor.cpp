@@ -79,11 +79,9 @@ void code_visitor::visit_function(const function &f) {
                        sym_info::STACK, static_cast<uint16_t>(i + 1)});
   }
 
-
   writer.label(f.get_identifier()); // TODO: MANGLE
   this->stack_height = f.get_params().size();
   f.get_block()->accept(*this);
-
 
   // Ending block for func param
   table.end_block();
@@ -272,7 +270,6 @@ void code_visitor::visit_binop(const binop_expression &bop) {
   alloc.dealloc(right.reg_num);
 };
 
-
 void code_visitor::visit_assign(const assign_statement &stm) {
   /*
   3 Variants:
@@ -305,7 +302,25 @@ void code_visitor::visit_assign(const assign_statement &stm) {
   }
 };
 
-void code_visitor::visit_unarop(const unarop_expression &) {};
+void code_visitor::visit_unarop(const unarop_expression &unop) {
+  unop.get_exp()->accept(*this);
+  expr_result res = std::move(this->result);
+  try {
+    switch (unop.get_op()) {
+
+    case unarop::MINUS:
+      this->result = expr_minus(writer, alloc, res);
+      break;
+    case unarop::NOT:
+      this->result = expr_not(writer, alloc, res);
+      break;
+    }
+  } catch (unexpected_type_exception &e) {
+    e.loc = unop.get_loc();
+    throw e;
+  }
+  alloc.dealloc(res.reg_num);
+};
 void code_visitor::visit_if(const if_statement &) {};
 void code_visitor::visit_while(const while_statement &) {};
 

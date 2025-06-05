@@ -5,16 +5,11 @@ int num(){
     This is a multiline comment 
     */
 }
-void print_num((void-int) get_num){
-    print(get_num());
-    return;
-}
+
 
 int main(){
-    (void-int) num_var = num;
-    ((void-int)-void) print_var = print_num;
-    print_var(num_var);
-    return 0;
+    print(num() + 10 + (-(5 + 1)));
+    return;
 }
 
 
