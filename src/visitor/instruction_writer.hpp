@@ -197,6 +197,21 @@ public:
     sw(SP, 0, src);
   }
 
+  void push_str(reg_allocator &alloc, std::string& str){
+    auto r = alloc.alloc("For pushing str on stack");
+    addi(r, 0, '\0');
+    sw(SP, -1, r);
+  
+    for(int i = 0; i < str.length(); i++){
+      auto offset = -i - 2;
+      auto sym = *(str.rbegin()+i);
+      addi(r, 0, sym);
+      sw(SP, offset, r);
+    }
+    addi(SP, SP, -(str.length() + 1));
+    alloc.dealloc(r);
+  }
+
   void pop(uint8_t src) {
     lw(src, SP, 0);
     addi(SP, SP, 1);
