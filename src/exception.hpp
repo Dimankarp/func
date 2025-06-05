@@ -25,9 +25,9 @@ struct symbol_redeclaratione_exception : public syntax_exception {
   }
 };
 
-struct not_enough_registers_exceptions {};
+struct symbol_not_found_exception : public syntax_exception {};
 
-struct symbol_not_found_exception{};
+struct not_enough_registers_exceptions {};
 
 std::ostream &operator<<(std::ostream &outs, const syntax_exception &e);
 } // namespace intrp

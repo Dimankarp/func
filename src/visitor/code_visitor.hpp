@@ -79,7 +79,7 @@ public:
         return *iter;
       iter++;
     }
-    throw symbol_not_found_exception{};
+    throw symbol_not_found_exception({sym, yy::location{}});
   }
 };
 

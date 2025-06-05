@@ -33,6 +33,9 @@ int main(int argc, char *argv[]) {
       } catch (intrp::unexpected_type_exception &e) {
         std::cout << "Syntax error: unexpected type " << e << "\n";
         exit(1);
+      } catch (intrp::symbol_not_found_exception &e) {
+        std::cout << "Syntax error: symbol not found " << e << "\n";
+        exit(1);
       } catch (intrp::syntax_exception &e) {
         std::cout << "Syntax error: " << e << "\n";
         exit(1);

@@ -1,13 +1,20 @@
 //This is a regular comment
 int num(){
-    return 48;
-    /* This is a multiline comment */
+    return 48; //'0' in ASCII
+    /* 
+    This is a multiline comment 
+    */
 }
+void print_num((void-int) get_num){
+    print(get_num());
+    return;
+}
+
 int main(){
-    print(num() + 1);
-    print(num() + 5 - 1);
-    print(99 + 2 * 1);
-    print(num() + 4%2);
-    print(num() + (5 < 2));
+    (void-int) num_var = num;
+    ((void-int)-void) print_var = print_num;
+    print_var(num_var);
     return 0;
 }
+
+

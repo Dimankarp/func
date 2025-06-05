@@ -7,9 +7,7 @@
 #include "visitor/instruction_writer.hpp"
 #include "visitor/operation.hpp"
 #include "visitor/register_allocator.hpp"
-#include "visitor/visitor.hpp"
 #include <cstdint>
-#include <list>
 #include <memory>
 
 namespace intrp {
@@ -57,9 +55,11 @@ void code_visitor::visit_program(const program &progr) {
 void code_visitor::visit_function(const function &f) {
   out << "#Enter function " << f.get_identifier() << "\n";
   auto signature = std::vector<unique_ptr<type>>();
+
   for (const auto &p : f.get_params()) {
     signature.push_back(p.get_type()->clone());
   }
+
   signature.push_back(f.get_type()->clone());
   auto info =
       sym_info{f.get_identifier(),
@@ -67,11 +67,26 @@ void code_visitor::visit_function(const function &f) {
                sym_info::ABS, writer.get_next_addr()};
 
   table.add(std::move(info));
+
+  // Staring block for func param
+  table.start_block();
+
+  for (int i = 0; i < f.get_params().size(); i++) {
+    auto &param = f.get_params()[i];
+
+    // Registering parameters
+    table.add(sym_info{param.get_identifier(), param.get_type()->clone(),
+                       sym_info::STACK, static_cast<uint16_t>(i + 1)});
+  }
+
+
   writer.label(f.get_identifier()); // TODO: MANGLE
-
   this->stack_height = f.get_params().size();
-
   f.get_block()->accept(*this);
+
+
+  // Ending block for func param
+  table.end_block();
   out << "#Done function " << f.get_identifier() << "\n";
 }
 
@@ -104,28 +119,30 @@ void pop_regs_after_call(instr::instruction_writer &w,
   }
 }
 
-void load_variable(uint16_t d, sym_info& sym){
+void load_variable(instr::instruction_writer &writer, uint8_t d,
+                   sym_info &sym) {
   switch (sym.access_type) {
-    case sym_info::STACK:
-      writer.get_arg(d, sym.offset);
-      break;
-    case sym_info::ABS:
-      writer.li(d, sym.offset);
-      break;
+  case sym_info::STACK:
+    writer.get_arg(d, sym.offset);
+    break;
+  case sym_info::ABS:
+    writer.li(d, sym.offset);
+    break;
   }
 }
 
-void store_variable(uint16_t s, sym_info& sym){
+void store_variable(instr::instruction_writer &writer, reg_allocator &alloc,
+                    uint8_t s, const sym_info &sym) {
   switch (sym.access_type) {
-    case sym_info::STACK:
-      writer.put_arg(s, sym.offset);
-      break;
-    case sym_info::ABS:
-      auto r = alloc.alloc("Address of variable to store");
-      writer.li(r, sym.offset);
-      writer.sw(r, 0, s);
-      alloc.dealloc(r);
-      break;
+  case sym_info::STACK:
+    writer.put_arg(s, sym.offset);
+    break;
+  case sym_info::ABS:
+    auto r = alloc.alloc("Address of variable to store");
+    writer.li(r, sym.offset);
+    writer.sw(r, 0, s);
+    alloc.dealloc(r);
+    break;
   }
 }
 
@@ -172,7 +189,7 @@ void code_visitor::visit_identifier(const identifier_expression &id) {
   out << "#Enter identifier " << id.get_identificator() << "\n";
   auto sym = table.find(id.get_identificator());
   auto r = alloc.alloc("Identifier return register");
-  load_variable(r, sym);
+  load_variable(writer, r, sym);
   this->result.reg_num = r;
   this->result.type_obj = std::move(sym.type_obj->clone());
 
@@ -254,37 +271,41 @@ void code_visitor::visit_binop(const binop_expression &bop) {
   alloc.dealloc(left.reg_num);
   alloc.dealloc(right.reg_num);
 };
-void code_visitor::visit_unarop(const unarop_expression &) {};
 
-void code_visitor::visit_assign(const assign_statement & stm) {
-  struct intrp::sym_info& sym;
 
-  if (stm.get_type() != nullptr){
+void code_visitor::visit_assign(const assign_statement &stm) {
+  /*
+  3 Variants:
+  int a;
+  int a = 42;
+  a = 42;
+  */
+
+  if (stm.get_type() != nullptr) {
     // push on stack
     writer.push(0);
     stack_height++;
 
     // add to sym_table
-    sym =
-      sym_info{stm.get_identifier(),
-               stm.get_type()->clone(),
-               sym_info::STACK, stack_height};
+    sym_info sym = sym_info{stm.get_identifier(), stm.get_type()->clone(),
+                            sym_info::STACK, stack_height};
     table.add(std::move(sym));
-  } else{
-    sym = table.find(id.get_identificator());
   }
 
+  const sym_info &sym = table.find(stm.get_identifier());
+
   // count expression and save result
-  if (stm.get_exp() != nullptr ){
+  if (stm.get_exp() != nullptr) {
     stm.get_exp()->accept(*this);
 
     // TODO: Typecheck
 
-    store_variable(result.reg_num, sym);
+    store_variable(writer, alloc, result.reg_num, sym);
     alloc.dealloc(result.reg_num);
   }
 };
 
+void code_visitor::visit_unarop(const unarop_expression &) {};
 void code_visitor::visit_if(const if_statement &) {};
 void code_visitor::visit_while(const while_statement &) {};
 
