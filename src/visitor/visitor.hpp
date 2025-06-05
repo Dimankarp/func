@@ -14,6 +14,7 @@ public:
   virtual void visit_literal(const literal_expression &) = 0;
   virtual void visit_identifier(const identifier_expression &) = 0;
   virtual void visit_function_call(const function_call &) = 0;
+  virtual void visit_subscript(const subscript_expression &) = 0;
   virtual ~expression_visitor() = default;
 };
 
@@ -27,8 +28,10 @@ public:
   virtual void visit_while(const while_statement &) = 0;
   virtual void visit_function(const function &) = 0;
   virtual void visit_function_call(const function_call &) = 0;
+  virtual void visit_subscript_assign(const subscript_assign_statement &) = 0;
   virtual ~statement_visitor() = default;
 };
+
 
 // class expression_executor : public expression_visitor {
 // private:

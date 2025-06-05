@@ -54,4 +54,21 @@ const std::string &identifier_expression::get_identificator() const {
   return identificator;
 }
 
+// Subscript
+
+subscript_expression::subscript_expression(unique_ptr<expression> pointer,
+                                           unique_ptr<expression> index,
+                                           yy::location loc)
+    : pointer{std::move(pointer)}, index{std::move(index)}, expression{loc} {};
+
+void subscript_expression::accept(expression_visitor &visitor) {
+  visitor.visit_subscript(*this);
+};
+const unique_ptr<expression> &subscript_expression::get_pointer() const {
+  return pointer;
+};
+const unique_ptr<expression> &subscript_expression::get_index() const {
+  return index;
+};
+
 } // namespace intrp

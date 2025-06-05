@@ -27,7 +27,9 @@ public:
   void visit_literal(const literal_expression &) override;
   void visit_identifier(const identifier_expression &) override;
   void visit_function_call(const function_call &) override;
+  void visit_subscript(const subscript_expression &) override;
 
+  void visit_subscript_assign(const subscript_assign_statement &) override;
   void visit_program(const program &) override;
   void visit_block(const block_statement &) override;
   void visit_return(const return_statement &) override;

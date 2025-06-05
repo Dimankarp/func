@@ -89,4 +89,21 @@ public:
   void accept(statement_visitor &visitor) override;
   const unique_ptr<expression> &get_exp() const;
 };
+
+class subscript_assign_statement : public statement {
+private:
+  unique_ptr<expression> pointer;
+  unique_ptr<expression> index;
+  unique_ptr<expression> exp;
+
+public:
+  subscript_assign_statement(unique_ptr<expression> pointer,
+                             unique_ptr<expression> index,
+                             unique_ptr<expression> exp, yy::location loc);
+  void accept(statement_visitor &visitor) override;
+  const unique_ptr<expression> &get_pointer() const;
+  const unique_ptr<expression> &get_index() const;
+  const unique_ptr<expression> &get_exp() const;
+};
+
 } // namespace intrp

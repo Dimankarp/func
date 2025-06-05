@@ -97,4 +97,24 @@ void return_statement::accept(statement_visitor &visitor) {
 }
 const unique_ptr<expression> &return_statement::get_exp() const { return exp; }
 
+// Subscript
+
+subscript_assign_statement::subscript_assign_statement(
+    unique_ptr<expression> pointer, unique_ptr<expression> index,
+    unique_ptr<expression> exp, yy::location loc)
+    : pointer{std::move(pointer)}, index{std::move(index)}, exp{std::move(exp)},
+      statement{loc} {};
+void subscript_assign_statement::accept(statement_visitor &visitor) {
+  visitor.visit_subscript_assign(*this);
+};
+const unique_ptr<expression> &subscript_assign_statement::get_pointer() const {
+  return pointer;
+};
+const unique_ptr<expression> &subscript_assign_statement::get_index() const {
+  return index;
+};
+const unique_ptr<expression> &subscript_assign_statement::get_exp() const {
+  return exp;
+};
+
 } // namespace intrp

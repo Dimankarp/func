@@ -84,4 +84,18 @@ public:
   const std::string &get_identificator() const;
 };
 
+class subscript_expression : public expression {
+private:
+  unique_ptr<expression> pointer;
+  unique_ptr<expression> index;
+
+public:
+  subscript_expression(unique_ptr<expression> pointer,
+                       unique_ptr<expression> index, yy::location loc);
+
+  void accept(expression_visitor &visitor) override;
+  const unique_ptr<expression> &get_pointer() const;
+  const unique_ptr<expression> &get_index() const;
+};
+
 } // namespace intrp

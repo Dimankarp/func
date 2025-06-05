@@ -61,6 +61,8 @@ mltln_cmmnt \/\*([^*]|\*+[^*\/])*\*+\/
 "%"      return yy::parser::make_MOD(loc);
 "("      return yy::parser::make_LPAR(loc);
 ")"      return yy::parser::make_RPAR(loc);
+"["      return yy::parser::make_LBRACK(loc);
+"]"      return yy::parser::make_RBRACK(loc);
 "="      return yy::parser::make_ASSIGN(loc);
 
 "<"      return yy::parser::make_LESS(loc);
