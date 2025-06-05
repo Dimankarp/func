@@ -1,9 +1,9 @@
 //This is a regular comment
 int print_5(){
-    return 99;
+    return 99 + 1;
     /* This is a multiline comment */
 }
 int main(){
-    print(print_5());
+    print(print_5() + 1);
     return 0;
 }

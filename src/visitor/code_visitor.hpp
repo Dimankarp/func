@@ -6,7 +6,6 @@
 #include "visitor/instruction_writer.hpp"
 #include "visitor/register_allocator.hpp"
 #include "visitor/visitor.hpp"
-#include <array>
 #include <cstdint>
 #include <list>
 #include <memory>
@@ -73,7 +72,7 @@ public:
     table.push_back(std::move(sym));
   }
 
-  const sym_info &find(string sym) {
+  const sym_info &find(std::string sym) {
     auto iter = table.rbegin();
     while (iter != table.rend()) {
       if (!iter->is_delimeter && iter->name == sym)
@@ -86,7 +85,7 @@ public:
 
 class code_visitor : public expression_visitor, public statement_visitor {
 private:
-  std::reference_wrapper<std::ostream> out;
+  std::ostream &out;
   expr_result result;
   sym_table table;
   reg_allocator alloc;

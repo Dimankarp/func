@@ -1,9 +1,11 @@
 #include "visitor/code_visitor.hpp"
 #include "exception.hpp"
 #include "location.hh"
+#include "node/expression.hpp"
 #include "node/statement.hpp"
 #include "type/type.hpp"
 #include "visitor/instruction_writer.hpp"
+#include "visitor/operation.hpp"
 #include "visitor/register_allocator.hpp"
 #include "visitor/visitor.hpp"
 #include <cstdint>
@@ -204,7 +206,32 @@ void code_visitor::visit_return(const return_statement &ret) {
   writer.ret(alloc);
 };
 
-void code_visitor::visit_binop(const binop_expression &) {};
+void code_visitor::visit_binop(const binop_expression &bop) {
+  bop.get_left()->accept(*this);
+  expr_result left = std::move(this->result);
+  bop.get_right()->accept(*this);
+  expr_result right = std::move(this->result);
+
+  switch (bop.get_op()) {
+  case binop::ADD:
+    this->result = expr_add(writer, alloc, left, right);
+    break;
+  case binop::SUB:
+  case binop::MUL:
+  case binop::DIV:
+  case binop::MOD:
+  case binop::LESS:
+  case binop::GRTR:
+  case binop::EQ:
+  case binop::NEQ:
+  case binop::OR:
+  case binop::AND:
+    throw symbol_not_found_exception{};
+    break;
+  }
+  alloc.dealloc(left.reg_num);
+  alloc.dealloc(right.reg_num);
+};
 void code_visitor::visit_unarop(const unarop_expression &) {};
 
 void code_visitor::visit_assign(const assign_statement & stm) {

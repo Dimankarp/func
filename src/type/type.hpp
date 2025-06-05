@@ -16,24 +16,28 @@ public:
 
 class int_type : public type {
 public:
+  static types static_get_type();
   types get_type() override;
   std::unique_ptr<type> clone() override;
 };
 
 class string_type : public type {
 public:
+  static types static_get_type();
   types get_type() override;
   std::unique_ptr<type> clone() override;
 };
 
 class bool_type : public type {
 public:
+  static types static_get_type();
   types get_type() override;
   std::unique_ptr<type> clone() override;
 };
 
 class void_type : public type {
 public:
+  static types static_get_type();
   types get_type() override;
   std::unique_ptr<type> clone() override;
 };
@@ -42,8 +46,9 @@ class function_type : public type {
   std::vector<std::unique_ptr<type>> signature;
 
 public:
+  static types static_get_type();
   function_type(std::vector<std::unique_ptr<type>> &&sign);
-  const std::vector<std::unique_ptr<type>>& get_signature();
+  const std::vector<std::unique_ptr<type>> &get_signature();
   types get_type() override;
   std::unique_ptr<type> clone() override;
 };

@@ -7,25 +7,20 @@
 #include "node/statement.hpp"
 #include "visitor/visitor.hpp"
 namespace intrp {
-  
 
-class print_visitor : public expression_visitor, public statement_visitor{
+class print_visitor : public expression_visitor, public statement_visitor {
 private:
-  std::reference_wrapper<std::ostream> out;
-  int offset = 0; 
+  std::ostream &out;
+  int offset = 0;
 
   void print_type(intrp::type &);
 
 public:
-  print_visitor(std::ostream& ostream) : out{ostream} {}
+  print_visitor(std::ostream &ostream) : out{ostream} {}
 
-  std::string tabs(){
-    return std::string(offset * 3, ' ');
-  };
+  std::string tabs() { return std::string(offset * 3, ' '); };
 
-  std::ostream& get_out(){
-    return out;
-  };
+  std::ostream &get_out() { return out; };
 
   void visit_binop(const binop_expression &) override;
   void visit_unarop(const unarop_expression &) override;
@@ -41,6 +36,5 @@ public:
   void visit_while(const while_statement &) override;
   void visit_function(const function &) override;
 };
-
 
 } // namespace intrp

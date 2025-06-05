@@ -1,6 +1,5 @@
 #pragma once
 
-#include "visitor/operation.hpp"
 #include "parser.tab.hpp"
 #include <string>
 #include <unordered_map>

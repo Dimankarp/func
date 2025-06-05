@@ -4,27 +4,32 @@
 
 namespace intrp {
 types int_type::get_type() { return types::INT; }
+types int_type::static_get_type() { return types::INT; }
 std::unique_ptr<type> int_type::clone() {
   return std::make_unique<int_type>();
 };
 
 types string_type::get_type() { return types::STRING; }
+types string_type::static_get_type() { return types::STRING; }
 std::unique_ptr<type> string_type::clone() {
   return std::make_unique<string_type>();
 };
 
 types bool_type::get_type() { return types::BOOL; }
+types bool_type::static_get_type() { return types::BOOL; }
 std::unique_ptr<type> bool_type::clone() {
   return std::make_unique<bool_type>();
 };
 
 types void_type::get_type() { return types::VOID; }
+types void_type::static_get_type() { return types::VOID; }
 std::unique_ptr<type> void_type::clone() {
   return std::make_unique<void_type>();
 };
 
 types function_type::get_type() { return types::FUNCTION; }
-const std::vector<std::unique_ptr<type>>& function_type::get_signature(){
+types function_type::static_get_type() { return types::FUNCTION; }
+const std::vector<std::unique_ptr<type>> &function_type::get_signature() {
   return signature;
 }
 

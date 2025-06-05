@@ -21,7 +21,7 @@ const uint8_t RR = 29; // Return register
 
 class instruction_writer {
   uint16_t next_addr = 0;
-  std::reference_wrapper<std::ostream> out;
+  std::ostream& out;
 
 public:
   instruction_writer(std::ostream &out) : out{out} {}
@@ -241,8 +241,6 @@ public:
     jalr(0, r, 0);
     alloc.dealloc(r);
   }
-
-
 
 private:
   std::string reg(uint8_t n) { return "x" + std::to_string(n); }
