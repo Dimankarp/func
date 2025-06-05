@@ -91,6 +91,7 @@ private:
   reg_allocator alloc;
   intrp::instr::instruction_writer writer;
   uint16_t stack_height = 0;
+  uint16_t label_ind = 0;
 
 public:
   code_visitor(std::ostream &out);

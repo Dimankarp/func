@@ -190,6 +190,8 @@ public:
     next_addr++;
   }
 
+  // Stack pseudo-instructions
+
   void push(uint8_t src) {
     addi(SP, SP, -1);
     sw(SP, 0, src);
@@ -241,6 +243,31 @@ public:
     jalr(0, r, 0);
     alloc.dealloc(r);
   }
+
+  bge x1, x2, 1
+jal x0, LABEL
+
+  // Conditional branches to LABEL 
+  void beq(uint8_t s1, uint8_t s2, std::string label) {
+    beq(s1, s2, 1);
+    jal_label(label);
+  }
+
+  void bne(uint8_t s1, uint8_t s2, std::string label) {
+    bne(s1, s2, 1);
+    jal_label(label);
+  }
+
+  void blt(uint8_t s1, uint8_t s2, std::string label) {
+    blt(s1, s2, 1);
+    jal_label(label);
+  }
+
+  void bge(uint8_t s1, uint8_t s2, std::string label) {
+    bge(s1, s2, 1);
+    jal_label(label);
+  }
+
 
 private:
   std::string reg(uint8_t n) { return "x" + std::to_string(n); }

@@ -321,7 +321,45 @@ void code_visitor::visit_unarop(const unarop_expression &unop) {
   }
   alloc.dealloc(res.reg_num);
 };
-void code_visitor::visit_if(const if_statement &) {};
-void code_visitor::visit_while(const while_statement &) {};
+
+void code_visitor::visit_if(const if_statement & stm) {
+  std::string then_end_label = "THEN_END_" + std::to_string(label_ind++);
+  std::string else_end_label = "ELSE_END_" + std::to_string(label_ind++);
+
+  stm.get_condition()->accept(*this);
+  // TODO: Typecheck result is bool
+  writer.beq(result.reg_num, 0, then_end_label);
+  alloc.dealloc(result.reg_num);
+
+  stm.get_then_block()->accept(*this);
+
+  if (stm.get_else_block() != nullptr) {
+    writer.jal_label(else_end_label);
+  }
+
+  writer.label(then_end_label);
+
+  if (stm.get_else_block() != nullptr) {
+    stm.get_else_block()->accept(*this);
+    writer.label(else_end_label);
+  }
+};
+
+void code_visitor::visit_while(const while_statement & stm) {
+  std::string while_start_label = "WHILE_START_" + std::to_string(label_ind++);
+  std::string while_end_label = "WHILE_END_" + std::to_string(label_ind++);
+
+  writer.label(while_start_label);
+
+  stm.get_condition()->accept(*this);
+  // TODO: Typecheck result is bool
+  writer.beq(result.reg_num, 0, while_end_label);
+  alloc.dealloc(result.reg_num);
+
+  stm.get_block()->accept(*this);
+  writer.jal_label(while_start_label);
+
+  writer.label(while_end_label);
+};
 
 } // namespace intrp
