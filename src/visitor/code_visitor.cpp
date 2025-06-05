@@ -322,7 +322,7 @@ void code_visitor::visit_unarop(const unarop_expression &unop) {
   alloc.dealloc(res.reg_num);
 };
 
-void code_visitor::visit_if(const if_statement & stm) {
+void code_visitor::visit_if(const if_statement &stm) {
   std::string then_end_label = "THEN_END_" + std::to_string(label_ind++);
   std::string else_end_label = "ELSE_END_" + std::to_string(label_ind++);
 
@@ -334,7 +334,7 @@ void code_visitor::visit_if(const if_statement & stm) {
   stm.get_then_block()->accept(*this);
 
   if (stm.get_else_block() != nullptr) {
-    writer.jal_label(else_end_label);
+    writer.jal_label(0, else_end_label);
   }
 
   writer.label(then_end_label);
@@ -345,7 +345,7 @@ void code_visitor::visit_if(const if_statement & stm) {
   }
 };
 
-void code_visitor::visit_while(const while_statement & stm) {
+void code_visitor::visit_while(const while_statement &stm) {
   std::string while_start_label = "WHILE_START_" + std::to_string(label_ind++);
   std::string while_end_label = "WHILE_END_" + std::to_string(label_ind++);
 
@@ -357,9 +357,14 @@ void code_visitor::visit_while(const while_statement & stm) {
   alloc.dealloc(result.reg_num);
 
   stm.get_block()->accept(*this);
-  writer.jal_label(while_start_label);
+  writer.jal_label(0, while_start_label);
 
   writer.label(while_end_label);
+};
+
+void code_visitor::visit_subscript(const subscript_expression &) {};
+
+void code_visitor::visit_subscript_assign(const subscript_assign_statement &) {
 };
 
 } // namespace intrp

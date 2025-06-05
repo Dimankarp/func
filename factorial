@@ -1,14 +1,16 @@
-//This is a regular comment
-int num(){
-    return 48; //'0' in ASCII
-    /* 
-    This is a multiline comment 
-    */
-}
 
 
 int main(){
-    print(num() + 10 + (-(5 + 1)));
+    int i = 0;
+    while(i < 101){
+        print(48 + (i%10));
+        print(32);
+        if(i%10==0){
+            print(10);
+        }
+        i = i + 1;
+
+    }
     return;
 }
 

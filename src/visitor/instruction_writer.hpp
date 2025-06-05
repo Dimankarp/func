@@ -21,7 +21,7 @@ const uint8_t RR = 29; // Return register
 
 class instruction_writer {
   uint16_t next_addr = 0;
-  std::ostream& out;
+  std::ostream &out;
 
 public:
   instruction_writer(std::ostream &out) : out{out} {}
@@ -244,30 +244,26 @@ public:
     alloc.dealloc(r);
   }
 
-  bge x1, x2, 1
-jal x0, LABEL
-
-  // Conditional branches to LABEL 
-  void beq(uint8_t s1, uint8_t s2, std::string label) {
-    beq(s1, s2, 1);
-    jal_label(label);
-  }
-
-  void bne(uint8_t s1, uint8_t s2, std::string label) {
+  // Conditional branches to LABEL
+  void beq(uint8_t s1, uint8_t s2, const std::string &label) {
     bne(s1, s2, 1);
-    jal_label(label);
+    jal_label(0, label);
   }
 
-  void blt(uint8_t s1, uint8_t s2, std::string label) {
-    blt(s1, s2, 1);
-    jal_label(label);
+  void bne(uint8_t s1, uint8_t s2, const std::string &label) {
+    beq(s1, s2, 1);
+    jal_label(0, label);
   }
 
-  void bge(uint8_t s1, uint8_t s2, std::string label) {
+  void blt(uint8_t s1, uint8_t s2, const std::string &label) {
     bge(s1, s2, 1);
-    jal_label(label);
+    jal_label(0, label);
   }
 
+  void bge(uint8_t s1, uint8_t s2, const std::string &label) {
+    blt(s1, s2, 1);
+    jal_label(0, label);
+  }
 
 private:
   std::string reg(uint8_t n) { return "x" + std::to_string(n); }
