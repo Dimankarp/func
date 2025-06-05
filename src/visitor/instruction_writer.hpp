@@ -201,7 +201,9 @@ public:
   }
 
   // Arg num starts from 1
-  void get_arg(uint8_t dest, uint8_t arg_num) { lw(dest, BP, -arg_num); }
+  void get_arg(uint8_t dest, uint8_t offset) { lw(dest, BP, -offset); }
+
+  void put_arg(uint8_t source, uint8_t offset) { sw(BP, -offset, source); }
 
   void label(std::string label) { out << label << ": " << "\n"; }
 

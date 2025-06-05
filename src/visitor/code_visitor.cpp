@@ -102,6 +102,31 @@ void pop_regs_after_call(instr::instruction_writer &w,
   }
 }
 
+void load_variable(uint16_t d, sym_info& sym){
+  switch (sym.access_type) {
+    case sym_info::STACK:
+      writer.get_arg(d, sym.offset);
+      break;
+    case sym_info::ABS:
+      writer.li(d, sym.offset);
+      break;
+  }
+}
+
+void store_variable(uint16_t s, sym_info& sym){
+  switch (sym.access_type) {
+    case sym_info::STACK:
+      writer.put_arg(s, sym.offset);
+      break;
+    case sym_info::ABS:
+      auto r = alloc.alloc("Address of variable to store");
+      writer.li(r, sym.offset);
+      writer.sw(r, 0, s);
+      alloc.dealloc(r);
+      break;
+  }
+}
+
 } // namespace
 void code_visitor::visit_function_call(const function_call &fc) {
   out << "#Enter function call" << "\n";
@@ -145,15 +170,7 @@ void code_visitor::visit_identifier(const identifier_expression &id) {
   out << "#Enter identifier " << id.get_identificator() << "\n";
   auto sym = table.find(id.get_identificator());
   auto r = alloc.alloc("Identifier return register");
-  switch (sym.access_type) {
-
-  case sym_info::STACK:
-    writer.get_arg(r, sym.offset);
-    break;
-  case sym_info::ABS:
-    writer.li(r, sym.offset);
-    break;
-  }
+  load_variable(r, sym);
   this->result.reg_num = r;
   this->result.type_obj = std::move(sym.type_obj->clone());
 
@@ -190,7 +207,35 @@ void code_visitor::visit_return(const return_statement &ret) {
 void code_visitor::visit_binop(const binop_expression &) {};
 void code_visitor::visit_unarop(const unarop_expression &) {};
 
-void code_visitor::visit_assign(const assign_statement &) {};
+void code_visitor::visit_assign(const assign_statement & stm) {
+  struct intrp::sym_info& sym;
+
+  if (stm.get_type() != nullptr){
+    // push on stack
+    writer.push(0);
+    stack_height++;
+
+    // add to sym_table
+    sym =
+      sym_info{stm.get_identifier(),
+               stm.get_type()->clone(),
+               sym_info::STACK, stack_height};
+    table.add(std::move(sym));
+  } else{
+    sym = table.find(id.get_identificator());
+  }
+
+  // count expression and save result
+  if (stm.get_exp() != nullptr ){
+    stm.get_exp()->accept(*this);
+
+    // TODO: Typecheck
+
+    store_variable(result.reg_num, sym);
+    alloc.dealloc(result.reg_num);
+  }
+};
+
 void code_visitor::visit_if(const if_statement &) {};
 void code_visitor::visit_while(const while_statement &) {};
 
