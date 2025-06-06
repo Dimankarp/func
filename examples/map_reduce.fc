@@ -46,15 +46,16 @@ int read_int() {
   return n;
 }
 
-void map(string arr, int len, (int-int) f) {
+void map(string arr, int len, (int - int)f) {
   int i = 0;
   while (i < len) {
     arr[i] = f(arr[i]);
     i = i + 1;
   }
+  return;
 }
 
-int reduce(string arr, int len, int s, (int-int-int) red) {
+int reduce(string arr, int len, int s, (int - int - int)red) {
   int i = 0;
   while (i < len) {
     s = red(s, arr[i]);
@@ -73,6 +74,12 @@ int square_map(int n) { return n * n; }
 
 int sum_reduce(int sum, int arg) { return sum + arg; }
 
+/* Output:
+1 2 3 4 5 6
+1 4 9 16 25 36
+91
+*/
+
 void main() {
   string nums = "123456";
   int i = 0;
@@ -81,11 +88,12 @@ void main() {
     nums[i] = read_int();
     i = i + 1;
   }
-
+  map(nums, len, write_map);
+  write(10);
   map(nums, len, square_map);
   map(nums, len, write_map);
   int sum = reduce(nums, len, 0, sum_reduce);
   write(10);
-  write(sum);
+  write_int(sum);
   return;
 }
