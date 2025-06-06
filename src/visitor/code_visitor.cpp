@@ -23,15 +23,15 @@ void code_visitor::declare_write_func() {
   write_sign.push_back(std::make_unique<int_type>());
   write_sign.push_back(std::make_unique<void_type>());
   auto info = sym_info{
-      "write", std::make_unique<intrp::function_type>(std::move(func_addr)),
-      sym_info::ABS, print_addr};
+      "write", std::make_unique<intrp::function_type>(std::move(write_sign)),
+      sym_info::ABS, func_addr};
   table.add(std::move(info));
 }
 
 void code_visitor::declare_read_func() {
   auto func_addr = writer.get_next_addr();
 
-  writer.read_func();
+  writer.read_func(alloc);
 
   std::vector<unique_ptr<intrp::type>> read_sign;
   read_sign.push_back(std::make_unique<void_type>());
@@ -55,8 +55,8 @@ void code_visitor::visit_program(const program &progr) {
   writer.ebreak();
 
   declare_write_func();
-  declare_print_func();
-  
+  declare_read_func();
+
   out << "#Iterating through functions\n";
   for (const auto &func : progr.get_funcs()) {
     func->accept(*this);
@@ -192,8 +192,7 @@ void code_visitor::visit_function_call(const function_call &fc) {
                     ->get_signature()
                     .back()
                     ->clone());
-      
-                    
+
   auto r = alloc.alloc("Get function result from RR");
   writer.mov(r, instr::RR);
   this->result.reg_num = r;
@@ -284,7 +283,7 @@ void code_visitor::visit_binop(const binop_expression &bop) {
       this->result = expr_or(writer, alloc, left, right);
       break;
     case binop::AND:
-      this->result = expr_add(writer, alloc, left, right);
+      this->result = expr_and(writer, alloc, left, right);
       break;
     }
   } catch (unexpected_type_exception &e) {

@@ -197,14 +197,14 @@ public:
     sw(SP, 0, src);
   }
 
-  void push_str(reg_allocator &alloc, std::string& str){
+  void push_str(reg_allocator &alloc, std::string &str) {
     auto r = alloc.alloc("For pushing str on stack");
     addi(r, 0, '\0');
     sw(SP, -1, r);
-  
-    for(int i = 0; i < str.length(); i++){
+
+    for (int i = 0; i < str.length(); i++) {
       auto offset = -i - 2;
-      auto sym = *(str.rbegin()+i);
+      auto sym = *(str.rbegin() + i);
       addi(r, 0, sym);
       sw(SP, offset, r);
     }
@@ -280,9 +280,9 @@ public:
     jal_label(0, label);
   }
 
-  // Built in funcs 
+  // Built in funcs
 
-  void write_func(reg_allocator &alloc) { 
+  void write_func(reg_allocator &alloc) {
     label("WRITE");
     auto r = alloc.alloc("Get WRITE arg from stack");
     get_arg(r, 1);
@@ -291,12 +291,11 @@ public:
     ret(alloc);
   }
 
-  void read_func() { 
+  void read_func(reg_allocator &alloc) {
     label("READ");
     eread(RR);
     ret(alloc);
   }
-
 
 private:
   std::string reg(uint8_t n) { return "x" + std::to_string(n); }

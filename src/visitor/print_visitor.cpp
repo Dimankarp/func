@@ -170,5 +170,6 @@ void print_visitor::visit_identifier(const identifier_expression &id) {
 
 void print_visitor::visit_subscript(const subscript_expression &) {};
 
-void print_visitor::visit_subscript_assign(const subscript_assign_statement &) {};
+void print_visitor::visit_subscript_assign(const subscript_assign_statement &) {
+};
 } // namespace intrp

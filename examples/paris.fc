@@ -6,23 +6,23 @@ int strlen(string s){
     return len;
 }
 
-void print_str(string s, int len){
+void write_str(string s, int len){
     int i = 0;
     while(i < len){
-        print(s[i]);
+        write(s[i]);
         i = i + 1;
     }
     return;
 }
 
 int main(){
-    string a = "i love Paris  in the moring";
+    string a = "i love Paris  in the morning";
     string b = "Moscow";
     int i = 7;
     while(i < strlen("Moscow") - 1 + 7){
         a[i] = b[i-7];
         i = i + 1;
     }
-    print_str(a, strlen(a));
+    write_str(a, strlen(a));
     return;
 }

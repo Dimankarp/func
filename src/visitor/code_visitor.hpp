@@ -113,7 +113,8 @@ public:
   void visit_function(const function &) override;
 
 private:
-  void declare_print_func();
+  void declare_write_func();
+  void declare_read_func();
 };
 
 } // namespace intrp
