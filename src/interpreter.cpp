@@ -56,6 +56,9 @@ int main(int argc, char *argv[]) {
       } catch (intrp::syntax_exception &e) {
         std::cout << "Syntax error: " << e << "\n";
         exit(1);
+      } catch (intrp::global_syntax_exception &e) {
+        std::cout << "Syntax error: " << e << "\n";
+        exit(1);
       }
     }
 }

@@ -1,5 +1,6 @@
 #include "visitor/code_visitor.hpp"
 #include "exception.hpp"
+#include "function/function.hpp"
 #include "location.hh"
 #include "node/expression.hpp"
 #include "node/statement.hpp"
@@ -61,6 +62,16 @@ void code_visitor::visit_program(const program &progr) {
   for (const auto &func : progr.get_funcs()) {
     func->accept(*this);
   }
+
+  const auto &main_info = table.find("main");
+
+  std::vector<unique_ptr<type>> types_vec{};
+  types_vec.push_back(std::make_unique<void_type>());
+  types_vec.push_back(std::make_unique<void_type>());
+  const function_type main_expected_type = function_type{std::move(types_vec)};
+  if (!main_info.type_obj->equals(main_expected_type))
+    throw global_syntax_exception{"main must be a (void-void) function"};
+
   out << "#Done program\n";
 }
 
@@ -68,9 +79,12 @@ void code_visitor::visit_function(const function &f) {
   out << "#Enter function " << f.get_identifier() << "\n";
   auto signature = std::vector<unique_ptr<type>>();
 
-  for (const auto &p : f.get_params()) {
-    signature.push_back(p.get_type()->clone());
-  }
+  if (f.get_params().empty())
+    signature.push_back(std::make_unique<void_type>());
+  else
+    for (const auto &p : f.get_params()) {
+      signature.push_back(p.get_type()->clone());
+    }
 
   signature.push_back(f.get_type()->clone());
   auto info =

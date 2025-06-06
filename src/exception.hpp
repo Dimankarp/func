@@ -29,5 +29,10 @@ struct symbol_not_found_exception : public syntax_exception {};
 
 struct not_enough_registers_exceptions {};
 
+struct global_syntax_exception {
+  std::string reason;
+};
+
 std::ostream &operator<<(std::ostream &outs, const syntax_exception &e);
+std::ostream &operator<<(std::ostream &outs, const global_syntax_exception &e);
 } // namespace intrp
