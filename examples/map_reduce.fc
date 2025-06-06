@@ -1,0 +1,91 @@
+int strlen(string s) {
+  int len = 0;
+  while (s[len] != 0)
+    len = len + 1;
+  len = len + 1;
+  return len;
+}
+
+void write_str(string s, int len) {
+  int i = 0;
+  while (i < len) {
+    write(s[i]);
+    i = i + 1;
+  }
+  return;
+}
+
+int itoascii(int n) { return n + 48; }
+
+void write_int(int n) {
+  string buf = "10000000000";
+  int i = 0;
+  while (n > 0) {
+    buf[i] = n % 10;
+    n = n / 10;
+    i = i + 1;
+  }
+  i = i - 1;
+  while (i > -1) {
+    write(itoascii(buf[i]));
+    i = i - 1;
+  }
+  return;
+}
+
+bool is_digit(int n) { return ((n > 47) && (n < 56)); }
+
+int read_int() {
+  int n = 0;
+  int last = read();
+  while (is_digit(last)) {
+    n = n * 10;
+    n = n + last - 48;
+    last = read();
+  }
+  return n;
+}
+
+void map(string arr, int len, (int-int) f) {
+  int i = 0;
+  while (i < len) {
+    arr[i] = f(arr[i]);
+    i = i + 1;
+  }
+}
+
+int reduce(string arr, int len, int s, (int-int-int) red) {
+  int i = 0;
+  while (i < len) {
+    s = red(s, arr[i]);
+    i = i + 1;
+  }
+  return s;
+}
+
+int write_map(int n) {
+  write_int(n);
+  write(32);
+  return n;
+}
+
+int square_map(int n) { return n * n; }
+
+int sum_reduce(int sum, int arg) { return sum + arg; }
+
+void main() {
+  string nums = "123456";
+  int i = 0;
+  int len = strlen(nums) - 1;
+  while (i < len) {
+    nums[i] = read_int();
+    i = i + 1;
+  }
+
+  map(nums, len, square_map);
+  map(nums, len, write_map);
+  int sum = reduce(nums, len, 0, sum_reduce);
+  write(10);
+  write(sum);
+  return;
+}

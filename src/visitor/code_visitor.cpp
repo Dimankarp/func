@@ -182,6 +182,18 @@ void code_visitor::visit_function_call(const function_call &fc) {
 
   std::vector<uint8_t> arg_regs{};
   const auto &args = fc.get_arg_list();
+
+  auto params_sz = func_type.get_signature().front()->get_type() == types::VOID
+                       ? 0
+                       : func_type.get_signature().size() - 1;
+  auto args_sz = args.size();
+
+  if (args_sz != params_sz)
+    throw syntax_exception{
+        "wrong number of arguments, expected: " + std::to_string(params_sz) +
+            ", but got " + std::to_string(args_sz),
+        fc.statement::get_loc()};
+
   for (int i = 0; i < fc.get_arg_list().size(); i++) {
     args[i]->accept(*this);
 
