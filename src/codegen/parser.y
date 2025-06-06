@@ -98,9 +98,6 @@
 %type  <std::vector<unique_ptr<intrp::type>>>  func_type_rec
 
 
-
-// %printer { yyoutput << $$; } <*>;
-
 %%
 %start program;
 program: functions {drv.result = std::make_unique<intrp::program>(std::move($1), @$);};

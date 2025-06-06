@@ -1,0 +1,13 @@
+/* Output
+bbbbb
+*/
+void main(){
+    int a = 99; //'c'
+    int i = 0;
+    while( i < 5){
+        int a = 98; // 'b'
+        write(a);
+        i = i + 1;
+    }
+    return;
+} 

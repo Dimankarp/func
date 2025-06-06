@@ -168,8 +168,24 @@ void print_visitor::visit_identifier(const identifier_expression &id) {
   *this << id.get_identificator() << "\n";
 };
 
-void print_visitor::visit_subscript(const subscript_expression &) {};
+void print_visitor::visit_subscript(const subscript_expression &sub) {
+  *this << ".[..]" << "\n";
+  offset++;
+  sub.get_pointer()->accept(*this);
+  sub.get_index()->accept(*this);
+  offset--;
+};
 
-void print_visitor::visit_subscript_assign(const subscript_assign_statement &) {
+void print_visitor::visit_subscript_assign(
+    const subscript_assign_statement &sub) {
+  *this << ".[..]" << "\n";
+  offset+=2;
+  sub.get_pointer()->accept(*this);
+  sub.get_index()->accept(*this);
+  offset--;
+  *this << "=" << "\n";
+  offset++;
+  sub.get_exp()->accept(*this);
+  offset-=2;
 };
 } // namespace intrp
