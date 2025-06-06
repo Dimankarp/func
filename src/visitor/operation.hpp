@@ -10,11 +10,10 @@
 #include <memory>
 namespace intrp {
 
-  std::string type_to_string(intrp::types t);
-  
+
 template <typename T> T expect(const expr_result &exp) {
   if (exp.type_obj->get_type() != T::static_get_type())
-    throw unexpected_type_exception({type_to_string(exp.type_obj->get_type()) + " but expected " + type_to_string(T::static_get_type()) , yy::location{}});
+    throw unexpected_type_exception({intrp::types_to_string(exp.type_obj->get_type()) + " but expected " + intrp::types_to_string(T::static_get_type()) , yy::location{}});
   return dynamic_cast<const T &>(*exp.type_obj);
 }
 

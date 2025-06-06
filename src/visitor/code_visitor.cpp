@@ -8,6 +8,7 @@
 #include "visitor/instruction_writer.hpp"
 #include "visitor/operation.hpp"
 #include "visitor/register_allocator.hpp"
+#include "visitor/type_checker.hpp"
 #include <cstdint>
 #include <memory>
 
@@ -63,8 +64,9 @@ void code_visitor::visit_program(const program &progr) {
     func->accept(*this);
   }
 
-  const auto &main_info = table.find("main");
+  // Main type & existance check
 
+  const auto &main_info = table.find("main");
   std::vector<unique_ptr<type>> types_vec{};
   types_vec.push_back(std::make_unique<void_type>());
   types_vec.push_back(std::make_unique<void_type>());
@@ -77,21 +79,20 @@ void code_visitor::visit_program(const program &progr) {
 
 void code_visitor::visit_function(const function &f) {
   out << "#Enter function " << f.get_identifier() << "\n";
-  auto signature = std::vector<unique_ptr<type>>();
 
+  auto signature = std::vector<unique_ptr<type>>();
   if (f.get_params().empty())
     signature.push_back(std::make_unique<void_type>());
   else
     for (const auto &p : f.get_params()) {
       signature.push_back(p.get_type()->clone());
     }
-
   signature.push_back(f.get_type()->clone());
+
   auto info =
       sym_info{f.get_identifier(),
                std::make_unique<intrp::function_type>(std::move(signature)),
                sym_info::ABS, writer.get_next_addr()};
-
   table.add(std::move(info));
 
   // Staring block for func param
@@ -105,7 +106,7 @@ void code_visitor::visit_function(const function &f) {
                        sym_info::STACK, static_cast<uint16_t>(i + 1)});
   }
 
-  writer.label(f.get_identifier()); // TODO: MANGLE
+  writer.label(f.get_identifier());
   this->stack_height = f.get_params().size();
   f.get_block()->accept(*this);
 
@@ -124,6 +125,7 @@ void code_visitor::visit_block(const block_statement &b) {
   table.end_block();
   out << "#Done block " << "\n";
 }
+
 namespace {
 std::vector<uint8_t> push_regs_before_call(instr::instruction_writer &w,
                                            reg_allocator &alloc) {
@@ -176,13 +178,19 @@ void code_visitor::visit_function_call(const function_call &fc) {
 
   fc.get_func()->accept(*this);
   expr_result func = std::move(this->result);
-
-  // TODO: Typecheck
+  const auto &func_type = dynamic_cast<const function_type &>(*func.type_obj);
 
   std::vector<uint8_t> arg_regs{};
-  for (const auto &e : fc.get_arg_list()) {
-    e->accept(*this);
+  const auto &args = fc.get_arg_list();
+  for (int i = 0; i < fc.get_arg_list().size(); i++) {
+    args[i]->accept(*this);
+
+    intrp::expect_types(*func_type.get_signature()[i], *result.type_obj,
+                        args[i]->get_loc());
+
     arg_regs.push_back(this->result.reg_num);
+  }
+  for (const auto &e : fc.get_arg_list()) {
   }
 
   out << "#Pushing regs" << "\n";
@@ -202,10 +210,7 @@ void code_visitor::visit_function_call(const function_call &fc) {
   stack_height -= regs.size();
 
   this->result.type_obj =
-      std::move((dynamic_cast<function_type *>(func.type_obj.get()))
-                    ->get_signature()
-                    .back()
-                    ->clone());
+      std::move((func_type).get_signature().back()->clone());
 
   auto r = alloc.alloc("Get function result from RR");
   writer.mov(r, instr::RR);
@@ -322,7 +327,6 @@ void code_visitor::visit_assign(const assign_statement &stm) {
     // push on stack
     writer.push(0);
     stack_height++;
-
     // add to sym_table
     sym_info sym = sym_info{stm.get_identifier(), stm.get_type()->clone(),
                             sym_info::STACK, stack_height};
@@ -332,11 +336,12 @@ void code_visitor::visit_assign(const assign_statement &stm) {
 
   const sym_info &sym = table.find(stm.get_identifier());
 
-  // count expression and save result
+  // evaluate expression and save result
   if (stm.get_exp() != nullptr) {
     stm.get_exp()->accept(*this);
 
-    // TODO: Typecheck
+    intrp::expect_types(*sym.type_obj, *result.type_obj,
+                        stm.get_exp()->get_loc());
 
     store_variable(writer, alloc, result.reg_num, sym);
     alloc.dealloc(result.reg_num);
@@ -396,7 +401,10 @@ void code_visitor::visit_while(const while_statement &stm) {
   writer.label(while_start_label);
 
   stm.get_condition()->accept(*this);
-  // TODO: Typecheck result is bool
+
+  intrp::expect_types(bool_type{}, *result.type_obj,
+                      stm.get_condition()->get_loc());
+
   writer.beq(result.reg_num, 0, while_end_label);
   alloc.dealloc(result.reg_num);
 

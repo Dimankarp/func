@@ -15,7 +15,7 @@ void write_str(string s, int len) {
   return;
 }
 
-void itoascii(int n) { return n + 48; }
+int itoascii(int n) { return n + 48; }
 
 int factorial(int n) {
   if (n == 1 || n == 0)

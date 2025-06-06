@@ -15,7 +15,7 @@ void write_str(string s, int len) {
   return;
 }
 
-void itoascii(int n) { return n + 48; }
+int itoascii(int n) { return n + 48; }
 bool is_digit(int n) { return ((n > 47) && (n < 56)); }
 
 int read_int() {

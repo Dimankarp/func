@@ -6,18 +6,6 @@
 
 namespace intrp {
 
-namespace {
-std::unordered_map<intrp::types, std::string> type_name_for_expect = {
-    {intrp::types::INT, "int"},
-    {intrp::types::STRING, "string"},
-    {intrp::types::BOOL, "bool"},
-    {intrp::types::VOID, "void"},
-    {intrp::types::FUNCTION, "..func.."}};
-}
-std::string type_to_string(intrp::types t) {
-  return intrp::type_name_for_expect[t];
-}
-
 expr_result expr_add(instr::instruction_writer &w, reg_allocator &alloc,
                      const expr_result &a, const expr_result &b) {
   expect<intrp::int_type>(a);

@@ -17,6 +17,9 @@ public:
   }
 };
 
+std::string types_to_string(const intrp::types t);
+std::string type_to_string(const intrp::type &t);
+
 class int_type : public type {
 public:
   static types static_get_type();
@@ -51,7 +54,7 @@ class function_type : public type {
 public:
   static types static_get_type();
   function_type(std::vector<std::unique_ptr<type>> &&sign);
-  const std::vector<std::unique_ptr<type>> &get_signature();
+  const std::vector<std::unique_ptr<type>> &get_signature() const;
   bool equals(const type &f) const override;
   types get_type() const override;
   std::unique_ptr<type> clone() const override;

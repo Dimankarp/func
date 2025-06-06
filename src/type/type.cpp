@@ -1,7 +1,8 @@
 #include "type.hpp"
 #include <algorithm>
 #include <memory>
-
+#include <string>
+#include <unordered_map>
 namespace intrp {
 types int_type::get_type() const { return types::INT; }
 types int_type::static_get_type() { return types::INT; }
@@ -29,7 +30,7 @@ std::unique_ptr<type> void_type::clone() const {
 
 types function_type::get_type() const { return types::FUNCTION; }
 types function_type::static_get_type() { return types::FUNCTION; }
-const std::vector<std::unique_ptr<type>> &function_type::get_signature() {
+const std::vector<std::unique_ptr<type>> &function_type::get_signature() const {
   return signature;
 }
 
@@ -56,6 +57,33 @@ bool function_type::equals(const type &f) const {
       return false;
   }
   return true;
+}
+namespace {
+
+std::unordered_map<intrp::types, std::string> type_name_for_expect = {
+    {intrp::types::INT, "int"},
+    {intrp::types::STRING, "string"},
+    {intrp::types::BOOL, "bool"},
+    {intrp::types::VOID, "void"},
+    {intrp::types::FUNCTION, "..func.."}};
+};
+
+std::string types_to_string(const intrp::types t) {
+  return intrp::type_name_for_expect[t];
+}
+
+std::string type_to_string(const intrp::type &t) {
+  if (t.get_type() != types::FUNCTION)
+    return intrp::types_to_string(t.get_type());
+  const auto &fun = dynamic_cast<const function_type &>(t);
+  std::string res = "(" + intrp::type_to_string(*fun.get_signature().front());
+  auto iter = fun.get_signature().begin();
+  iter++;
+  while (iter != fun.get_signature().end()) {
+    res.append("-" + intrp::type_to_string(**iter));
+  }
+  res.append(")");
+  return res;
 }
 
 } // namespace intrp

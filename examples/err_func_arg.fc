@@ -1,0 +1,8 @@
+int plus_1(int n){
+    return n + 1;
+}
+
+void main(){
+    write(plus_1("str"));
+    return;
+}
