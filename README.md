@@ -483,3 +483,126 @@ void main(){
 }
 //Syntax error: symbol not found b
 ```
+
+5. Проверка типа функции main (void-void):
+
+```c
+int main(){
+    string c = "c";
+    write(c[0]);
+    return;
+}
+//Syntax error: main must be a (void-void) function
+```
+
+## Пример скомпилированной программы
+
+Исходная программа:
+
+```c
+void main(){
+    string c = "c";
+    write(c[0]);
+    return;
+}
+```
+
+После компиляции:
+
+```asm
+#Enter program
+_START: 
+li x31, 65536
+li x30, 65536
+li x1, main
+jal x2, 0
+addi x2, x2, 7
+addi x31, x31, -1
+sw x31, 0, x2
+addi x31, x31, -1
+sw x31, 0, x30
+addi x30, x31, 0
+jalr x0, x1, 0
+ebreak
+WRITE: 
+lw x1, x30, -1
+ewrite x1
+addi x31, x30, 0
+lw x30, x31, 0
+addi x31, x31, 1
+lw x1, x31, 0
+addi x31, x31, 1
+jalr x0, x1, 0
+READ: 
+eread x29
+addi x31, x30, 0
+lw x30, x31, 0
+addi x31, x31, 1
+lw x1, x31, 0
+addi x31, x31, 1
+jalr x0, x1, 0
+#Iterating through functions
+#Enter function main
+main: 
+#Enter block 
+#Enter assing
+addi x31, x31, -1
+sw x31, 0, x0
+#Done assign
+#Enter literal 
+addi x2, x0, 0
+sw x31, -1, x2
+addi x2, x0, 99
+sw x31, -2, x2
+addi x31, x31, -2
+addi x1, x31, 0
+#Done literal 
+sw x30, -1, x1
+#Enter function call
+#Enter identifier write
+li x1, 13
+#Done identifier write
+#Enter subscript
+#Enter identifier c
+lw x2, x30, -1
+#Done identifier c
+#Enter literal 
+li x3, 0
+#Done literal 
+add x2, x2, x3
+lw x4, x2, 0
+#Done subscript
+#Pushing regs
+addi x31, x31, -1
+sw x31, 0, x1
+addi x31, x31, -1
+sw x31, 0, x4
+jal x2, 0
+addi x2, x2, 9
+addi x31, x31, -1
+sw x31, 0, x2
+addi x31, x31, -1
+sw x31, 0, x30
+addi x30, x31, 0
+addi x31, x31, -1
+sw x31, 0, x4
+jalr x0, x1, 0
+#Recovering regs
+lw x4, x31, 0
+addi x31, x31, 1
+lw x1, x31, 0
+addi x31, x31, 1
+addi x1, x29, 0
+#Done function call
+#Enter return
+addi x31, x30, 0
+lw x30, x31, 0
+addi x31, x31, 1
+lw x2, x31, 0
+addi x31, x31, 1
+jalr x0, x2, 0
+#Done return
+#Done block 
+#Done function main
+#Done program
+```
