@@ -11,6 +11,7 @@
 ## Компиляция и использования
 
 Для компиляции:
+
 ```bash
 mkdir build && cd build
 cmake ..
@@ -30,7 +31,7 @@ make
    //Syntax error: unexpected type expected int but received string at ../examples/err_assign.fc:2.13-17
    ```
 
-2. Поддержка функций как объектов первого порядка.
+2. Поддержка типобезопасных ссылок на функции.
 
    ```c
    // (int-int) f maps arr[...] to another int
