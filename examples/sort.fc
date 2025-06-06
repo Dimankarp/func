@@ -84,7 +84,7 @@ void print_arr(string s, int len) {
   return;
 }
 
-int main() {
+void main() {
   string s = "153462798";
   int len = strlen(s) - 1;
   insertion_sort(s, len, regular_compare);

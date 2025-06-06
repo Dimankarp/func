@@ -15,7 +15,7 @@ void write_str(string s, int len){
     return;
 }
 
-int main(){
+void main(){
     string a = "i love Paris  in the morning";
     string b = "Moscow";
     int i = 7;

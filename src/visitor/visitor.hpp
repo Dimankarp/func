@@ -32,24 +32,4 @@ public:
   virtual ~statement_visitor() = default;
 };
 
-
-// class expression_executor : public expression_visitor {
-// private:
-//   std::shared_ptr<var_table> table;
-//   std::optional<lit_val> result;
-
-// public:
-//   expression_executor(std::shared_ptr<var_table> table);
-
-//   /* Set as optional to validate that expression visit
-//   set it. Kind of analogous to assert, but doesn't require one.
-//   Just use .value() */
-
-//   std::optional<lit_val> get_result() const;
-//   void visit_binop(const binop_expression &) override;
-//   void visit_unarop(const unarop_expression &) override;
-//   void visit_literal(const literal_expression &) override;
-//   void visit_identifier(const identifier_expression &) override;
-// };
-
 } // namespace intrp

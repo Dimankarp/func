@@ -52,7 +52,7 @@ int read_int() {
   return n;
 }
 
-int main() {
+void main() {
   string msg = "Please, enter number:\n";
   write_str(msg, strlen(msg) - 1);
   int res = factorial(read_int());
