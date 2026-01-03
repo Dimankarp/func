@@ -18,6 +18,7 @@ Checks: "-*,
   -readability-convert-member-functions-to-static,
   -readability-braces-around-statements,
   -readability-identifier-length,
+  -readability-redundant-access-specifiers,
   clang-analyzer-*,
   -clang-analyzer-security.insecureAPI.*"
 HeaderFilterRegex: '[\w+\\]*\w+.h'
