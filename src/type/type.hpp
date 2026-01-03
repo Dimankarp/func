@@ -19,7 +19,6 @@ public:
 template <typename Derived, types Tp> class type_impl : public type {
 public:
   static const types type_enum = Tp;
-  static types static_get_type() { return Tp; }
   types get_type() const override { return Tp; }
   std::unique_ptr<type> clone() const override {
     return std::make_unique<Derived>(static_cast<const Derived &>(*this));
