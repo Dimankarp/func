@@ -17,47 +17,54 @@ public:
   }
 };
 
-std::string types_to_string(const intrp::types t);
+template <typename Derived, types Tp> class type_impl : public type {
+public:
+  static const types type_enum = Tp;
+  static types static_get_type() { return Tp; }
+  types get_type() const override { return Tp; }
+  std::unique_ptr<type> clone() const override {
+    return std::make_unique<Derived>(static_cast<const Derived &>(*this));
+  }
+
+private:
+  type_impl() = default;
+  friend Derived;
+};
+
+std::string types_to_string(intrp::types t);
 std::string type_to_string(const intrp::type &t);
 
-class int_type : public type {
+class int_type : public type_impl<int_type, types::INT> {
 public:
-  static types static_get_type();
-  types get_type() const override;
-  std::unique_ptr<type> clone() const override;
+  using type_impl::type_enum;
 };
 
-class string_type : public type {
+class string_type : public type_impl<string_type, types::STRING> {
 public:
-  static types static_get_type();
-  types get_type() const override;
-  std::unique_ptr<type> clone() const override;
+  using type_impl::type_enum;
 };
 
-class bool_type : public type {
+class bool_type : public type_impl<bool_type, types::BOOL> {
 public:
-  static types static_get_type();
-  types get_type() const override;
-  std::unique_ptr<type> clone() const override;
+  using type_impl::type_enum;
 };
 
-class void_type : public type {
+class void_type : public type_impl<void_type, types::VOID> {
 public:
-  static types static_get_type();
-  types get_type() const override;
-  std::unique_ptr<type> clone() const override;
+  using type_impl::type_enum;
 };
 
-class function_type : public type {
+class function_type : public type_impl<function_type, types::FUNCTION> {
   std::vector<std::unique_ptr<type>> signature;
 
 public:
-  static types static_get_type();
+  function_type(const function_type &);
+
+public:
+  using type_impl::type_enum;
   function_type(std::vector<std::unique_ptr<type>> &&sign);
   const std::vector<std::unique_ptr<type>> &get_signature() const;
   bool equals(const type &f) const override;
-  types get_type() const override;
-  std::unique_ptr<type> clone() const override;
 };
 
 } // namespace intrp
