@@ -4,6 +4,7 @@
 #include "node/statement.hpp"
 
 #include <iostream>
+#include <unordered_map>
 
 namespace intrp {
 
@@ -41,7 +42,7 @@ void print_visitor::print_type(intrp::type &type) {
   }
 }
 
-void print_visitor::visit_program(const program &progr) {
+void print_visitor::visit(const program &progr) {
   *this << "program:" << "\n";
   offset++;
   for (auto &func : progr.get_funcs()) {
@@ -50,7 +51,7 @@ void print_visitor::visit_program(const program &progr) {
   offset--;
 }
 
-void print_visitor::visit_function(const function &func) {
+void print_visitor::visit(const function &func) {
 
   *this << type_name[func.get_type()->get_type()] << " "
         << func.get_identifier() << " ";
@@ -66,7 +67,7 @@ void print_visitor::visit_function(const function &func) {
   offset--;
 }
 
-void print_visitor::visit_block(const block_statement &block) {
+void print_visitor::visit(const block_statement &block) {
   *this << "{" << "\n";
   offset++;
   for (auto &statement : block.get_statements()) {
@@ -76,7 +77,7 @@ void print_visitor::visit_block(const block_statement &block) {
   *this << "}" << "\n";
 }
 
-void print_visitor::visit_assign(const assign_statement &statem) {
+void print_visitor::visit(const assign_statement &statem) {
   if (statem.get_type() != nullptr)
     *this << type_name[statem.get_type()->get_type()] << " ";
   else
@@ -91,7 +92,7 @@ void print_visitor::visit_assign(const assign_statement &statem) {
   offset--;
 };
 
-void print_visitor::visit_return(const return_statement &ret) {
+void print_visitor::visit(const return_statement &ret) {
   *this << "return" << "\n";
   offset++;
   if (ret.get_exp() != nullptr)
@@ -99,7 +100,7 @@ void print_visitor::visit_return(const return_statement &ret) {
   offset--;
 };
 
-void print_visitor::visit_if(const if_statement &statem) {
+void print_visitor::visit(const if_statement &statem) {
   *this << "if" << "\n";
   offset++;
   statem.get_condition()->accept(*this);
@@ -113,7 +114,7 @@ void print_visitor::visit_if(const if_statement &statem) {
   }
 };
 
-void print_visitor::visit_while(const while_statement &statem) {
+void print_visitor::visit(const while_statement &statem) {
   *this << "while" << "\n";
   offset++;
   statem.get_condition()->accept(*this);
@@ -122,7 +123,7 @@ void print_visitor::visit_while(const while_statement &statem) {
   statem.get_block()->accept(*this);
 };
 
-void print_visitor::visit_function_call(const function_call &func) {
+void print_visitor::visit(const function_call &func) {
   func.get_func()->accept(*this);
 
   offset++;
@@ -135,7 +136,7 @@ void print_visitor::visit_function_call(const function_call &func) {
     *this << "\n";
 };
 
-void print_visitor::visit_binop(const binop_expression &op) {
+void print_visitor::visit(const binop_expression &op) {
   *this << binop_name[op.get_op()] << "\n";
   offset++;
   op.get_left()->accept(*this);
@@ -143,14 +144,14 @@ void print_visitor::visit_binop(const binop_expression &op) {
   offset--;
 };
 
-void print_visitor::visit_unarop(const unarop_expression &op) {
+void print_visitor::visit(const unarop_expression &op) {
   *this << unarop_name[op.get_op()] << "\n";
   offset++;
   op.get_exp()->accept(*this);
   offset--;
 };
 
-void print_visitor::visit_literal(const literal_expression &lit) {
+void print_visitor::visit(const literal_expression &lit) {
   intrp::lit_val val = lit.get_val();
   if (auto *v = std::get_if<int>(&val)) {
     *this << *v;
@@ -164,11 +165,11 @@ void print_visitor::visit_literal(const literal_expression &lit) {
   out << "\n";
 };
 
-void print_visitor::visit_identifier(const identifier_expression &id) {
+void print_visitor::visit(const identifier_expression &id) {
   *this << id.get_identificator() << "\n";
 };
 
-void print_visitor::visit_subscript(const subscript_expression &sub) {
+void print_visitor::visit(const subscript_expression &sub) {
   *this << ".[..]" << "\n";
   offset++;
   sub.get_pointer()->accept(*this);
@@ -176,7 +177,7 @@ void print_visitor::visit_subscript(const subscript_expression &sub) {
   offset--;
 };
 
-void print_visitor::visit_subscript_assign(
+void print_visitor::visit(
     const subscript_assign_statement &sub) {
   *this << ".[..]" << "\n";
   offset+=2;

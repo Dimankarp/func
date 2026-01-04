@@ -44,7 +44,7 @@ void code_visitor::declare_read_func() {
   table.add(std::move(info));
 }
 
-void code_visitor::visit_program(const program &progr) {
+void code_visitor::visit(const program &progr) {
   out << "#Enter program\n";
   writer.label("_START");
   writer.li(instr::SP, (1 << 16));
@@ -77,7 +77,7 @@ void code_visitor::visit_program(const program &progr) {
   out << "#Done program\n";
 }
 
-void code_visitor::visit_function(const function &f) {
+void code_visitor::visit(const function &f) {
   out << "#Enter function " << f.get_identifier() << "\n";
 
   auto signature = std::vector<unique_ptr<type>>();
@@ -115,7 +115,7 @@ void code_visitor::visit_function(const function &f) {
   out << "#Done function " << f.get_identifier() << "\n";
 }
 
-void code_visitor::visit_block(const block_statement &b) {
+void code_visitor::visit(const block_statement &b) {
   out << "#Enter block " << "\n";
   table.start_block();
 
@@ -173,11 +173,11 @@ void store_variable(instr::instruction_writer &writer, reg_allocator &alloc,
 }
 
 } // namespace
-void code_visitor::visit_function_call(const function_call &fc) {
+void code_visitor::visit(const function_call &fc) {
   out << "#Enter function call" << "\n";
 
-  fc.get_func()->accept(*this);
-  expr_result func = std::move(this->result);
+  expr_result func = fc.get_func()->accept_with_result(*this);
+
   const auto &func_type = dynamic_cast<const function_type &>(*func.type_obj);
 
   std::vector<uint8_t> arg_regs{};
@@ -192,7 +192,7 @@ void code_visitor::visit_function_call(const function_call &fc) {
     throw syntax_exception{
         "wrong number of arguments, expected: " + std::to_string(params_sz) +
             ", but got " + std::to_string(args_sz),
-        fc.statement::get_loc()};
+        fc.get_loc()};
 
   for (int i = 0; i < fc.get_arg_list().size(); i++) {
     args[i]->accept(*this);
@@ -231,7 +231,7 @@ void code_visitor::visit_function_call(const function_call &fc) {
   out << "#Done function call" << "\n";
 };
 
-void code_visitor::visit_identifier(const identifier_expression &id) {
+void code_visitor::visit(const identifier_expression &id) {
   out << "#Enter identifier " << id.get_identificator() << "\n";
   auto sym = table.find(id.get_identificator());
   auto r = alloc.alloc("Identifier return register");
@@ -242,7 +242,7 @@ void code_visitor::visit_identifier(const identifier_expression &id) {
   out << "#Done identifier " << id.get_identificator() << "\n";
 };
 
-void code_visitor::visit_literal(const literal_expression &lit) {
+void code_visitor::visit(const literal_expression &lit) {
   out << "#Enter literal " << "\n";
   intrp::lit_val val = lit.get_val();
   auto r = alloc.alloc("Literal return register");
@@ -264,7 +264,7 @@ void code_visitor::visit_literal(const literal_expression &lit) {
   out << "#Done literal " << "\n";
 };
 
-void code_visitor::visit_return(const return_statement &ret) {
+void code_visitor::visit(const return_statement &ret) {
   out << "#Enter return" << "\n";
   if (ret.get_exp() != nullptr) {
     ret.get_exp()->accept(*this);
@@ -275,12 +275,10 @@ void code_visitor::visit_return(const return_statement &ret) {
   out << "#Done return" << "\n";
 };
 
-void code_visitor::visit_binop(const binop_expression &bop) {
+void code_visitor::visit(const binop_expression &bop) {
   out << "#Enter binop" << "\n";
-  bop.get_left()->accept(*this);
-  expr_result left = std::move(this->result);
-  bop.get_right()->accept(*this);
-  expr_result right = std::move(this->result);
+  expr_result left = bop.get_left()->accept_with_result(*this);
+  expr_result right = bop.get_right()->accept_with_result(*this);
   try {
     switch (bop.get_op()) {
     case binop::ADD:
@@ -326,7 +324,7 @@ void code_visitor::visit_binop(const binop_expression &bop) {
   out << "#Done binop" << "\n";
 };
 
-void code_visitor::visit_assign(const assign_statement &stm) {
+void code_visitor::visit(const assign_statement &stm) {
   out << "#Enter assing" << "\n";
   /*
   3 Variants:
@@ -360,9 +358,8 @@ void code_visitor::visit_assign(const assign_statement &stm) {
   }
 };
 
-void code_visitor::visit_unarop(const unarop_expression &unop) {
-  unop.get_exp()->accept(*this);
-  expr_result res = std::move(this->result);
+void code_visitor::visit(const unarop_expression &unop) {
+  expr_result res = unop.get_exp()->accept_with_result(*this);
   try {
     switch (unop.get_op()) {
 
@@ -380,7 +377,7 @@ void code_visitor::visit_unarop(const unarop_expression &unop) {
   alloc.dealloc(res.reg_num);
 };
 
-void code_visitor::visit_if(const if_statement &stm) {
+void code_visitor::visit(const if_statement &stm) {
   out << "#Enter if" << "\n";
   std::string then_end_label = "THEN_END_" + std::to_string(label_ind++);
   std::string else_end_label = "ELSE_END_" + std::to_string(label_ind++);
@@ -405,7 +402,7 @@ void code_visitor::visit_if(const if_statement &stm) {
   out << "#Done if" << "\n";
 };
 
-void code_visitor::visit_while(const while_statement &stm) {
+void code_visitor::visit(const while_statement &stm) {
   out << "#Enter while" << "\n";
   std::string while_start_label = "WHILE_START_" + std::to_string(label_ind++);
   std::string while_end_label = "WHILE_END_" + std::to_string(label_ind++);
@@ -427,17 +424,15 @@ void code_visitor::visit_while(const while_statement &stm) {
   out << "#Done while" << "\n";
 };
 
-void code_visitor::visit_subscript(const subscript_expression &sub) {
+void code_visitor::visit(const subscript_expression &sub) {
   out << "#Enter subscript" << "\n";
-  sub.get_pointer()->accept(*this);
-  expr_result ptr = std::move(this->result);
+  expr_result ptr = sub.get_pointer()->accept_with_result(*this);
 
   if (ptr.type_obj->get_type() != types::STRING)
     throw unexpected_type_exception{
         {"expected string as subscript target", sub.get_pointer()->get_loc()}};
 
-  sub.get_index()->accept(*this);
-  expr_result idx = std::move(this->result);
+  expr_result idx = sub.get_index()->accept_with_result(*this);
 
   if (idx.type_obj->get_type() != types::INT)
     throw unexpected_type_exception{
@@ -455,18 +450,16 @@ void code_visitor::visit_subscript(const subscript_expression &sub) {
   out << "#Done subscript" << "\n";
 };
 
-void code_visitor::visit_subscript_assign(
-    const subscript_assign_statement &sub) {
+void code_visitor::visit(const subscript_assign_statement &sub) {
   out << "#Enter subscript assign" << "\n";
-  sub.get_pointer()->accept(*this);
-  expr_result ptr = std::move(this->result);
+
+  expr_result ptr = sub.get_pointer()->accept_with_result(*this);
 
   if (ptr.type_obj->get_type() != types::STRING)
     throw unexpected_type_exception{
         {"expected string as subscript target", sub.get_pointer()->get_loc()}};
 
-  sub.get_index()->accept(*this);
-  expr_result idx = std::move(this->result);
+  expr_result idx = sub.get_index()->accept_with_result(*this);
 
   if (idx.type_obj->get_type() != types::INT)
     throw unexpected_type_exception{
@@ -475,8 +468,7 @@ void code_visitor::visit_subscript_assign(
   writer.add(ptr.reg_num, ptr.reg_num, idx.reg_num);
   alloc.dealloc(idx.reg_num);
 
-  sub.get_exp()->accept(*this);
-  expr_result exp = std::move(this->result);
+  expr_result exp = sub.get_exp()->accept_with_result(*this);
 
   if (exp.type_obj->get_type() != types::INT)
     throw unexpected_type_exception{

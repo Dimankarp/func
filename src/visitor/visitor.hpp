@@ -1,35 +1,50 @@
 #pragma once
 
-#include "driver.hpp"
-#include "function/function.hpp"
-#include "node/expression.hpp"
-#include "node/program.hpp"
-#include "node/statement.hpp"
 namespace intrp {
 
-class expression_visitor {
+class binop_expression;
+class unarop_expression;
+class literal_expression;
+class identifier_expression;
+class function_call;
+class subscript_expression;
+class function;
+
+class program;
+class block_statement;
+class return_statement;
+class assign_statement;
+class if_statement;
+class while_statement;
+class subscript_assign_statement;
+
+class visitor_base {
 public:
-  virtual void visit_binop(const binop_expression &) = 0;
-  virtual void visit_unarop(const unarop_expression &) = 0;
-  virtual void visit_literal(const literal_expression &) = 0;
-  virtual void visit_identifier(const identifier_expression &) = 0;
-  virtual void visit_function_call(const function_call &) = 0;
-  virtual void visit_subscript(const subscript_expression &) = 0;
-  virtual ~expression_visitor() = default;
+  virtual void visit(const binop_expression &) = 0;
+  virtual void visit(const unarop_expression &) = 0;
+  virtual void visit(const literal_expression &) = 0;
+  virtual void visit(const identifier_expression &) = 0;
+  virtual void visit(const function_call &) = 0;
+  virtual void visit(const subscript_expression &) = 0;
+  virtual void visit(const program &) = 0;
+  virtual void visit(const block_statement &) = 0;
+  virtual void visit(const return_statement &) = 0;
+  virtual void visit(const assign_statement &) = 0;
+  virtual void visit(const if_statement &) = 0;
+  virtual void visit(const while_statement &) = 0;
+  virtual void visit(const function &) = 0;
+  virtual void visit(const subscript_assign_statement &) = 0;
+  virtual ~visitor_base() = default;
 };
 
-class statement_visitor {
+template <typename ReturnType> class visitor : public visitor_base {
 public:
-  virtual void visit_program(const program &) = 0;
-  virtual void visit_block(const block_statement &) = 0;
-  virtual void visit_return(const return_statement &) = 0;
-  virtual void visit_assign(const assign_statement &) = 0;
-  virtual void visit_if(const if_statement &) = 0;
-  virtual void visit_while(const while_statement &) = 0;
-  virtual void visit_function(const function &) = 0;
-  virtual void visit_function_call(const function_call &) = 0;
-  virtual void visit_subscript_assign(const subscript_assign_statement &) = 0;
-  virtual ~statement_visitor() = default;
+  virtual ReturnType &&extract_result() = 0;
+  virtual ~visitor() = default;
+};
+template <> class visitor<void> : public visitor_base {
+public:
+  virtual ~visitor() = default;
 };
 
 } // namespace intrp

@@ -1,109 +1,124 @@
 #pragma once
 #include "location.hh"
+#include "node/ast.hpp"
 #include "node/expression.hpp"
 #include "type/type.hpp"
-#include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 namespace intrp {
-using std::unique_ptr;
-class statement_visitor;
 
-class statement {
+class block_statement : public ast_node_impl<block_statement> {
 private:
-  yy::location loc;
+  std::vector<unique_ptr<ast_node>> statements;
 
 public:
-  virtual ~statement() = default;
-  virtual void accept(statement_visitor &) = 0;
-  statement(yy::location loc);
-  yy::location get_loc() const;
+  using ast_node_impl::ast_node_impl;
+  void add_statement(unique_ptr<ast_node> s) {
+    statements.push_back(std::move(s));
+  }
+  const std::vector<unique_ptr<ast_node>> &get_statements() const {
+    return statements;
+  }
 };
 
-class block_statement : public statement {
-private:
-  std::vector<unique_ptr<statement>> statements;
+class assign_statement : public ast_node_impl<assign_statement> {
+  using Base = ast_node_impl<assign_statement>;
 
-public:
-  block_statement(yy::location loc);
-  void add_statement(unique_ptr<statement> s);
-  void accept(statement_visitor &visitor) override;
-  const std::vector<unique_ptr<statement>> &get_statements() const;
-};
-
-class assign_statement : public statement {
 private:
   std::string identifier;
-  unique_ptr<expression> exp;
+  unique_ptr<ast_node> exp;
   unique_ptr<type> type_obj;
 
 public:
-  assign_statement(unique_ptr<type> type, std::string &id, yy::location loc);
   assign_statement(unique_ptr<intrp::type> type, std::string &id,
-                   unique_ptr<expression> exp, yy::location loc);
-  assign_statement(std::string &id, unique_ptr<expression> exp,
-                   yy::location loc);
+                   yy::location loc)
+      : identifier(id), Base(loc), type_obj{std::move(type)} {}
 
-  void accept(statement_visitor &visitor) override;
-  const std::string &get_identifier() const;
-  const unique_ptr<expression> &get_exp() const;
-  const unique_ptr<type> &get_type() const;
+  assign_statement(unique_ptr<intrp::type> type, std::string &id,
+                   unique_ptr<ast_node> exp, yy::location loc)
+      : identifier(id), exp(std::move(exp)), Base(loc),
+        type_obj{std::move(type)} {}
+
+  assign_statement(std::string &id, unique_ptr<ast_node> exp, yy::location loc)
+      : identifier(id), exp(std::move(exp)), Base(loc) {}
+
+  const std::string &get_identifier() const { return identifier; }
+  const unique_ptr<ast_node> &get_exp() const { return exp; }
+  const unique_ptr<type> &get_type() const { return type_obj; }
 };
 
-class if_statement : public statement {
+class if_statement : public ast_node_impl<if_statement> {
+  using Base = ast_node_impl<if_statement>;
+
 private:
-  unique_ptr<expression> condition;
+  unique_ptr<ast_node> condition;
   unique_ptr<block_statement> then_block;
   unique_ptr<block_statement> else_block;
 
 public:
-  if_statement(unique_ptr<expression> cond, unique_ptr<block_statement> then,
-               yy::location loc);
-  void accept(statement_visitor &visitor) override;
-  void add_else(unique_ptr<block_statement> else_block);
-  const unique_ptr<expression> &get_condition() const;
-  const unique_ptr<block_statement> &get_then_block() const;
-  const unique_ptr<block_statement> &get_else_block() const;
+  if_statement(unique_ptr<ast_node> cond, unique_ptr<block_statement> then,
+               yy::location loc)
+      : condition(std::move(cond)), then_block(std::move(then)), Base(loc) {}
+
+  void add_else(unique_ptr<block_statement> else_block) {
+    this->else_block = std::move(else_block);
+  }
+
+  const unique_ptr<ast_node> &get_condition() const { return condition; }
+
+  const unique_ptr<block_statement> &get_then_block() const {
+    return then_block;
+  }
+  const unique_ptr<block_statement> &get_else_block() const {
+    return else_block;
+  }
 };
 
-class while_statement : public statement {
+class while_statement : public ast_node_impl<while_statement> {
+  using Base = ast_node_impl<while_statement>;
+
 private:
-  unique_ptr<expression> condition;
+  unique_ptr<ast_node> condition;
   unique_ptr<block_statement> block;
 
 public:
-  while_statement(unique_ptr<expression> cond,
-                  unique_ptr<block_statement> block, yy::location loc);
-  void accept(statement_visitor &visitor) override;
-  const unique_ptr<expression> &get_condition() const;
-  const unique_ptr<block_statement> &get_block() const;
+  while_statement(unique_ptr<ast_node> cond, unique_ptr<block_statement> block,
+                  yy::location loc)
+      : condition(std::move(cond)), block(std::move(block)), Base(loc) {}
+  const unique_ptr<ast_node> &get_condition() const { return condition; }
+  const unique_ptr<block_statement> &get_block() const { return block; }
 };
 
-class return_statement : public statement {
+class return_statement : public ast_node_impl<return_statement> {
+  using Base = ast_node_impl<return_statement>;
+
 private:
-  unique_ptr<expression> exp;
+  unique_ptr<ast_node> exp;
 
 public:
-  return_statement(unique_ptr<expression> exp, yy::location loc);
-  void accept(statement_visitor &visitor) override;
-  const unique_ptr<expression> &get_exp() const;
+  return_statement(unique_ptr<ast_node> exp, yy::location loc)
+      : exp{std::move(exp)}, Base{loc} {}
+  const unique_ptr<ast_node> &get_exp() const { return exp; }
 };
 
-class subscript_assign_statement : public statement {
+class subscript_assign_statement
+    : public ast_node_impl<subscript_assign_statement> {
+  using Base = ast_node_impl<subscript_assign_statement>;
+
 private:
-  unique_ptr<expression> pointer;
-  unique_ptr<expression> index;
-  unique_ptr<expression> exp;
+  unique_ptr<ast_node> pointer;
+  unique_ptr<ast_node> index;
+  unique_ptr<ast_node> exp;
 
 public:
-  subscript_assign_statement(unique_ptr<expression> pointer,
-                             unique_ptr<expression> index,
-                             unique_ptr<expression> exp, yy::location loc);
-  void accept(statement_visitor &visitor) override;
-  const unique_ptr<expression> &get_pointer() const;
-  const unique_ptr<expression> &get_index() const;
-  const unique_ptr<expression> &get_exp() const;
+  subscript_assign_statement(unique_ptr<ast_node> pointer,
+                             unique_ptr<ast_node> index,
+                             unique_ptr<ast_node> exp, yy::location loc)
+      : pointer{std::move(pointer)}, index{std::move(index)},
+        exp{std::move(exp)}, Base{loc} {};
+  const unique_ptr<ast_node> &get_pointer() const { return pointer; }
+  const unique_ptr<ast_node> &get_index() const { return index; }
+  const unique_ptr<ast_node> &get_exp() const { return exp; }
 };
 
 } // namespace intrp

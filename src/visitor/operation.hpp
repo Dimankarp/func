@@ -5,15 +5,17 @@
 #include "type/type.hpp"
 #include "visitor/code_visitor.hpp"
 #include "visitor/instruction_writer.hpp"
-#include "visitor/register_allocator.hpp"
 #include "visitor/print_visitor.hpp"
+#include "visitor/register_allocator.hpp"
 #include <memory>
 namespace intrp {
 
-
 template <typename T> T expect(const expr_result &exp) {
-  if (exp.type_obj->get_type() != T::static_get_type())
-    throw unexpected_type_exception({intrp::types_to_string(exp.type_obj->get_type()) + " but expected " + intrp::types_to_string(T::static_get_type()) , yy::location{}});
+  if (exp.type_obj->get_type() != T::type_enum)
+    throw unexpected_type_exception(
+        {intrp::types_to_string(exp.type_obj->get_type()) + " but expected " +
+             intrp::types_to_string(T::type_enum),
+         yy::location{}});
   return dynamic_cast<const T &>(*exp.type_obj);
 }
 
@@ -44,9 +46,9 @@ expr_result expr_or(instr::instruction_writer &w, reg_allocator &alloc,
 expr_result expr_and(instr::instruction_writer &w, reg_allocator &alloc,
                      const expr_result &a, const expr_result &b);
 
-                     expr_result expr_minus(instr::instruction_writer &w, reg_allocator &alloc,
-                      const expr_result &a);
-                      expr_result expr_not(instr::instruction_writer &w, reg_allocator &alloc,
-                        const expr_result &a);
+expr_result expr_minus(instr::instruction_writer &w, reg_allocator &alloc,
+                       const expr_result &a);
+expr_result expr_not(instr::instruction_writer &w, reg_allocator &alloc,
+                     const expr_result &a);
 
 } // namespace intrp

@@ -1,25 +1,14 @@
 #pragma once
 
 #include "location.hh"
+#include "node/ast.hpp"
 #include <memory>
 #include <string>
 #include <variant>
 namespace intrp {
 
-class expression_visitor;
 using std::unique_ptr;
 using lit_val = std::variant<std::string, int, bool>;
-
-class expression {
-private:
-  yy::location loc;
-
-public:
-  virtual ~expression() = default;
-  virtual void accept(expression_visitor &) = 0;
-  expression(yy::location loc);
-  yy::location get_loc() const;
-};
 
 enum class binop : char {
   ADD,
@@ -35,67 +24,78 @@ enum class binop : char {
   AND
 };
 
-class binop_expression : public expression {
+class binop_expression : public ast_node_impl<binop_expression> {
+  using Base = ast_node_impl<binop_expression>;
+
 private:
   binop op;
-  unique_ptr<expression> left;
-  unique_ptr<expression> right;
+  unique_ptr<ast_node> left;
+  unique_ptr<ast_node> right;
 
 public:
-  binop_expression(binop op, unique_ptr<expression> left,
-                   unique_ptr<expression> right, yy::location loc);
-  void accept(expression_visitor &visitor) override;
-  binop get_op() const;
-  const unique_ptr<expression> &get_left() const;
-  const unique_ptr<expression> &get_right() const;
+  binop_expression(binop op, unique_ptr<ast_node> left,
+                   unique_ptr<ast_node> right, yy::location loc)
+      : op(op), left(std::move(left)), right(std::move(right)), Base(loc) {}
+  binop get_op() const { return op; }
+  const unique_ptr<ast_node> &get_left() const { return left; }
+  const unique_ptr<ast_node> &get_right() const { return right; }
 };
 
 enum class unarop : char { MINUS, NOT };
 
-class unarop_expression : public expression {
+class unarop_expression : public ast_node_impl<unarop_expression> {
+  using Base = ast_node_impl<unarop_expression>;
+
 private:
   unarop op;
-  unique_ptr<expression> exp;
+  unique_ptr<ast_node> exp;
 
 public:
-  unarop_expression(unarop op, unique_ptr<expression> exp, yy::location loc);
-  void accept(expression_visitor &visitor) override;
-  unarop get_op() const;
-  const unique_ptr<expression> &get_exp() const;
+  unarop_expression(unarop op, unique_ptr<ast_node> exp, yy::location loc)
+      : op(op), exp(std::move(exp)), Base(loc) {};
+  unarop get_op() const { return op; }
+  const unique_ptr<ast_node> &get_exp() const { return exp; }
 };
 
-class literal_expression : public expression {
+class literal_expression : public ast_node_impl<literal_expression> {
+  using Base = ast_node_impl<literal_expression>;
+
 private:
   lit_val val;
 
 public:
-  literal_expression(lit_val val, yy::location loc);
-  void accept(expression_visitor &visitor) override;
-  lit_val get_val() const;
+  literal_expression(lit_val val, yy::location loc)
+      : val(std::move(val)), Base(loc) {};
+  lit_val get_val() const { return val; }
 };
 
-class identifier_expression : public expression {
+class identifier_expression : public ast_node_impl<identifier_expression> {
+
+  using Base = ast_node_impl<identifier_expression>;
+
 private:
   std::string identificator;
 
 public:
-  identifier_expression(std::string identificator, yy::location loc);
-  void accept(expression_visitor &visitor) override;
-  const std::string &get_identificator() const;
+  identifier_expression(std::string identificator, yy::location loc)
+      : identificator(std::move(identificator)), Base(loc) {}
+  const std::string &get_identificator() const { return identificator; }
 };
 
-class subscript_expression : public expression {
+class subscript_expression : public ast_node_impl<subscript_expression> {
+  using Base = ast_node_impl<subscript_expression>;
+
 private:
-  unique_ptr<expression> pointer;
-  unique_ptr<expression> index;
+  unique_ptr<ast_node> pointer;
+  unique_ptr<ast_node> index;
 
 public:
-  subscript_expression(unique_ptr<expression> pointer,
-                       unique_ptr<expression> index, yy::location loc);
+  subscript_expression(unique_ptr<ast_node> pointer, unique_ptr<ast_node> index,
+                       yy::location loc)
+      : pointer{std::move(pointer)}, index{std::move(index)}, Base{loc} {}
 
-  void accept(expression_visitor &visitor) override;
-  const unique_ptr<expression> &get_pointer() const;
-  const unique_ptr<expression> &get_index() const;
+  const unique_ptr<ast_node> &get_pointer() const { return pointer; }
+  const unique_ptr<ast_node> &get_index() const { return index; }
 };
 
 } // namespace intrp
