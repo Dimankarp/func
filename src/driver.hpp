@@ -1,6 +1,8 @@
 #pragma once
 
+#include "node/ast.hpp"
 #include "parser.tab.hpp"
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -11,7 +13,7 @@ class driver {
 
 public:
   driver();
-  std::unique_ptr<func::statement> result;
+  std::unique_ptr<func::ast_node> result;
   // Run the parser on file F.  Return 0 on success.
   int parse(const std::string &f);
   // The name of the file being parsed.

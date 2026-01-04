@@ -85,7 +85,7 @@ public:
   }
 };
 
-class code_visitor : public expression_visitor, public statement_visitor {
+class code_visitor : public visitor<expr_result> {
 private:
   func::stream_proxy &debug_out;
   expr_result result;
@@ -98,21 +98,23 @@ private:
 public:
   code_visitor(func::printer &printer);
 
-  void visit_binop(const binop_expression &) override;
-  void visit_unarop(const unarop_expression &) override;
-  void visit_literal(const literal_expression &) override;
-  void visit_identifier(const identifier_expression &) override;
-  void visit_function_call(const function_call &) override;
-  void visit_subscript(const subscript_expression &) override;
+  void visit(const binop_expression &) override;
+  void visit(const unarop_expression &) override;
+  void visit(const literal_expression &) override;
+  void visit(const identifier_expression &) override;
+  void visit(const function_call &) override;
+  void visit(const subscript_expression &) override;
 
-  void visit_subscript_assign(const subscript_assign_statement &) override;
-  void visit_program(const program &) override;
-  void visit_block(const block_statement &) override;
-  void visit_return(const return_statement &) override;
-  void visit_assign(const assign_statement &) override;
-  void visit_if(const if_statement &) override;
-  void visit_while(const while_statement &) override;
-  void visit_function(const function &) override;
+  void visit(const subscript_assign_statement &) override;
+  void visit(const program &) override;
+  void visit(const block_statement &) override;
+  void visit(const return_statement &) override;
+  void visit(const assign_statement &) override;
+  void visit(const if_statement &) override;
+  void visit(const while_statement &) override;
+  void visit(const function &) override;
+
+  expr_result &&extract_result() override { return std::move(result); }
 
 private:
   void declare_write_func();

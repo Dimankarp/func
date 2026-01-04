@@ -1,24 +1,25 @@
 #pragma once
 
 #include "location.hh"
+#include "node/ast.hpp"
 #include "node/expression.hpp"
 #include "node/statement.hpp"
 #include <string>
 
 namespace func {
 
-class function_call : public expression, public statement {
-  std::unique_ptr<func::expression> func;
-  std::vector<unique_ptr<func::expression>> arg_list;
+class function_call : public ast_node_impl<function_call> {
+  using Base = ast_node_impl<function_call>;
+  std::unique_ptr<ast_node> func;
+  std::vector<unique_ptr<ast_node>> arg_list;
 
 public:
-  function_call(std::unique_ptr<func::expression> func,
-                std::vector<unique_ptr<func::expression>> &&arg_list,
-                yy::location loc);
-  void accept(statement_visitor &visitor) override;
-  void accept(expression_visitor &visitor) override;
-  const std::unique_ptr<func::expression> &get_func() const { return func; };
-  const std::vector<unique_ptr<func::expression>> &get_arg_list() const {
+  function_call(std::unique_ptr<ast_node> func,
+                std::vector<unique_ptr<ast_node>> &&arg_list, yy::location loc)
+      : func{std::move(func)}, arg_list{std::move(arg_list)}, Base{loc} {}
+
+  const std::unique_ptr<ast_node> &get_func() const { return func; };
+  const std::vector<unique_ptr<ast_node>> &get_arg_list() const {
     return arg_list;
   };
 };
@@ -29,12 +30,14 @@ class parameter {
 
 public:
   parameter() = default;
-  parameter(unique_ptr<type> type_obj, std::string &identifier);
+  parameter(unique_ptr<type> type_obj, std::string &identifier)
+      : type_obj{std::move(type_obj)}, identifier{identifier} {}
   const unique_ptr<type> &get_type() const { return type_obj; }
   const std::string &get_identifier() const { return identifier; }
 };
 
-class function : public statement {
+class function : public ast_node_impl<function> {
+  using Base = ast_node_impl<function>;
   unique_ptr<type> type_obj;
   std::string identifier;
   std::vector<parameter> param_list;
@@ -43,8 +46,9 @@ class function : public statement {
 public:
   function(unique_ptr<type> type_obj, std::string &identifier,
            std::vector<parameter> &&param_list,
-           unique_ptr<block_statement> block, yy::location loc);
-  void accept(statement_visitor &visitor) override;
+           unique_ptr<block_statement> block, yy::location loc)
+      : type_obj{std::move(type_obj)}, identifier{identifier},
+        param_list{std::move(param_list)}, block{std::move(block)}, Base{loc} {}
   const unique_ptr<type> &get_type() const { return type_obj; }
   const std::string &get_identifier() const { return identifier; }
   const std::vector<parameter> &get_params() const { return param_list; }

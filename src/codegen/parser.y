@@ -76,8 +76,8 @@
 %token <int>  NUM "num"
 %token <bool> BOOLS "bools"
 
-%type  <std::unique_ptr<func::expression>> exp
-%type  <std::unique_ptr<func::statement>> statement
+%type  <std::unique_ptr<func::ast_node>> exp
+%type  <std::unique_ptr<func::ast_node>> statement
 %type  <std::unique_ptr<func::block_statement>> statements
 %type  <std::unique_ptr<func::block_statement>> block
 
@@ -89,8 +89,8 @@
 %type  <std::vector<func::parameter>> params
 %type  <func::parameter> param
 
-%type  <std::vector<unique_ptr<func::expression>>> arg_list
-%type  <std::vector<unique_ptr<func::expression>>> args
+%type  <std::vector<unique_ptr<func::ast_node>>> arg_list
+%type  <std::vector<unique_ptr<func::ast_node>>> args
 
 %type  <unique_ptr<func::type>>  type 
 %type  <unique_ptr<func::type>>  func_res_type
@@ -224,7 +224,7 @@ exp:
 
 arg_list:
   %empty {
-    $$ = std::vector<unique_ptr<func::expression>>();
+    $$ = std::vector<unique_ptr<func::ast_node>>();
   }
 | args {
     $$ = std::move($1);
@@ -232,7 +232,7 @@ arg_list:
 
 args:
   exp {
-    $$ = std::vector<unique_ptr<func::expression>>();
+    $$ = std::vector<unique_ptr<func::ast_node>>();
     $$.push_back(std::move($1));
     }
 | args "," exp {
