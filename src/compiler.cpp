@@ -28,7 +28,6 @@ int main(int argc, char *argv[]) {
         std::cout << "Failed to parse - exiting.\n";
         exit(1);
       };
-      auto variables = std::make_shared<var_table>();
 
       cmplr::print_visitor print_visitor{std::cout};
 

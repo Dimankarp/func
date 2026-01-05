@@ -7,8 +7,6 @@
 #define YY_DECL yy::parser::symbol_type yylex(driver &drv)
 YY_DECL;
 
-using var_table = std::unordered_map<std::string, cmplr::lit_val>;
-
 class driver {
 
 public:
