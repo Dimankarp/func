@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 #include <variant>
-namespace intrp {
+namespace cmplr {
 
 class expression_visitor;
 using std::unique_ptr;
@@ -98,4 +98,4 @@ public:
   const unique_ptr<expression> &get_index() const;
 };
 
-} // namespace intrp
+} // namespace cmplr

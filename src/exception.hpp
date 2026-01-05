@@ -3,7 +3,7 @@
 #include "location.hh"
 #include <sstream>
 #include <string>
-namespace intrp {
+namespace cmplr {
 
 struct syntax_exception {
   std::string reason;
@@ -35,4 +35,4 @@ struct global_syntax_exception {
 
 std::ostream &operator<<(std::ostream &outs, const syntax_exception &e);
 std::ostream &operator<<(std::ostream &outs, const global_syntax_exception &e);
-} // namespace intrp
+} // namespace cmplr

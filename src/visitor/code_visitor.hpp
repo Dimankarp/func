@@ -12,16 +12,16 @@
 #include <string>
 #include <utility>
 
-namespace intrp {
+namespace cmplr {
 
 struct expr_result {
-  std::unique_ptr<intrp::type> type_obj;
+  std::unique_ptr<cmplr::type> type_obj;
   uint8_t reg_num;
 };
 
 struct sym_info {
   std::string name;
-  std::unique_ptr<intrp::type> type_obj;
+  std::unique_ptr<cmplr::type> type_obj;
   enum : char { STACK, ABS } access_type;
   uint16_t offset;
   yy::location declare_loc = yy::location{};
@@ -29,7 +29,7 @@ struct sym_info {
 
 public:
   sym_info(const std::string &name,
-           const std::unique_ptr<intrp::type> &type_obj,
+           const std::unique_ptr<cmplr::type> &type_obj,
            decltype(STACK) access_type, uint16_t offset,
            yy::location declare_loc = yy::location{}, bool is_delimeter = false)
       : name{name}, type_obj{type_obj->clone()}, access_type{access_type},
@@ -89,7 +89,7 @@ private:
   expr_result result;
   sym_table table;
   reg_allocator alloc;
-  intrp::instr::instruction_writer writer;
+  cmplr::instr::instruction_writer writer;
   uint16_t stack_height = 0;
   uint16_t label_ind = 0;
 
@@ -117,4 +117,4 @@ private:
   void declare_read_func();
 };
 
-} // namespace intrp
+} // namespace cmplr

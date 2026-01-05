@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
       };
       auto variables = std::make_shared<var_table>();
 
-      intrp::print_visitor print_visitor{std::cout};
+      cmplr::print_visitor print_visitor{std::cout};
 
       auto tree = std::move(drv.result);
       try {
@@ -39,24 +39,24 @@ int main(int argc, char *argv[]) {
         std::cout << "Code visitor output:\n";
 
         if (drv.output_file.empty()) {
-          intrp::code_visitor code_visitor{std::cout};
+          cmplr::code_visitor code_visitor{std::cout};
           tree->accept(code_visitor);
         } else {
           std::ofstream out(drv.output_file);
-          intrp::code_visitor code_visitor{out};
+          cmplr::code_visitor code_visitor{out};
           tree->accept(code_visitor);
         }
 
-      } catch (intrp::unexpected_type_exception &e) {
+      } catch (cmplr::unexpected_type_exception &e) {
         std::cout << "Syntax error: unexpected type " << e << "\n";
         exit(1);
-      } catch (intrp::symbol_not_found_exception &e) {
+      } catch (cmplr::symbol_not_found_exception &e) {
         std::cout << "Syntax error: symbol not found " << e << "\n";
         exit(1);
-      } catch (intrp::syntax_exception &e) {
+      } catch (cmplr::syntax_exception &e) {
         std::cout << "Syntax error: " << e << "\n";
         exit(1);
-      } catch (intrp::global_syntax_exception &e) {
+      } catch (cmplr::global_syntax_exception &e) {
         std::cout << "Syntax error: " << e << "\n";
         exit(1);
       }

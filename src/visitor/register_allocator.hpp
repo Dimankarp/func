@@ -4,7 +4,7 @@
 #include <cassert>
 #include <cstdint>
 #include <vector>
-namespace intrp {
+namespace cmplr {
 
 class reg_allocator {
 
@@ -58,4 +58,4 @@ public:
   }
 };
 
-} // namespace intrp
+} // namespace cmplr

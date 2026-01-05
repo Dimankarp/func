@@ -12,7 +12,7 @@
 #include <cstdint>
 #include <memory>
 
-namespace intrp {
+namespace cmplr {
 
 code_visitor::code_visitor(std::ostream &out) : out{out}, writer{out} {}
 
@@ -21,11 +21,11 @@ void code_visitor::declare_write_func() {
 
   writer.write_func(alloc);
 
-  std::vector<unique_ptr<intrp::type>> write_sign;
+  std::vector<unique_ptr<cmplr::type>> write_sign;
   write_sign.push_back(std::make_unique<int_type>());
   write_sign.push_back(std::make_unique<void_type>());
   auto info = sym_info{
-      "write", std::make_unique<intrp::function_type>(std::move(write_sign)),
+      "write", std::make_unique<cmplr::function_type>(std::move(write_sign)),
       sym_info::ABS, func_addr};
   table.add(std::move(info));
 }
@@ -35,11 +35,11 @@ void code_visitor::declare_read_func() {
 
   writer.read_func(alloc);
 
-  std::vector<unique_ptr<intrp::type>> read_sign;
+  std::vector<unique_ptr<cmplr::type>> read_sign;
   read_sign.push_back(std::make_unique<void_type>());
   read_sign.push_back(std::make_unique<int_type>());
   auto info = sym_info{
-      "read", std::make_unique<intrp::function_type>(std::move(read_sign)),
+      "read", std::make_unique<cmplr::function_type>(std::move(read_sign)),
       sym_info::ABS, func_addr};
   table.add(std::move(info));
 }
@@ -91,7 +91,7 @@ void code_visitor::visit_function(const function &f) {
 
   auto info =
       sym_info{f.get_identifier(),
-               std::make_unique<intrp::function_type>(std::move(signature)),
+               std::make_unique<cmplr::function_type>(std::move(signature)),
                sym_info::ABS, writer.get_next_addr()};
   table.add(std::move(info));
 
@@ -197,7 +197,7 @@ void code_visitor::visit_function_call(const function_call &fc) {
   for (int i = 0; i < fc.get_arg_list().size(); i++) {
     args[i]->accept(*this);
 
-    intrp::expect_types(*func_type.get_signature()[i], *result.type_obj,
+    cmplr::expect_types(*func_type.get_signature()[i], *result.type_obj,
                         args[i]->get_loc());
 
     arg_regs.push_back(this->result.reg_num);
@@ -244,7 +244,7 @@ void code_visitor::visit_identifier(const identifier_expression &id) {
 
 void code_visitor::visit_literal(const literal_expression &lit) {
   out << "#Enter literal " << "\n";
-  intrp::lit_val val = lit.get_val();
+  cmplr::lit_val val = lit.get_val();
   auto r = alloc.alloc("Literal return register");
 
   if (auto *v = std::get_if<int>(&val)) {
@@ -352,7 +352,7 @@ void code_visitor::visit_assign(const assign_statement &stm) {
   if (stm.get_exp() != nullptr) {
     stm.get_exp()->accept(*this);
 
-    intrp::expect_types(*sym.type_obj, *result.type_obj,
+    cmplr::expect_types(*sym.type_obj, *result.type_obj,
                         stm.get_exp()->get_loc());
 
     store_variable(writer, alloc, result.reg_num, sym);
@@ -414,7 +414,7 @@ void code_visitor::visit_while(const while_statement &stm) {
 
   stm.get_condition()->accept(*this);
 
-  intrp::expect_types(bool_type{}, *result.type_obj,
+  cmplr::expect_types(bool_type{}, *result.type_obj,
                       stm.get_condition()->get_loc());
 
   writer.beq(result.reg_num, 0, while_end_label);
@@ -490,4 +490,4 @@ void code_visitor::visit_subscript_assign(
   out << "#Done subscript assign" << "\n";
 };
 
-} // namespace intrp
+} // namespace cmplr

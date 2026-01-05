@@ -3,11 +3,11 @@
 #include "node/statement.hpp"
 #include "visitor/visitor.hpp"
 
-namespace intrp {
+namespace cmplr {
 
 function_call::function_call(
-    std::unique_ptr<intrp::expression> func,
-    std::vector<unique_ptr<intrp::expression>> &&arg_list, yy::location loc)
+    std::unique_ptr<cmplr::expression> func,
+    std::vector<unique_ptr<cmplr::expression>> &&arg_list, yy::location loc)
     : func{std::move(func)}, arg_list{std::move(arg_list)}, statement{loc},
       expression{loc} {}
 void function_call::accept(statement_visitor &visitor) {
@@ -30,4 +30,4 @@ function::function(unique_ptr<type> type_obj, std::string &identifier,
 void function::accept(statement_visitor &visitor) {
   visitor.visit_function(*this);
 };
-} // namespace intrp
+} // namespace cmplr

@@ -5,7 +5,7 @@
 #include "node/expression.hpp"
 #include "node/program.hpp"
 #include "node/statement.hpp"
-namespace intrp {
+namespace cmplr {
 
 class expression_visitor {
 public:
@@ -32,4 +32,4 @@ public:
   virtual ~statement_visitor() = default;
 };
 
-} // namespace intrp
+} // namespace cmplr

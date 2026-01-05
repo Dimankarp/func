@@ -6,14 +6,14 @@
 #include "node/program.hpp"
 #include "node/statement.hpp"
 #include "visitor/visitor.hpp"
-namespace intrp {
+namespace cmplr {
 
 class print_visitor : public expression_visitor, public statement_visitor {
 private:
   std::ostream &out;
   int offset = 0;
 
-  void print_type(intrp::type &);
+  void print_type(cmplr::type &);
 
 public:
   print_visitor(std::ostream &ostream) : out{ostream} {}
@@ -39,4 +39,4 @@ public:
   void visit_function(const function &) override;
 };
 
-} // namespace intrp
+} // namespace cmplr

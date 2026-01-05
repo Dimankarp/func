@@ -8,12 +8,12 @@
 #include "visitor/register_allocator.hpp"
 #include "visitor/print_visitor.hpp"
 #include <memory>
-namespace intrp {
+namespace cmplr {
 
 
 template <typename T> T expect(const expr_result &exp) {
   if (exp.type_obj->get_type() != T::static_get_type())
-    throw unexpected_type_exception({intrp::types_to_string(exp.type_obj->get_type()) + " but expected " + intrp::types_to_string(T::static_get_type()) , yy::location{}});
+    throw unexpected_type_exception({cmplr::types_to_string(exp.type_obj->get_type()) + " but expected " + cmplr::types_to_string(T::static_get_type()) , yy::location{}});
   return dynamic_cast<const T &>(*exp.type_obj);
 }
 
@@ -49,4 +49,4 @@ expr_result expr_and(instr::instruction_writer &w, reg_allocator &alloc,
                       expr_result expr_not(instr::instruction_writer &w, reg_allocator &alloc,
                         const expr_result &a);
 
-} // namespace intrp
+} // namespace cmplr

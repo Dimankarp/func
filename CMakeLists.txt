@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.27)
 
 
-project(Interpreter CXX)
+project(Compiler CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -33,13 +33,13 @@ include_directories(
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 # Create executable
-add_executable(interpreter
+add_executable(compiler
     ${BISON_PARSER_OUTPUTS}
     ${FLEX_LEXER_OUTPUTS}
     ${SOURCES}
 )
 
-set_target_properties(interpreter PROPERTIES
+set_target_properties(compiler PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )

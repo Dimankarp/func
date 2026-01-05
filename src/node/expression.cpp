@@ -2,7 +2,7 @@
 
 #include "visitor/visitor.hpp"
 #include <utility>
-namespace intrp {
+namespace cmplr {
 using std::unique_ptr;
 
 yy::location expression::get_loc() const { return loc; }
@@ -71,4 +71,4 @@ const unique_ptr<expression> &subscript_expression::get_index() const {
   return index;
 };
 
-} // namespace intrp
+} // namespace cmplr

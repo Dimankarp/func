@@ -5,20 +5,20 @@
 #include "node/statement.hpp"
 #include <string>
 
-namespace intrp {
+namespace cmplr {
 
 class function_call : public expression, public statement {
-  std::unique_ptr<intrp::expression> func;
-  std::vector<unique_ptr<intrp::expression>> arg_list;
+  std::unique_ptr<cmplr::expression> func;
+  std::vector<unique_ptr<cmplr::expression>> arg_list;
 
 public:
-  function_call(std::unique_ptr<intrp::expression> func,
-                std::vector<unique_ptr<intrp::expression>> &&arg_list,
+  function_call(std::unique_ptr<cmplr::expression> func,
+                std::vector<unique_ptr<cmplr::expression>> &&arg_list,
                 yy::location loc);
   void accept(statement_visitor &visitor) override;
   void accept(expression_visitor &visitor) override;
-  const std::unique_ptr<intrp::expression> &get_func() const { return func; };
-  const std::vector<unique_ptr<intrp::expression>> &get_arg_list() const {
+  const std::unique_ptr<cmplr::expression> &get_func() const { return func; };
+  const std::vector<unique_ptr<cmplr::expression>> &get_arg_list() const {
     return arg_list;
   };
 };
@@ -50,4 +50,4 @@ public:
   const std::vector<parameter> &get_params() const { return param_list; }
   const unique_ptr<block_statement> &get_block() const { return block; }
 };
-} // namespace intrp
+} // namespace cmplr

@@ -76,35 +76,35 @@
 %token <int>  NUM "num"
 %token <bool> BOOLS "bools"
 
-%type  <std::unique_ptr<intrp::expression>> exp
-%type  <std::unique_ptr<intrp::statement>> statement
-%type  <std::unique_ptr<intrp::block_statement>> statements
-%type  <std::unique_ptr<intrp::block_statement>> block
+%type  <std::unique_ptr<cmplr::expression>> exp
+%type  <std::unique_ptr<cmplr::statement>> statement
+%type  <std::unique_ptr<cmplr::block_statement>> statements
+%type  <std::unique_ptr<cmplr::block_statement>> block
 
-%type  <std::unique_ptr<intrp::function>> function
-%type  <std::vector<std::unique_ptr<intrp::function>>> functions
+%type  <std::unique_ptr<cmplr::function>> function
+%type  <std::vector<std::unique_ptr<cmplr::function>>> functions
 
 
-%type  <std::vector<intrp::parameter>> param_list
-%type  <std::vector<intrp::parameter>> params
-%type  <intrp::parameter> param
+%type  <std::vector<cmplr::parameter>> param_list
+%type  <std::vector<cmplr::parameter>> params
+%type  <cmplr::parameter> param
 
-%type  <std::vector<unique_ptr<intrp::expression>>> arg_list
-%type  <std::vector<unique_ptr<intrp::expression>>> args
+%type  <std::vector<unique_ptr<cmplr::expression>>> arg_list
+%type  <std::vector<unique_ptr<cmplr::expression>>> args
 
-%type  <unique_ptr<intrp::type>>  type 
-%type  <unique_ptr<intrp::type>>  func_res_type
-%type  <std::vector<unique_ptr<intrp::type>>>  func_type
-%type  <std::vector<unique_ptr<intrp::type>>>  func_type_rec
+%type  <unique_ptr<cmplr::type>>  type 
+%type  <unique_ptr<cmplr::type>>  func_res_type
+%type  <std::vector<unique_ptr<cmplr::type>>>  func_type
+%type  <std::vector<unique_ptr<cmplr::type>>>  func_type_rec
 
 
 %%
 %start program;
-program: functions {drv.result = std::make_unique<intrp::program>(std::move($1), @$);};
+program: functions {drv.result = std::make_unique<cmplr::program>(std::move($1), @$);};
 
 functions:
   %empty {
-    $$ = std::vector<std::unique_ptr<intrp::function>>();
+    $$ = std::vector<std::unique_ptr<cmplr::function>>();
   }
 | functions function {
     $1.push_back(std::move($2));
@@ -113,13 +113,13 @@ functions:
 
 function:
   func_res_type "id" "(" param_list ")" block {
-    $$ = std::make_unique<intrp::function>(std::move($1), $2, std::move($4), std::move($6), @$);
+    $$ = std::make_unique<cmplr::function>(std::move($1), $2, std::move($4), std::move($6), @$);
   }
 
 
 param_list:
   %empty {
-    $$ = std::vector<intrp::parameter>();
+    $$ = std::vector<cmplr::parameter>();
   }
 | params {
     $$ = std::move($1);
@@ -127,7 +127,7 @@ param_list:
 
 params:
   param {
-    $$ = std::vector<intrp::parameter>();
+    $$ = std::vector<cmplr::parameter>();
     $$.push_back(std::move($1));
   }
 | params "," param  {
@@ -137,17 +137,17 @@ params:
 
 param:
   type "id" {
-    $$ = intrp::parameter(std::move($1), $2);
+    $$ = cmplr::parameter(std::move($1), $2);
   };
 
 
 
 block:
   "{" "}" {
-    $$ = std::make_unique<intrp::block_statement>(@$);
+    $$ = std::make_unique<cmplr::block_statement>(@$);
     }
 | statement {
-  $$ = std::make_unique<intrp::block_statement>(@$);
+  $$ = std::make_unique<cmplr::block_statement>(@$);
   $$->add_statement(std::move($1));
   }
 | "{" statements "}" {
@@ -159,7 +159,7 @@ block:
 
 statements:
  statement {
-  $$ = std::make_unique<intrp::block_statement>(@$);
+  $$ = std::make_unique<cmplr::block_statement>(@$);
   $$->add_statement(std::move($1));
   }
 | statements statement {
@@ -172,19 +172,19 @@ statements:
 %precedence "else";
 
 statement: 
-  type "id" ";" {$$ = std::make_unique<intrp::assign_statement>(std::move($1), $2, @$);}
-| type "id" "=" exp ";" {$$ = std::make_unique<intrp::assign_statement>(std::move($1), $2, std::move($4), @$);}
-| "id" "=" exp ";" {$$ = std::make_unique<intrp::assign_statement>($1, std::move($3), @$);}
-| exp "[" exp "]" "=" exp ";" {$$ = std::make_unique<intrp::subscript_assign_statement>(std::move($1), std::move($3), std::move($6),  @$);}
-| exp "(" arg_list ")" ";" {$$ = std::make_unique<intrp::function_call>(std::move($1), std::move($3), @$);}
-| "if" "(" exp ")" block %prec "if" {$$ = std::make_unique<intrp::if_statement>(std::move($3), std::move($5), @$);}
+  type "id" ";" {$$ = std::make_unique<cmplr::assign_statement>(std::move($1), $2, @$);}
+| type "id" "=" exp ";" {$$ = std::make_unique<cmplr::assign_statement>(std::move($1), $2, std::move($4), @$);}
+| "id" "=" exp ";" {$$ = std::make_unique<cmplr::assign_statement>($1, std::move($3), @$);}
+| exp "[" exp "]" "=" exp ";" {$$ = std::make_unique<cmplr::subscript_assign_statement>(std::move($1), std::move($3), std::move($6),  @$);}
+| exp "(" arg_list ")" ";" {$$ = std::make_unique<cmplr::function_call>(std::move($1), std::move($3), @$);}
+| "if" "(" exp ")" block %prec "if" {$$ = std::make_unique<cmplr::if_statement>(std::move($3), std::move($5), @$);}
 | "if" "(" exp ")" block "else" block %prec "else" {
-  auto s = std::make_unique<intrp::if_statement>(std::move($3), std::move($5), @$);
+  auto s = std::make_unique<cmplr::if_statement>(std::move($3), std::move($5), @$);
   (*s).add_else(std::move($7));
   $$ = std::move(s);}
-| "while" "(" exp ")" block {$$ = std::make_unique<intrp::while_statement>(std::move($3), std::move($5), @$);};
-| "return" exp ";" {$$ = std::make_unique<intrp::return_statement>(std::move($2), @$);};
-| "return" ";"     {$$ = std::make_unique<intrp::return_statement>(nullptr, @$);};
+| "while" "(" exp ")" block {$$ = std::make_unique<cmplr::while_statement>(std::move($3), std::move($5), @$);};
+| "return" exp ";" {$$ = std::make_unique<cmplr::return_statement>(std::move($2), @$);};
+| "return" ";"     {$$ = std::make_unique<cmplr::return_statement>(nullptr, @$);};
 
 
 %left "||";
@@ -199,32 +199,32 @@ statement:
 %left "["; 
 
 exp:
-  exp "+" exp           {$$ = std::make_unique<intrp::binop_expression>(intrp::binop::ADD, std::move($1), std::move($3), @$);}
-| exp "-" exp           {$$ = std::make_unique<intrp::binop_expression>(intrp::binop::SUB, std::move($1), std::move($3), @$);}
-| exp "*" exp           {$$ = std::make_unique<intrp::binop_expression>(intrp::binop::MUL, std::move($1), std::move($3), @$);}
-| exp "/" exp           {$$ = std::make_unique<intrp::binop_expression>(intrp::binop::DIV, std::move($1), std::move($3), @$);}
-| exp "%" exp           {$$ = std::make_unique<intrp::binop_expression>(intrp::binop::MOD, std::move($1), std::move($3), @$);}
-| exp "<" exp           {$$ = std::make_unique<intrp::binop_expression>(intrp::binop::LESS, std::move($1), std::move($3), @$);}
-| exp ">" exp           {$$ = std::make_unique<intrp::binop_expression>(intrp::binop::GRTR, std::move($1), std::move($3), @$);}
-| exp "==" exp          {$$ = std::make_unique<intrp::binop_expression>(intrp::binop::EQ, std::move($1), std::move($3), @$);}
-| exp "!=" exp          {$$ = std::make_unique<intrp::binop_expression>(intrp::binop::NEQ, std::move($1), std::move($3), @$);}
-| exp "||" exp          {$$ = std::make_unique<intrp::binop_expression>(intrp::binop::OR, std::move($1), std::move($3), @$);}
-| exp "&&" exp          {$$ = std::make_unique<intrp::binop_expression>(intrp::binop::AND, std::move($1), std::move($3), @$);}
-| "-" exp %prec UMINUS  {$$ = std::make_unique<intrp::unarop_expression>(intrp::unarop::MINUS, std::move($2), @$);}
-| "!" exp               {$$ = std::make_unique<intrp::unarop_expression>(intrp::unarop::NOT, std::move($2), @$);}
-| "str"                 {$$ = std::make_unique<intrp::literal_expression>(intrp::lit_val($1), @$);}
-| "num"                 {$$ = std::make_unique<intrp::literal_expression>(intrp::lit_val($1), @$);}
-| "bools"               {$$ = std::make_unique<intrp::literal_expression>(intrp::lit_val($1), @$);}
-| "id"                  {$$ = std::make_unique<intrp::identifier_expression>($1, @$);}
-| exp "(" arg_list ")"  {$$ = std::make_unique<intrp::function_call>(std::move($1), std::move($3), @$);}
-| exp "[" exp "]"       {$$ = std::make_unique<intrp::subscript_expression>(std::move($1), std::move($3), @$);}
+  exp "+" exp           {$$ = std::make_unique<cmplr::binop_expression>(cmplr::binop::ADD, std::move($1), std::move($3), @$);}
+| exp "-" exp           {$$ = std::make_unique<cmplr::binop_expression>(cmplr::binop::SUB, std::move($1), std::move($3), @$);}
+| exp "*" exp           {$$ = std::make_unique<cmplr::binop_expression>(cmplr::binop::MUL, std::move($1), std::move($3), @$);}
+| exp "/" exp           {$$ = std::make_unique<cmplr::binop_expression>(cmplr::binop::DIV, std::move($1), std::move($3), @$);}
+| exp "%" exp           {$$ = std::make_unique<cmplr::binop_expression>(cmplr::binop::MOD, std::move($1), std::move($3), @$);}
+| exp "<" exp           {$$ = std::make_unique<cmplr::binop_expression>(cmplr::binop::LESS, std::move($1), std::move($3), @$);}
+| exp ">" exp           {$$ = std::make_unique<cmplr::binop_expression>(cmplr::binop::GRTR, std::move($1), std::move($3), @$);}
+| exp "==" exp          {$$ = std::make_unique<cmplr::binop_expression>(cmplr::binop::EQ, std::move($1), std::move($3), @$);}
+| exp "!=" exp          {$$ = std::make_unique<cmplr::binop_expression>(cmplr::binop::NEQ, std::move($1), std::move($3), @$);}
+| exp "||" exp          {$$ = std::make_unique<cmplr::binop_expression>(cmplr::binop::OR, std::move($1), std::move($3), @$);}
+| exp "&&" exp          {$$ = std::make_unique<cmplr::binop_expression>(cmplr::binop::AND, std::move($1), std::move($3), @$);}
+| "-" exp %prec UMINUS  {$$ = std::make_unique<cmplr::unarop_expression>(cmplr::unarop::MINUS, std::move($2), @$);}
+| "!" exp               {$$ = std::make_unique<cmplr::unarop_expression>(cmplr::unarop::NOT, std::move($2), @$);}
+| "str"                 {$$ = std::make_unique<cmplr::literal_expression>(cmplr::lit_val($1), @$);}
+| "num"                 {$$ = std::make_unique<cmplr::literal_expression>(cmplr::lit_val($1), @$);}
+| "bools"               {$$ = std::make_unique<cmplr::literal_expression>(cmplr::lit_val($1), @$);}
+| "id"                  {$$ = std::make_unique<cmplr::identifier_expression>($1, @$);}
+| exp "(" arg_list ")"  {$$ = std::make_unique<cmplr::function_call>(std::move($1), std::move($3), @$);}
+| exp "[" exp "]"       {$$ = std::make_unique<cmplr::subscript_expression>(std::move($1), std::move($3), @$);}
 | "(" exp ")"           {$$ = std::move($2);}
 
 
 
 arg_list:
   %empty {
-    $$ = std::vector<unique_ptr<intrp::expression>>();
+    $$ = std::vector<unique_ptr<cmplr::expression>>();
   }
 | args {
     $$ = std::move($1);
@@ -232,7 +232,7 @@ arg_list:
 
 args:
   exp {
-    $$ = std::vector<unique_ptr<intrp::expression>>();
+    $$ = std::vector<unique_ptr<cmplr::expression>>();
     $$.push_back(std::move($1));
     }
 | args "," exp {
@@ -243,10 +243,10 @@ args:
 
 
 type:
-  "int"     {$$ = std::make_unique<intrp::int_type>();}
-| "bool"    {$$ = std::make_unique<intrp::bool_type>();}
-| "string"  {$$ = std::make_unique<intrp::string_type>();}
-| "(" func_type ")"  {$$ = std::make_unique<intrp::function_type>(std::move($2));};
+  "int"     {$$ = std::make_unique<cmplr::int_type>();}
+| "bool"    {$$ = std::make_unique<cmplr::bool_type>();}
+| "string"  {$$ = std::make_unique<cmplr::string_type>();}
+| "(" func_type ")"  {$$ = std::make_unique<cmplr::function_type>(std::move($2));};
 
 
 func_type:
@@ -255,15 +255,15 @@ func_type:
     $$ = std::move($3);
     }
 | "void" "-" func_res_type {
-  auto typevec = vector<unique_ptr<intrp::type>>();
-  typevec.push_back(std::make_unique<intrp::void_type>());
+  auto typevec = vector<unique_ptr<cmplr::type>>();
+  typevec.push_back(std::make_unique<cmplr::void_type>());
   typevec.push_back(std::move($3));
   $$ = std::move(typevec);
   };
 
 func_res_type:
   type {$$ = std::move(std::move($1));}
-| "void" {$$ = std::make_unique<intrp::void_type>();};
+| "void" {$$ = std::make_unique<cmplr::void_type>();};
 
 
  func_type_rec:
@@ -272,7 +272,7 @@ func_res_type:
   $$ = std::move($3);
   }
 | func_res_type {
-  $$ = vector<unique_ptr<intrp::type>>();
+  $$ = vector<unique_ptr<cmplr::type>>();
   $$.push_back(std::move($1));
 };
 

@@ -4,4 +4,4 @@
 #include <memory>
 #include <utility>
 
-namespace intrp {} // namespace intrp
+namespace cmplr {} // namespace cmplr

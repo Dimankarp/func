@@ -7,13 +7,13 @@
 #define YY_DECL yy::parser::symbol_type yylex(driver &drv)
 YY_DECL;
 
-using var_table = std::unordered_map<std::string, intrp::lit_val>;
+using var_table = std::unordered_map<std::string, cmplr::lit_val>;
 
 class driver {
 
 public:
   driver();
-  std::unique_ptr<intrp::statement> result;
+  std::unique_ptr<cmplr::statement> result;
   // Run the parser on file F.  Return 0 on success.
   int parse(const std::string &f);
   // The name of the file being parsed.

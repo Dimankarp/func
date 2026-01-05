@@ -13,7 +13,7 @@
 #include <ostream>
 #include <string>
 
-namespace intrp::instr {
+namespace cmplr::instr {
 
 const uint8_t SP = 31;
 const uint8_t BP = 30;
@@ -301,4 +301,4 @@ private:
   std::string reg(uint8_t n) { return "x" + std::to_string(n); }
 };
 
-} // namespace intrp::instr
+} // namespace cmplr::instr

@@ -20,7 +20,7 @@ make
 
 Использование:
 
-`build/interpreter [-ps - debug flags] [-o output file] <file.fc>`
+`build/compiler [-ps - debug flags] [-o output file] <file.fc>`
 
 ## Особенности
 
