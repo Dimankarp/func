@@ -11,13 +11,15 @@
 
 int main(int argc, char *argv[]) {
   driver drv;
+  bool want_to_print_ast;
 
   cxxopts::Options options("compiler", "A compiler for a simple C-like language called FunC.");
 
   options.add_options()
 		("h,help", "Print help page")
-		("p", "Trace parsing")
-		("s", "Trace scanning")
+		("p,print-ast", "Print AST")
+		("trace-parsing", "Trace parsing")
+		("trace-scanning", "Trace scanning")
 		("d,debug", "Include debug output")
 		("o,output", "Output file", cxxopts::value<std::string>())
   ;
@@ -31,10 +33,11 @@ int main(int argc, char *argv[]) {
 
   try {
     auto result{ options.parse(argc, argv) };
-    
-    drv.trace_parsing = result["p"].as<bool>();
-    drv.trace_scanning = result["s"].as<bool>();
-    drv.debug_mode = result["d"].as<bool>();
+  
+    want_to_print_ast = result["print-ast"].as<bool>();
+    drv.trace_parsing = result["trace-parsing"].as<bool>();
+    drv.trace_scanning = result["trace-scanning"].as<bool>();
+    drv.debug_mode = result["debug"].as<bool>();
 
     if (result.count("help")) {
       std::cout << options.help() << std::endl;
@@ -54,7 +57,7 @@ int main(int argc, char *argv[]) {
         }
       }
     } else {
-      exit(0); // No input files given.
+      exit(0); // No input files were given.
     }
   }
   catch (const cxxopts::exceptions::exception& e) {
@@ -67,10 +70,13 @@ int main(int argc, char *argv[]) {
 
   auto tree = std::move(drv.result);
   try {
-    std::cout << "Print visitor output:\n";
-    tree->accept(print_visitor);
+    if (want_to_print_ast){
+      std::cout << "Print visitor output:\n";
+      tree->accept(print_visitor);
+      std::cout << "\n";
+    }
+    
     std::cout << "Code visitor output:\n";
-
     if (drv.output_file.empty()) {
       cmplr::code_visitor code_visitor{std::cout};
       tree->accept(code_visitor);
