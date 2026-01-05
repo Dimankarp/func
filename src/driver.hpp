@@ -25,6 +25,10 @@ public:
   void scan_end();
   // Whether to generate scanner debug traces.
   bool trace_scanning;
+
+  // Whether to generate debug messages.
+  bool debug_mode;
+
   // The token's location used by the scanner.
   yy::location location;
 };
