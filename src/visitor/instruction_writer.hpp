@@ -2,10 +2,10 @@
 
 #include "exception.hpp"
 #include "location.hh"
+#include "printer.hpp"
 #include "type/type.hpp"
 #include "visitor/register_allocator.hpp"
 #include "visitor/visitor.hpp"
-#include "printer.hpp"
 
 #include <array>
 #include <cstdint>

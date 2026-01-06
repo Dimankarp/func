@@ -2,11 +2,11 @@
 
 #include "exception.hpp"
 #include "location.hh"
+#include "printer.hpp"
 #include "type/type.hpp"
 #include "visitor/instruction_writer.hpp"
 #include "visitor/register_allocator.hpp"
 #include "visitor/visitor.hpp"
-#include "printer.hpp"
 
 #include <cstdint>
 #include <list>
@@ -30,8 +30,7 @@ struct sym_info {
   bool is_delimeter = false;
 
 public:
-  sym_info(const std::string &name,
-           const std::unique_ptr<func::type> &type_obj,
+  sym_info(const std::string &name, const std::unique_ptr<func::type> &type_obj,
            decltype(STACK) access_type, uint16_t offset,
            yy::location declare_loc = yy::location{}, bool is_delimeter = false)
       : name{name}, type_obj{type_obj->clone()}, access_type{access_type},

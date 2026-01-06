@@ -4,6 +4,6 @@
 #include "type/type.hpp"
 namespace func {
 
-    void expect_types(const type& expected, const type& checked, yy::location loc);
+void expect_types(const type &expected, const type &checked, yy::location loc);
 
 }

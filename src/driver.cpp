@@ -14,4 +14,3 @@ int driver::parse(const std::string &f) {
   scan_end();
   return result;
 }
-

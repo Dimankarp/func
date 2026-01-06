@@ -22,12 +22,10 @@ std::unordered_map<func::types, std::string> type_name = {
     {func::types::FUNCTION, "..func.."}};
 
 std::unordered_map<func::binop, std::string> binop_name = {
-    {func::binop::ADD, "+"},  {func::binop::SUB, "-"},
-    {func::binop::MUL, "*"},  {func::binop::DIV, "/"},
-    {func::binop::MOD, "%"},  {func::binop::LESS, "<"},
-    {func::binop::GRTR, ">"}, {func::binop::EQ, "=="},
-    {func::binop::NEQ, "!="}, {func::binop::OR, "||"},
-    {func::binop::AND, "&&"}};
+    {func::binop::ADD, "+"},  {func::binop::SUB, "-"}, {func::binop::MUL, "*"},
+    {func::binop::DIV, "/"},  {func::binop::MOD, "%"}, {func::binop::LESS, "<"},
+    {func::binop::GRTR, ">"}, {func::binop::EQ, "=="}, {func::binop::NEQ, "!="},
+    {func::binop::OR, "||"},  {func::binop::AND, "&&"}};
 
 std::unordered_map<func::unarop, std::string> unarop_name = {
     {func::unarop::MINUS, "-"}, {func::unarop::NOT, "!"}};
@@ -177,16 +175,15 @@ void print_visitor::visit(const subscript_expression &sub) {
   offset--;
 };
 
-void print_visitor::visit(
-    const subscript_assign_statement &sub) {
+void print_visitor::visit(const subscript_assign_statement &sub) {
   *this << ".[..]" << "\n";
-  offset+=2;
+  offset += 2;
   sub.get_pointer()->accept(*this);
   sub.get_index()->accept(*this);
   offset--;
   *this << "=" << "\n";
   offset++;
   sub.get_exp()->accept(*this);
-  offset-=2;
+  offset -= 2;
 };
 } // namespace func

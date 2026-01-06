@@ -4,19 +4,20 @@
 #include "location.hh"
 #include "node/expression.hpp"
 #include "node/statement.hpp"
+#include "printer.hpp"
 #include "type/type.hpp"
 #include "visitor/instruction_writer.hpp"
 #include "visitor/operation.hpp"
 #include "visitor/register_allocator.hpp"
 #include "visitor/type_checker.hpp"
-#include "printer.hpp"
 
 #include <cstdint>
 #include <memory>
 
 namespace func {
 
-code_visitor::code_visitor(func::printer &printer) : debug_out{printer.debug}, alloc{printer.alloc}, writer{printer.code} {}
+code_visitor::code_visitor(func::printer &printer)
+    : debug_out{printer.debug}, alloc{printer.alloc}, writer{printer.code} {}
 
 void code_visitor::declare_write_func() {
   auto func_addr = writer.get_next_addr();
@@ -200,7 +201,7 @@ void code_visitor::visit(const function_call &fc) {
     args[i]->accept(*this);
 
     func::expect_types(*func_type.get_signature()[i], *result.type_obj,
-                        args[i]->get_loc());
+                       args[i]->get_loc());
 
     arg_regs.push_back(this->result.reg_num);
   }
@@ -353,7 +354,7 @@ void code_visitor::visit(const assign_statement &stm) {
     stm.get_exp()->accept(*this);
 
     func::expect_types(*sym.type_obj, *result.type_obj,
-                        stm.get_exp()->get_loc());
+                       stm.get_exp()->get_loc());
 
     store_variable(writer, alloc, result.reg_num, sym);
     alloc.dealloc(result.reg_num);
@@ -414,7 +415,7 @@ void code_visitor::visit(const while_statement &stm) {
   stm.get_condition()->accept(*this);
 
   func::expect_types(bool_type{}, *result.type_obj,
-                      stm.get_condition()->get_loc());
+                     stm.get_condition()->get_loc());
 
   writer.beq(result.reg_num, 0, while_end_label);
   alloc.dealloc(result.reg_num);

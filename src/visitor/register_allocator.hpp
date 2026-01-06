@@ -21,10 +21,10 @@ class reg_allocator {
   std::array<bool, GENERAL_USE_REGISTER_NUM> regs{};
 
 private:
-  func::stream_proxy& alloc_out;
+  func::stream_proxy &alloc_out;
 
 public:
-  reg_allocator(func::stream_proxy& out) : alloc_out{out} {}
+  reg_allocator(func::stream_proxy &out) : alloc_out{out} {}
 
   uint8_t alloc() {
     for (int i = 1; i < regs.size(); i++) {
