@@ -6,6 +6,8 @@
 #include "visitor/instruction_writer.hpp"
 #include "visitor/register_allocator.hpp"
 #include "visitor/visitor.hpp"
+#include "printer.hpp"
+
 #include <cstdint>
 #include <list>
 #include <memory>
@@ -85,7 +87,7 @@ public:
 
 class code_visitor : public expression_visitor, public statement_visitor {
 private:
-  std::ostream &out;
+  cmplr::stream_proxy &debug_out;
   expr_result result;
   sym_table table;
   reg_allocator alloc;
@@ -94,7 +96,7 @@ private:
   uint16_t label_ind = 0;
 
 public:
-  code_visitor(std::ostream &out);
+  code_visitor(cmplr::printer &printer);
 
   void visit_binop(const binop_expression &) override;
   void visit_unarop(const unarop_expression &) override;

@@ -9,12 +9,14 @@
 #include "visitor/operation.hpp"
 #include "visitor/register_allocator.hpp"
 #include "visitor/type_checker.hpp"
+#include "printer.hpp"
+
 #include <cstdint>
 #include <memory>
 
 namespace cmplr {
 
-code_visitor::code_visitor(std::ostream &out) : out{out}, writer{out} {}
+code_visitor::code_visitor(cmplr::printer &printer) : debug_out{printer.debug}, alloc{printer.alloc}, writer{printer.code} {}
 
 void code_visitor::declare_write_func() {
   auto func_addr = writer.get_next_addr();
@@ -45,7 +47,7 @@ void code_visitor::declare_read_func() {
 }
 
 void code_visitor::visit_program(const program &progr) {
-  out << "#Enter program\n";
+  debug_out << "# Enter program\n";
   writer.label("_START");
   writer.li(instr::SP, (1 << 16));
   writer.li(instr::BP, (1 << 16));
@@ -59,7 +61,7 @@ void code_visitor::visit_program(const program &progr) {
   declare_write_func();
   declare_read_func();
 
-  out << "#Iterating through functions\n";
+  debug_out << "# Iterating through functions\n";
   for (const auto &func : progr.get_funcs()) {
     func->accept(*this);
   }
@@ -74,11 +76,11 @@ void code_visitor::visit_program(const program &progr) {
   if (!main_info.type_obj->equals(main_expected_type))
     throw global_syntax_exception{"main must be a (void-void) function"};
 
-  out << "#Done program\n";
+  debug_out << "# Done program\n";
 }
 
 void code_visitor::visit_function(const function &f) {
-  out << "#Enter function " << f.get_identifier() << "\n";
+  debug_out << "# Enter function " << f.get_identifier() << "\n";
 
   auto signature = std::vector<unique_ptr<type>>();
   if (f.get_params().empty())
@@ -112,18 +114,18 @@ void code_visitor::visit_function(const function &f) {
 
   // Ending block for func param
   table.end_block();
-  out << "#Done function " << f.get_identifier() << "\n";
+  debug_out << "# Done function " << f.get_identifier() << "\n";
 }
 
 void code_visitor::visit_block(const block_statement &b) {
-  out << "#Enter block " << "\n";
+  debug_out << "# Enter block " << "\n";
   table.start_block();
 
   for (const auto &st : b.get_statements()) {
     st->accept(*this);
   }
   table.end_block();
-  out << "#Done block " << "\n";
+  debug_out << "# Done block " << "\n";
 }
 
 namespace {
@@ -174,7 +176,7 @@ void store_variable(instr::instruction_writer &writer, reg_allocator &alloc,
 
 } // namespace
 void code_visitor::visit_function_call(const function_call &fc) {
-  out << "#Enter function call" << "\n";
+  debug_out << "# Enter function call" << "\n";
 
   fc.get_func()->accept(*this);
   expr_result func = std::move(this->result);
@@ -205,7 +207,7 @@ void code_visitor::visit_function_call(const function_call &fc) {
   for (const auto &e : fc.get_arg_list()) {
   }
 
-  out << "#Pushing regs" << "\n";
+  debug_out << "# Pushing regs" << "\n";
   auto regs = push_regs_before_call(writer, alloc);
   stack_height += regs.size();
 
@@ -217,7 +219,7 @@ void code_visitor::visit_function_call(const function_call &fc) {
   writer.call_end(func.reg_num);
   alloc.dealloc(func.reg_num);
 
-  out << "#Recovering regs" << "\n";
+  debug_out << "# Recovering regs" << "\n";
   pop_regs_after_call(writer, regs);
   stack_height -= regs.size();
 
@@ -228,22 +230,22 @@ void code_visitor::visit_function_call(const function_call &fc) {
   writer.mov(r, instr::RR);
   this->result.reg_num = r;
 
-  out << "#Done function call" << "\n";
+  debug_out << "# Done function call" << "\n";
 };
 
 void code_visitor::visit_identifier(const identifier_expression &id) {
-  out << "#Enter identifier " << id.get_identificator() << "\n";
+  debug_out << "# Enter identifier " << id.get_identificator() << "\n";
   auto sym = table.find(id.get_identificator());
   auto r = alloc.alloc("Identifier return register");
   load_variable(writer, r, sym);
   this->result.reg_num = r;
   this->result.type_obj = std::move(sym.type_obj->clone());
 
-  out << "#Done identifier " << id.get_identificator() << "\n";
+  debug_out << "# Done identifier " << id.get_identificator() << "\n";
 };
 
 void code_visitor::visit_literal(const literal_expression &lit) {
-  out << "#Enter literal " << "\n";
+  debug_out << "# Enter literal " << "\n";
   cmplr::lit_val val = lit.get_val();
   auto r = alloc.alloc("Literal return register");
 
@@ -261,22 +263,22 @@ void code_visitor::visit_literal(const literal_expression &lit) {
   }
 
   result.reg_num = r;
-  out << "#Done literal " << "\n";
+  debug_out << "# Done literal " << "\n";
 };
 
 void code_visitor::visit_return(const return_statement &ret) {
-  out << "#Enter return" << "\n";
+  debug_out << "# Enter return" << "\n";
   if (ret.get_exp() != nullptr) {
     ret.get_exp()->accept(*this);
     writer.mov(instr::RR, result.reg_num);
     alloc.dealloc(result.reg_num);
   }
   writer.ret(alloc);
-  out << "#Done return" << "\n";
+  debug_out << "# Done return" << "\n";
 };
 
 void code_visitor::visit_binop(const binop_expression &bop) {
-  out << "#Enter binop" << "\n";
+  debug_out << "# Enter binop" << "\n";
   bop.get_left()->accept(*this);
   expr_result left = std::move(this->result);
   bop.get_right()->accept(*this);
@@ -323,11 +325,11 @@ void code_visitor::visit_binop(const binop_expression &bop) {
   }
   alloc.dealloc(left.reg_num);
   alloc.dealloc(right.reg_num);
-  out << "#Done binop" << "\n";
+  debug_out << "# Done binop" << "\n";
 };
 
 void code_visitor::visit_assign(const assign_statement &stm) {
-  out << "#Enter assing" << "\n";
+  debug_out << "# Enter assing" << "\n";
   /*
   3 Variants:
   int a;
@@ -343,7 +345,7 @@ void code_visitor::visit_assign(const assign_statement &stm) {
     sym_info sym = sym_info{stm.get_identifier(), stm.get_type()->clone(),
                             sym_info::STACK, stack_height};
     table.add(std::move(sym));
-    out << "#Done assign" << "\n";
+    debug_out << "# Done assign" << "\n";
   }
 
   const sym_info &sym = table.find(stm.get_identifier());
@@ -381,7 +383,7 @@ void code_visitor::visit_unarop(const unarop_expression &unop) {
 };
 
 void code_visitor::visit_if(const if_statement &stm) {
-  out << "#Enter if" << "\n";
+  debug_out << "# Enter if" << "\n";
   std::string then_end_label = "THEN_END_" + std::to_string(label_ind++);
   std::string else_end_label = "ELSE_END_" + std::to_string(label_ind++);
 
@@ -402,11 +404,11 @@ void code_visitor::visit_if(const if_statement &stm) {
     stm.get_else_block()->accept(*this);
     writer.label(else_end_label);
   }
-  out << "#Done if" << "\n";
+  debug_out << "# Done if" << "\n";
 };
 
 void code_visitor::visit_while(const while_statement &stm) {
-  out << "#Enter while" << "\n";
+  debug_out << "# Enter while" << "\n";
   std::string while_start_label = "WHILE_START_" + std::to_string(label_ind++);
   std::string while_end_label = "WHILE_END_" + std::to_string(label_ind++);
 
@@ -424,11 +426,11 @@ void code_visitor::visit_while(const while_statement &stm) {
   writer.jal_label(0, while_start_label);
 
   writer.label(while_end_label);
-  out << "#Done while" << "\n";
+  debug_out << "# Done while" << "\n";
 };
 
 void code_visitor::visit_subscript(const subscript_expression &sub) {
-  out << "#Enter subscript" << "\n";
+  debug_out << "# Enter subscript" << "\n";
   sub.get_pointer()->accept(*this);
   expr_result ptr = std::move(this->result);
 
@@ -452,12 +454,12 @@ void code_visitor::visit_subscript(const subscript_expression &sub) {
   alloc.dealloc(idx.reg_num);
   result.reg_num = r;
   result.type_obj = std::make_unique<int_type>();
-  out << "#Done subscript" << "\n";
+  debug_out << "# Done subscript" << "\n";
 };
 
 void code_visitor::visit_subscript_assign(
     const subscript_assign_statement &sub) {
-  out << "#Enter subscript assign" << "\n";
+  debug_out << "# Enter subscript assign" << "\n";
   sub.get_pointer()->accept(*this);
   expr_result ptr = std::move(this->result);
 
@@ -487,7 +489,7 @@ void code_visitor::visit_subscript_assign(
 
   alloc.dealloc(ptr.reg_num);
   alloc.dealloc(exp.reg_num);
-  out << "#Done subscript assign" << "\n";
+  debug_out << "# Done subscript assign" << "\n";
 };
 
 } // namespace cmplr

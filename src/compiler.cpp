@@ -4,23 +4,30 @@
 #include "visitor/print_visitor.hpp"
 #include "visitor/visitor.hpp"
 #include "depends/cxxopts.hpp"
+#include "printer.hpp"
 
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <optional>
+#include <functional>
 
 int main(int argc, char *argv[]) {
   driver drv;
-  bool want_to_print_ast;
-
+  bool print_ast_flag;
+  bool debug_mode_flag;
+  bool alloc_trace_flag;
+  std::optional<std::reference_wrapper<std::ostream>> output_stream;
+  
   cxxopts::Options options("compiler", "A compiler for a simple C-like language called FunC.");
 
   options.add_options()
 		("h,help", "Print help page")
-		("p,print-ast", "Print AST")
+		("p,print-ast", "Print AST to stdin")
 		("trace-parsing", "Trace parsing")
 		("trace-scanning", "Trace scanning")
 		("d,debug", "Include debug output")
+		("a,alloc", "Include alloc traces")
 		("o,output", "Output file", cxxopts::value<std::string>())
   ;
 
@@ -34,10 +41,11 @@ int main(int argc, char *argv[]) {
   try {
     auto result{ options.parse(argc, argv) };
   
-    want_to_print_ast = result["print-ast"].as<bool>();
+    print_ast_flag = result["print-ast"].as<bool>();
     drv.trace_parsing = result["trace-parsing"].as<bool>();
     drv.trace_scanning = result["trace-scanning"].as<bool>();
-    drv.debug_mode = result["debug"].as<bool>();
+    debug_mode_flag = result["debug"].as<bool>();
+    alloc_trace_flag = result["alloc"].as<bool>();
 
     if (result.count("help")) {
       std::cout << options.help() << std::endl;
@@ -50,11 +58,9 @@ int main(int argc, char *argv[]) {
 
     if (result.count("source")) {
       auto srcs = result["source"].as<std::vector<std::string>>();
-      for (const auto& src : srcs) {
-        if (drv.parse(src) != 0) {
-          std::cerr << "Failed to parse - exiting.\n";
-          exit(1);
-        }
+      if (drv.parse(srcs[0]) != 0) {  // Only process the first file for now.
+        std::cerr << "Failed to parse - exiting.\n";
+        exit(1);
       }
     } else {
       exit(0); // No input files were given.
@@ -66,25 +72,33 @@ int main(int argc, char *argv[]) {
   }
 
 
+
   cmplr::print_visitor print_visitor{std::cout};
 
   auto tree = std::move(drv.result);
   try {
-    if (want_to_print_ast){
-      std::cout << "Print visitor output:\n";
+    if (print_ast_flag){
+      std::cout << " ### Print visitor output:\n";
       tree->accept(print_visitor);
       std::cout << "\n";
     }
     
-    std::cout << "Code visitor output:\n";
+    std::ofstream out;
     if (drv.output_file.empty()) {
-      cmplr::code_visitor code_visitor{std::cout};
-      tree->accept(code_visitor);
+      std::cout << " ### Code visitor output:\n";
+      output_stream = std::cout;
     } else {
-      std::ofstream out(drv.output_file);
-      cmplr::code_visitor code_visitor{out};
-      tree->accept(code_visitor);
+      out = std::ofstream(drv.output_file);
+      output_stream = out;
     }
+    
+    cmplr::printer printer {output_stream.value().get()};
+    printer.print_code = true;
+    printer.print_debug = debug_mode_flag;
+    printer.print_alloc = alloc_trace_flag;
+
+    cmplr::code_visitor code_visitor{printer};
+    tree->accept(code_visitor);
 
   } catch (cmplr::unexpected_type_exception &e) {
     std::cerr << "Syntax error: unexpected type " << e << "\n";

@@ -5,6 +5,8 @@
 #include "type/type.hpp"
 #include "visitor/register_allocator.hpp"
 #include "visitor/visitor.hpp"
+#include "printer.hpp"
+
 #include <array>
 #include <cstdint>
 #include <functional>
@@ -21,10 +23,10 @@ const uint8_t RR = 29; // Return register
 
 class instruction_writer {
   uint16_t next_addr = 0;
-  std::ostream &out;
+  cmplr::stream_proxy &out;
 
 public:
-  instruction_writer(std::ostream &out) : out{out} {}
+  instruction_writer(cmplr::stream_proxy &out) : out{out} {}
   uint16_t get_next_addr() const { return next_addr; }
 
   void lui(uint8_t d, int32_t imm) {

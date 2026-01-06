@@ -1,5 +1,7 @@
 #pragma once
 #include "exception.hpp"
+#include "printer.hpp"
+
 #include <array>
 #include <cassert>
 #include <cstdint>
@@ -18,11 +20,16 @@ class reg_allocator {
   const static uint8_t GENERAL_USE_REGISTER_NUM = 32 - 3;
   std::array<bool, GENERAL_USE_REGISTER_NUM> regs{};
 
+private:
+  cmplr::stream_proxy& alloc_out;
+
 public:
+  reg_allocator(cmplr::stream_proxy& out) : alloc_out{out} {}
+
   uint8_t alloc() {
     for (int i = 1; i < regs.size(); i++) {
       if (!regs[i]) {
-        std::cout << "#Allocating: " << std::to_string(i) << "\n";
+        alloc_out << "# ALLOC: " << std::to_string(i) << "\n";
         regs[i] = true;
         return i;
       }
@@ -33,8 +40,7 @@ public:
   uint8_t alloc(std::string reason) {
     for (int i = 1; i < regs.size(); i++) {
       if (!regs[i]) {
-        std::cout << "#Allocating: " << std::to_string(i) << " " << reason
-                  << "\n";
+        alloc_out << "# ALLOC: " << std::to_string(i) << " " << reason << "\n";
         regs[i] = true;
         return i;
       }
@@ -52,7 +58,7 @@ public:
   }
 
   void dealloc(uint8_t reg) {
-    std::cout << "#Deallocating: " << std::to_string(reg) << "\n";
+    alloc_out << "# RELEASE: " << std::to_string(reg) << "\n";
     assert(regs[reg] == true);
     regs[reg] = false;
   }
