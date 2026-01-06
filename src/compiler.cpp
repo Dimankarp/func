@@ -1,4 +1,4 @@
-#include "depends/cxxopts.hpp"
+#include "cxxopts.hpp"
 #include "driver.hpp"
 #include "exception.hpp"
 #include "printer.hpp"

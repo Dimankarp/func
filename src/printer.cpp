@@ -1,4 +1,5 @@
 #include "printer.hpp"
+#include <ostream>
 
 namespace func {
 
@@ -13,7 +14,7 @@ stream_proxy &stream_proxy::operator<<(std::ostream &(*manip)(std::ostream &)) {
 }
 
 printer::printer(std::ostream &os)
-    : output_stream(os), print_code(true), print_debug(true), print_alloc(true),
-      code(os, print_code), debug(os, print_debug), alloc(os, print_alloc) {}
+    : output_stream(os), code(os, print_code), debug(os, print_debug),
+      alloc(os, print_alloc) {}
 
 } // namespace func

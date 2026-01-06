@@ -3,7 +3,10 @@
 #include "node/expression.hpp"
 #include "node/program.hpp"
 #include "node/statement.hpp"
+#include "type/type.hpp"
 #include "visitor/visitor.hpp"
+#include <ostream>
+#include <string>
 namespace func {
 
 class print_visitor : public visitor<void> {

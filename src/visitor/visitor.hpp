@@ -40,11 +40,9 @@ public:
 template <typename ReturnType> class visitor : public visitor_base {
 public:
   virtual ReturnType &&extract_result() = 0;
-  virtual ~visitor() = default;
 };
 template <> class visitor<void> : public visitor_base {
-public:
-  virtual ~visitor() = default;
+  // empty
 };
 
 } // namespace func

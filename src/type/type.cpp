@@ -2,6 +2,8 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 namespace func {
 
 const std::vector<std::unique_ptr<type>> &function_type::get_signature() const {
@@ -24,7 +26,7 @@ bool function_type::equals(const type &f) const {
   if (signature.size() != func.signature.size())
     return false;
   for (int i = 0; i < signature.size(); i++) {
-    type &func_cur_type = *func.signature[i];
+    type const &func_cur_type = *func.signature[i];
     if (!signature[i]->equals(func_cur_type))
       return false;
   }

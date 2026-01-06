@@ -5,7 +5,9 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
+#include <string>
 #include <vector>
+
 namespace func {
 
 class reg_allocator {
@@ -37,7 +39,7 @@ public:
     throw not_enough_registers_exceptions{};
   }
 
-  uint8_t alloc(std::string reason) {
+  uint8_t alloc(const std::string &reason) {
     for (int i = 1; i < regs.size(); i++) {
       if (!regs[i]) {
         alloc_out << "# ALLOC: " << std::to_string(i) << " " << reason << "\n";

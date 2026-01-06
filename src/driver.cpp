@@ -1,7 +1,8 @@
 #include "driver.hpp"
 #include "parser.tab.hpp"
+#include <string>
 
-driver::driver() : trace_parsing(false), trace_scanning(false) {}
+driver::driver() {}
 
 int driver::parse(const std::string &f) {
   file = f;
@@ -10,7 +11,7 @@ int driver::parse(const std::string &f) {
   yy::parser parser(*this);
   parser.set_debug_level(
       static_cast<yy::parser::debug_level_type>(trace_parsing));
-  int result = parser.parse();
+  int const result = parser.parse();
   scan_end();
   return result;
 }

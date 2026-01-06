@@ -1,18 +1,9 @@
 #pragma once
 
-#include "exception.hpp"
-#include "location.hh"
 #include "printer.hpp"
-#include "type/type.hpp"
 #include "visitor/register_allocator.hpp"
-#include "visitor/visitor.hpp"
 
-#include <array>
 #include <cstdint>
-#include <functional>
-#include <list>
-#include <memory>
-#include <ostream>
 #include <string>
 
 namespace func::instr {

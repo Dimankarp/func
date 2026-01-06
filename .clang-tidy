@@ -19,9 +19,10 @@ Checks: "-*,
   -readability-braces-around-statements,
   -readability-identifier-length,
   -readability-redundant-access-specifiers,
+  -readability-named-parameter,
   clang-analyzer-*,
   -clang-analyzer-security.insecureAPI.*"
-HeaderFilterRegex: '[\w+\\]*\w+.h'
+HeaderFilterRegex: 'src/.*'
 CheckOptions:
   # Classes with only public members can be quite useful.
   - {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <iostream>
-#include <string>
 
 namespace func {
 
@@ -23,9 +22,9 @@ class printer {
 public:
   printer(std::ostream &os = std::cout);
 
-  bool print_code;
-  bool print_debug;
-  bool print_alloc;
+  bool print_code{true};
+  bool print_debug{true};
+  bool print_alloc{true};
 
   stream_proxy code;
   stream_proxy debug;

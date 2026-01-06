@@ -1,7 +1,9 @@
 #pragma once
 
 #include "function/function.hpp"
+#include "location.hh"
 #include "node/ast.hpp"
+#include <utility>
 #include <vector>
 
 namespace func {

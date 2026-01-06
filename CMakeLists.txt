@@ -27,16 +27,19 @@ add_flex_bison_dependency(LEXER PARSER)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/depends
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+file(GLOB_RECURSE DEPENDENCIES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/depends/*.cpp")
 
 # Create executable
 add_executable(compiler
     ${BISON_PARSER_OUTPUTS}
     ${FLEX_LEXER_OUTPUTS}
     ${SOURCES}
+    ${DEPENDENCIES}
 )
 
 set_target_properties(compiler PROPERTIES

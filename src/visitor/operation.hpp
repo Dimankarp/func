@@ -5,7 +5,6 @@
 #include "type/type.hpp"
 #include "visitor/code_visitor.hpp"
 #include "visitor/instruction_writer.hpp"
-#include "visitor/print_visitor.hpp"
 #include "visitor/register_allocator.hpp"
 #include <memory>
 namespace func {

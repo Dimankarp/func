@@ -1,10 +1,14 @@
 #include "visitor/print_visitor.hpp"
 #include "function/function.hpp"
 #include "node/expression.hpp"
+#include "node/program.hpp"
 #include "node/statement.hpp"
+#include "type/type.hpp"
 
 #include <iostream>
+#include <string>
 #include <unordered_map>
+#include <variant>
 
 namespace func {
 
@@ -35,7 +39,7 @@ void print_visitor::print_type(func::type &type) {
   if (type.get_type() != func::types::FUNCTION)
     out << type_name[type.get_type()];
   else {
-    function_type &func = dynamic_cast<function_type &>(type);
+    auto const &func = dynamic_cast<function_type &>(type);
     out << "<func>";
   }
 }
@@ -43,7 +47,7 @@ void print_visitor::print_type(func::type &type) {
 void print_visitor::visit(const program &progr) {
   *this << "program:" << "\n";
   offset++;
-  for (auto &func : progr.get_funcs()) {
+  for (const auto &func : progr.get_funcs()) {
     func->accept(*this);
   }
   offset--;
@@ -56,7 +60,7 @@ void print_visitor::visit(const function &func) {
 
   out << "\n";
   offset++;
-  for (auto &param : func.get_params()) {
+  for (const auto &param : func.get_params()) {
     *this << type_name[param.get_type()->get_type()] << " "
           << param.get_identifier() << "\n";
   }
@@ -68,7 +72,7 @@ void print_visitor::visit(const function &func) {
 void print_visitor::visit(const block_statement &block) {
   *this << "{" << "\n";
   offset++;
-  for (auto &statement : block.get_statements()) {
+  for (const auto &statement : block.get_statements()) {
     statement->accept(*this);
   }
   offset--;
@@ -125,12 +129,12 @@ void print_visitor::visit(const function_call &func) {
   func.get_func()->accept(*this);
 
   offset++;
-  for (auto &arg : func.get_arg_list()) {
+  for (const auto &arg : func.get_arg_list()) {
     arg->accept(*this);
   }
   offset--;
 
-  if (func.get_arg_list().size() == 0)
+  if (func.get_arg_list().empty())
     *this << "\n";
 };
 

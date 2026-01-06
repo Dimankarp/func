@@ -26,7 +26,6 @@ private:
   yy::location loc;
 
 public:
-  virtual ~ast_node() = default;
   explicit ast_node(yy::location loc);
   yy::location get_loc() const;
 };
@@ -37,7 +36,6 @@ public:
   void accept(visitor_base &v) const override {
     return v.visit(static_cast<const Derived &>(*this));
   }
-  virtual ~ast_node_impl() = default;
 };
 
 } // namespace func

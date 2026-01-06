@@ -4,6 +4,7 @@
 #include "location.hh"
 #include "node/expression.hpp"
 #include "node/statement.hpp"
+#include "node/program.hpp"
 #include "printer.hpp"
 #include "type/type.hpp"
 #include "visitor/instruction_writer.hpp"
