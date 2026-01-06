@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-namespace cmplr {
+namespace func {
 
 namespace {
 template <class T> std::ostream &operator<<(print_visitor &v, T &t) {
@@ -13,27 +13,27 @@ template <class T> std::ostream &operator<<(print_visitor &v, T &t) {
   return v.get_out();
 }
 
-std::unordered_map<cmplr::types, std::string> type_name = {
-    {cmplr::types::INT, "int"},
-    {cmplr::types::STRING, "string"},
-    {cmplr::types::BOOL, "bool"},
-    {cmplr::types::VOID, "void"},
-    {cmplr::types::FUNCTION, "..func.."}};
+std::unordered_map<func::types, std::string> type_name = {
+    {func::types::INT, "int"},
+    {func::types::STRING, "string"},
+    {func::types::BOOL, "bool"},
+    {func::types::VOID, "void"},
+    {func::types::FUNCTION, "..func.."}};
 
-std::unordered_map<cmplr::binop, std::string> binop_name = {
-    {cmplr::binop::ADD, "+"},  {cmplr::binop::SUB, "-"},
-    {cmplr::binop::MUL, "*"},  {cmplr::binop::DIV, "/"},
-    {cmplr::binop::MOD, "%"},  {cmplr::binop::LESS, "<"},
-    {cmplr::binop::GRTR, ">"}, {cmplr::binop::EQ, "=="},
-    {cmplr::binop::NEQ, "!="}, {cmplr::binop::OR, "||"},
-    {cmplr::binop::AND, "&&"}};
+std::unordered_map<func::binop, std::string> binop_name = {
+    {func::binop::ADD, "+"},  {func::binop::SUB, "-"},
+    {func::binop::MUL, "*"},  {func::binop::DIV, "/"},
+    {func::binop::MOD, "%"},  {func::binop::LESS, "<"},
+    {func::binop::GRTR, ">"}, {func::binop::EQ, "=="},
+    {func::binop::NEQ, "!="}, {func::binop::OR, "||"},
+    {func::binop::AND, "&&"}};
 
-std::unordered_map<cmplr::unarop, std::string> unarop_name = {
-    {cmplr::unarop::MINUS, "-"}, {cmplr::unarop::NOT, "!"}};
+std::unordered_map<func::unarop, std::string> unarop_name = {
+    {func::unarop::MINUS, "-"}, {func::unarop::NOT, "!"}};
 } // namespace
 
-void print_visitor::print_type(cmplr::type &type) {
-  if (type.get_type() != cmplr::types::FUNCTION)
+void print_visitor::print_type(func::type &type) {
+  if (type.get_type() != func::types::FUNCTION)
     out << type_name[type.get_type()];
   else {
     function_type &func = dynamic_cast<function_type &>(type);
@@ -151,7 +151,7 @@ void print_visitor::visit_unarop(const unarop_expression &op) {
 };
 
 void print_visitor::visit_literal(const literal_expression &lit) {
-  cmplr::lit_val val = lit.get_val();
+  func::lit_val val = lit.get_val();
   if (auto *v = std::get_if<int>(&val)) {
     *this << *v;
   } else if (auto *v = std::get_if<bool>(&val)) {
@@ -188,4 +188,4 @@ void print_visitor::visit_subscript_assign(
   sub.get_exp()->accept(*this);
   offset-=2;
 };
-} // namespace cmplr
+} // namespace func

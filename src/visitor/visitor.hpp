@@ -5,7 +5,7 @@
 #include "node/expression.hpp"
 #include "node/program.hpp"
 #include "node/statement.hpp"
-namespace cmplr {
+namespace func {
 
 class expression_visitor {
 public:
@@ -32,4 +32,4 @@ public:
   virtual ~statement_visitor() = default;
 };
 
-} // namespace cmplr
+} // namespace func

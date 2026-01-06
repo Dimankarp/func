@@ -4,4 +4,4 @@
 #include <memory>
 #include <utility>
 
-namespace cmplr {} // namespace cmplr
+namespace func {} // namespace func

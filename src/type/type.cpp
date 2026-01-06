@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-namespace cmplr {
+namespace func {
 types int_type::get_type() const { return types::INT; }
 types int_type::static_get_type() { return types::INT; }
 std::unique_ptr<type> int_type::clone() const {
@@ -60,30 +60,30 @@ bool function_type::equals(const type &f) const {
 }
 namespace {
 
-std::unordered_map<cmplr::types, std::string> type_name_for_expect = {
-    {cmplr::types::INT, "int"},
-    {cmplr::types::STRING, "string"},
-    {cmplr::types::BOOL, "bool"},
-    {cmplr::types::VOID, "void"},
-    {cmplr::types::FUNCTION, "..func.."}};
+std::unordered_map<func::types, std::string> type_name_for_expect = {
+    {func::types::INT, "int"},
+    {func::types::STRING, "string"},
+    {func::types::BOOL, "bool"},
+    {func::types::VOID, "void"},
+    {func::types::FUNCTION, "..func.."}};
 };
 
-std::string types_to_string(const cmplr::types t) {
-  return cmplr::type_name_for_expect[t];
+std::string types_to_string(const func::types t) {
+  return func::type_name_for_expect[t];
 }
 
-std::string type_to_string(const cmplr::type &t) {
+std::string type_to_string(const func::type &t) {
   if (t.get_type() != types::FUNCTION)
-    return cmplr::types_to_string(t.get_type());
+    return func::types_to_string(t.get_type());
   const auto &fun = dynamic_cast<const function_type &>(t);
-  std::string res = "(" + cmplr::type_to_string(*fun.get_signature().front());
+  std::string res = "(" + func::type_to_string(*fun.get_signature().front());
   auto iter = fun.get_signature().begin();
   iter++;
   while (iter != fun.get_signature().end()) {
-    res.append("-" + cmplr::type_to_string(**iter));
+    res.append("-" + func::type_to_string(**iter));
   }
   res.append(")");
   return res;
 }
 
-} // namespace cmplr
+} // namespace func

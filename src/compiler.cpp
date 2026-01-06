@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
 
 
 
-  cmplr::print_visitor print_visitor{std::cout};
+  func::print_visitor print_visitor{std::cout};
 
   auto tree = std::move(drv.result);
   try {
@@ -92,24 +92,24 @@ int main(int argc, char *argv[]) {
       output_stream = out;
     }
     
-    cmplr::printer printer {output_stream.value().get()};
+    func::printer printer {output_stream.value().get()};
     printer.print_code = true;
     printer.print_debug = debug_mode_flag;
     printer.print_alloc = alloc_trace_flag;
 
-    cmplr::code_visitor code_visitor{printer};
+    func::code_visitor code_visitor{printer};
     tree->accept(code_visitor);
 
-  } catch (cmplr::unexpected_type_exception &e) {
+  } catch (func::unexpected_type_exception &e) {
     std::cerr << "Syntax error: unexpected type " << e << "\n";
     exit(1);
-  } catch (cmplr::symbol_not_found_exception &e) {
+  } catch (func::symbol_not_found_exception &e) {
     std::cerr << "Syntax error: symbol not found " << e << "\n";
     exit(1);
-  } catch (cmplr::syntax_exception &e) {
+  } catch (func::syntax_exception &e) {
     std::cerr << "Syntax error: " << e << "\n";
     exit(1);
-  } catch (cmplr::global_syntax_exception &e) {
+  } catch (func::global_syntax_exception &e) {
     std::cerr << "Syntax error: " << e << "\n";
     exit(1);
   }

@@ -15,7 +15,7 @@
 #include <ostream>
 #include <string>
 
-namespace cmplr::instr {
+namespace func::instr {
 
 const uint8_t SP = 31;
 const uint8_t BP = 30;
@@ -23,10 +23,10 @@ const uint8_t RR = 29; // Return register
 
 class instruction_writer {
   uint16_t next_addr = 0;
-  cmplr::stream_proxy &out;
+  func::stream_proxy &out;
 
 public:
-  instruction_writer(cmplr::stream_proxy &out) : out{out} {}
+  instruction_writer(func::stream_proxy &out) : out{out} {}
   uint16_t get_next_addr() const { return next_addr; }
 
   void lui(uint8_t d, int32_t imm) {
@@ -303,4 +303,4 @@ private:
   std::string reg(uint8_t n) { return "x" + std::to_string(n); }
 };
 
-} // namespace cmplr::instr
+} // namespace func::instr

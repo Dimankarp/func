@@ -1,6 +1,6 @@
 #include "printer.hpp"
 
-namespace cmplr {
+namespace func {
 
 stream_proxy::stream_proxy(std::ostream& os, bool& enabled)
     : output_stream(os), enabled_ref(enabled) {}
@@ -22,4 +22,4 @@ printer::printer(std::ostream& os)
       alloc(os, print_alloc) 
       {}
 
-} // namespace cmplr  
+} // namespace func  

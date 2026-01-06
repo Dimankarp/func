@@ -6,7 +6,7 @@
 #include <optional>
 #include <string>
 #include <vector>
-namespace cmplr {
+namespace func {
 using std::unique_ptr;
 class statement_visitor;
 
@@ -40,7 +40,7 @@ private:
 
 public:
   assign_statement(unique_ptr<type> type, std::string &id, yy::location loc);
-  assign_statement(unique_ptr<cmplr::type> type, std::string &id,
+  assign_statement(unique_ptr<func::type> type, std::string &id,
                    unique_ptr<expression> exp, yy::location loc);
   assign_statement(std::string &id, unique_ptr<expression> exp,
                    yy::location loc);
@@ -106,4 +106,4 @@ public:
   const unique_ptr<expression> &get_exp() const;
 };
 
-} // namespace cmplr
+} // namespace func

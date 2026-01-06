@@ -4,7 +4,7 @@
 #include "visitor/visitor.hpp"
 #include <memory>
 #include <vector>
-namespace cmplr {
+namespace func {
 using std::unique_ptr;
 
 yy::location statement::get_loc() const { return loc; }
@@ -26,11 +26,11 @@ block_statement::get_statements() const {
 
 // Assign
 
-assign_statement::assign_statement(unique_ptr<cmplr::type> type,
+assign_statement::assign_statement(unique_ptr<func::type> type,
                                    std::string &id, yy::location loc)
     : identifier(id), statement(loc), type_obj{std::move(type)} {}
 
-assign_statement::assign_statement(unique_ptr<cmplr::type> type,
+assign_statement::assign_statement(unique_ptr<func::type> type,
                                    std::string &id, unique_ptr<expression> exp,
                                    yy::location loc)
     : identifier(id), exp(std::move(exp)), statement(loc),
@@ -117,4 +117,4 @@ const unique_ptr<expression> &subscript_assign_statement::get_exp() const {
   return exp;
 };
 
-} // namespace cmplr
+} // namespace func

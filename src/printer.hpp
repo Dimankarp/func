@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-namespace cmplr {
+namespace func {
 
 class stream_proxy {
 private:
@@ -45,4 +45,4 @@ stream_proxy& stream_proxy::operator<<(const T& value) {
     return *this;
 }
 
-} // namespace cmplr
+} // namespace func

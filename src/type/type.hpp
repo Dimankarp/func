@@ -3,7 +3,7 @@
 #include <memory>
 #include <variant>
 #include <vector>
-namespace cmplr {
+namespace func {
 
 enum class types : char { INT, STRING, BOOL, VOID, FUNCTION };
 
@@ -17,8 +17,8 @@ public:
   }
 };
 
-std::string types_to_string(const cmplr::types t);
-std::string type_to_string(const cmplr::type &t);
+std::string types_to_string(const func::types t);
+std::string type_to_string(const func::type &t);
 
 class int_type : public type {
 public:
@@ -60,4 +60,4 @@ public:
   std::unique_ptr<type> clone() const override;
 };
 
-} // namespace cmplr
+} // namespace func
