@@ -17,6 +17,7 @@ int main(int argc, char *argv[]) {
   bool print_ast_flag;
   bool debug_mode_flag;
   bool alloc_trace_flag;
+  std::string output_file;
   std::optional<std::reference_wrapper<std::ostream>> output_stream;
   
   cxxopts::Options options("compiler", "A compiler for a simple C-like language called FunC.");
@@ -53,7 +54,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (result.count("output")) {
-      drv.output_file = result["output"].as<std::string>();
+      output_file = result["output"].as<std::string>();
     }
 
     if (result.count("source")) {
@@ -84,11 +85,11 @@ int main(int argc, char *argv[]) {
     }
     
     std::ofstream out;
-    if (drv.output_file.empty()) {
+    if (output_file.empty()) {
       std::cout << " ### Code visitor output:\n";
       output_stream = std::cout;
     } else {
-      out = std::ofstream(drv.output_file);
+      out = std::ofstream(output_file);
       output_stream = out;
     }
     
