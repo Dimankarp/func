@@ -29,7 +29,7 @@ struct symbol_redeclaratione_exception : public syntax_exception {
 
 struct symbol_not_found_exception : public syntax_exception {};
 
-struct not_enough_registers_exceptions {};
+struct not_enough_registers_exception {};
 
 struct global_syntax_exception {
   std::string reason;

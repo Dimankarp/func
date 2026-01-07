@@ -1,8 +1,8 @@
-# Авторы
 
-**Хороших Дмитрий P3317 (@Dimankarp)**
-
-**Бутов Иван P3317 (@IB004)**
+| Авторы |  |  |
+| --- | --- | --- |
+| *Хороших Дмитрий*   | P3417       | `@Dimankarp`    |
+| *Бутов Иван*        | P3417       | `@IB004`        |
 
 # FunC
 
@@ -13,14 +13,23 @@
 Для компиляции:
 
 ```bash
-mkdir build && cd build
-cmake ..
-make
+./build.sh
 ```
 
 Использование:
 
-`build/compiler [-ps - debug flags] [-o output file] <file.fc>`
+```bash
+build/compiler [FLAGS] [-o output file] <file.fc>
+
+FLAGS:
+  -p, --print-ast       Print AST to stdout
+      --trace-parsing   Trace parsing
+      --trace-scanning  Trace scanning
+  -d, --debug           Include debug output
+  -a, --alloc           Include alloc traces
+```
+
+Также можно указать ключ `-h` или `--help`, чтобы получить справку по использованию.
 
 ## Особенности
 
@@ -262,7 +271,7 @@ while(a > 0){   // a = 42 и здесь, бесконечный цикл
 - `x30` -- регистр `BP`, указывает на начало текущего кадра стека;
 - `x31` -- регистр `SP`, указывает на вершину стека, последний добавленный элемент.
 
-При компиляции за аллокацию регистров отвечает [`reg_allocator`](./src/visitor/register_allocator.hpp). Каждому регистру общего назначения сопоставлен флаг `занят`. Этот флаг выставляется при сохранении в регистре значения, вычисляемого в выражении, и сбрасывается, когда значение уже не используется и регистр можно переиспользовать. Для вычисления выражения должно хватать  28 регистров, иначе будет выброшено исключение `not_enough_registers_exceptions`.
+При компиляции за аллокацию регистров отвечает [`reg_allocator`](./src/visitor/register_allocator.hpp). Каждому регистру общего назначения сопоставлен флаг `занят`. Этот флаг выставляется при сохранении в регистре значения, вычисляемого в выражении, и сбрасывается, когда значение уже не используется и регистр можно переиспользовать. Для вычисления выражения должно хватать  28 регистров, иначе будет выброшено исключение `not_enough_registers_exception`.
 
 ## Функции: поток данных и управления
 
@@ -317,7 +326,7 @@ while(a > 0){   // a = 42 и здесь, бесконечный цикл
 
 Обход дерева осуществляется при помощи [паттерна Visitor](./src/visitor/visitor.hpp).
 
-Для удобства реализован [`print_visitor`](./src/visitor/print_visitor.cpp) вывода сформированного AST. Например, рассмотрим программу, которая модифицирует строку и выводит результат на экран:
+Для удобства реализован [`print_visitor`](./src/visitor/print_visitor.cpp), который выводит сформированное AST. Например, рассмотрим программу, которая модифицирует строку и выводит результат на экран:
 
 ```C
 int strlen(string s){
@@ -521,10 +530,10 @@ void main(){
 }
 ```
 
-После компиляции:
+После компиляции c флагом `--debug`:
 
 ```asm
-#Enter program
+# Enter program
 _START: 
 li x31, 65536
 li x30, 65536
@@ -555,38 +564,38 @@ addi x31, x31, 1
 lw x1, x31, 0
 addi x31, x31, 1
 jalr x0, x1, 0
-#Iterating through functions
-#Enter function main
+# Iterating through functions
+# Enter function main
 main: 
-#Enter block 
-#Enter assing
+# Enter block 
+# Enter assing
 addi x31, x31, -1
 sw x31, 0, x0
-#Done assign
-#Enter literal 
+# Done assign
+# Enter literal 
 addi x2, x0, 0
 sw x31, -1, x2
 addi x2, x0, 99
 sw x31, -2, x2
 addi x31, x31, -2
 addi x1, x31, 0
-#Done literal 
+# Done literal 
 sw x30, -1, x1
-#Enter function call
-#Enter identifier write
+# Enter function call
+# Enter identifier write
 li x1, 13
-#Done identifier write
-#Enter subscript
-#Enter identifier c
+# Done identifier write
+# Enter subscript
+# Enter identifier c
 lw x2, x30, -1
-#Done identifier c
-#Enter literal 
+# Done identifier c
+# Enter literal 
 li x3, 0
-#Done literal 
+# Done literal 
 add x2, x2, x3
 lw x4, x2, 0
-#Done subscript
-#Pushing regs
+# Done subscript
+# Pushing regs
 addi x31, x31, -1
 sw x31, 0, x1
 addi x31, x31, -1
@@ -601,22 +610,22 @@ addi x30, x31, 0
 addi x31, x31, -1
 sw x31, 0, x4
 jalr x0, x1, 0
-#Recovering regs
+# Recovering regs
 lw x4, x31, 0
 addi x31, x31, 1
 lw x1, x31, 0
 addi x31, x31, 1
 addi x1, x29, 0
-#Done function call
-#Enter return
+# Done function call
+# Enter return
 addi x31, x30, 0
 lw x30, x31, 0
 addi x31, x31, 1
 lw x2, x31, 0
 addi x31, x31, 1
 jalr x0, x2, 0
-#Done return
-#Done block 
-#Done function main
-#Done program
+# Done return
+# Done block 
+# Done function main
+# Done program
 ```

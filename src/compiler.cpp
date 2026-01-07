@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
       "compiler", "A compiler for a simple C-like language called FunC.");
 
   options.add_options()("h,help", "Print help page")(
-      "p,print-ast", "Print AST to stdin")("trace-parsing", "Trace parsing")(
+      "p,print-ast", "Print AST to stdout")("trace-parsing", "Trace parsing")(
       "trace-scanning", "Trace scanning")("d,debug", "Include debug output")(
       "a,alloc", "Include alloc traces")("o,output", "Output file",
                                          cxxopts::value<std::string>());
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
                         cxxopts::value<std::vector<std::string>>());
   options.parse_positional({"source"});
 
-  options.positional_help("SOURCE FILES");
+  options.positional_help("SOURCE_FILES");
 
   try {
     auto result{options.parse(argc, argv)};

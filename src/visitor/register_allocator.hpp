@@ -36,7 +36,7 @@ public:
         return i;
       }
     }
-    throw not_enough_registers_exceptions{};
+    throw not_enough_registers_exception{};
   }
 
   uint8_t alloc(const std::string &reason) {
@@ -47,7 +47,7 @@ public:
         return i;
       }
     }
-    throw not_enough_registers_exceptions{};
+    throw not_enough_registers_exception{};
   }
 
   std::vector<uint8_t> get_allocated_regs() {
