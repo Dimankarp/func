@@ -1,4 +1,4 @@
-#include "visitor/type_checker.hpp"
+#include "type/type_checker.hpp"
 #include "exception.hpp"
 #include "location.hh"
 #include "type/type.hpp"

@@ -4,8 +4,8 @@
 #include "location.hh"
 #include "printer.hpp"
 #include "type/type.hpp"
-#include "visitor/instruction_writer.hpp"
-#include "visitor/register_allocator.hpp"
+#include "visitor/code_visitor/instruction_writer.hpp"
+#include "visitor/code_visitor/register_allocator.hpp"
 #include "visitor/visitor.hpp"
 
 #include <cstdint>

@@ -2,8 +2,8 @@
 #include "driver.hpp"
 #include "exception.hpp"
 #include "printer.hpp"
-#include "visitor/code_visitor.hpp"
-#include "visitor/print_visitor.hpp"
+#include "visitor/code_visitor/code_visitor.hpp"
+#include "visitor/print_visitor/print_visitor.hpp"
 #include "visitor/visitor.hpp"
 
 #include <fstream>

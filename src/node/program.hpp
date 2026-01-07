@@ -1,6 +1,6 @@
 #pragma once
 
-#include "function/function.hpp"
+#include "node/function.hpp"
 #include "location.hh"
 #include "node/ast.hpp"
 #include <utility>

@@ -1,5 +1,5 @@
-#include "visitor/print_visitor.hpp"
-#include "function/function.hpp"
+#include "visitor/print_visitor/print_visitor.hpp"
+#include "node/function.hpp"
 #include "node/expression.hpp"
 #include "node/program.hpp"
 #include "node/statement.hpp"

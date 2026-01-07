@@ -10,7 +10,7 @@
   #include "node/expression.hpp"
   #include "node/statement.hpp"
   #include "node/program.hpp"
-  #include "function/function.hpp"
+  #include "node/function.hpp"
   #include "type/type.hpp"
   #include <string>
   #include <variant>

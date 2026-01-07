@@ -1,16 +1,16 @@
-#include "visitor/code_visitor.hpp"
+#include "visitor/code_visitor/code_visitor.hpp"
 #include "exception.hpp"
-#include "function/function.hpp"
+#include "node/function.hpp"
 #include "location.hh"
 #include "node/expression.hpp"
 #include "node/statement.hpp"
 #include "node/program.hpp"
 #include "printer.hpp"
 #include "type/type.hpp"
-#include "visitor/instruction_writer.hpp"
-#include "visitor/operation.hpp"
-#include "visitor/register_allocator.hpp"
-#include "visitor/type_checker.hpp"
+#include "type/type_checker.hpp"
+#include "visitor/code_visitor/instruction_writer.hpp"
+#include "visitor/code_visitor/operation.hpp"
+#include "visitor/code_visitor/register_allocator.hpp"
 
 #include <cstdint>
 #include <memory>

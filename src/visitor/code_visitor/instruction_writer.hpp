@@ -1,7 +1,7 @@
 #pragma once
 
 #include "printer.hpp"
-#include "visitor/register_allocator.hpp"
+#include "visitor/code_visitor/register_allocator.hpp"
 
 #include <cstdint>
 #include <string>
