@@ -6,10 +6,10 @@
 #include "type/type.hpp"
 #include "visitor/code_visitor/instruction_writer.hpp"
 #include "visitor/code_visitor/register_allocator.hpp"
+#include "visitor/sym_table.hpp"
 #include "visitor/visitor.hpp"
 
 #include <cstdint>
-#include <list>
 #include <memory>
 #include <string>
 #include <utility>
@@ -44,51 +44,11 @@ public:
   }
 };
 
-class sym_table {
-  std::list<sym_info> table;
-
-public:
-  void start_block() {
-    sym_info delim{};
-    delim.is_delimeter = true;
-    table.push_back(std::move(delim));
-  }
-
-  void end_block() {
-    while (!table.back().is_delimeter) {
-      table.pop_back();
-    }
-    table.pop_back();
-  }
-
-  void add(sym_info &&sym) {
-
-    auto iter = table.rbegin();
-    while (iter != table.rend() && !iter->is_delimeter) {
-      if (iter->name == sym.name)
-        throw symbol_redeclaratione_exception{sym.name, iter->declare_loc,
-                                              sym.declare_loc};
-      iter++;
-    }
-    table.push_back(std::move(sym));
-  }
-
-  const sym_info &find(std::string sym) {
-    auto iter = table.rbegin();
-    while (iter != table.rend()) {
-      if (!iter->is_delimeter && iter->name == sym)
-        return *iter;
-      iter++;
-    }
-    throw symbol_not_found_exception({sym, yy::location{}});
-  }
-};
-
 class code_visitor : public visitor<expr_result> {
 private:
   func::stream_proxy &debug_out;
   expr_result result;
-  sym_table table;
+  sym_table<sym_info> table;
   reg_allocator alloc;
   func::instr::instruction_writer writer;
   uint16_t stack_height = 0;
