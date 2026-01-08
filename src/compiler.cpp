@@ -5,10 +5,12 @@
 #include "visitor/code_visitor/code_visitor.hpp"
 #include "visitor/print_visitor/print_visitor.hpp"
 #include "visitor/visitor.hpp"
+#include "llvm/IR/IRBuilder.h"
 
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <llvm/IR/LLVMContext.h>
 #include <memory>
 #include <optional>
 
@@ -34,6 +36,9 @@ int main(int argc, char *argv[]) {
   options.parse_positional({"source"});
 
   options.positional_help("SOURCE_FILES");
+
+  llvm::LLVMContext ctx{};
+  llvm::IRBuilder<> builder(ctx);
 
   try {
     auto result{options.parse(argc, argv)};
