@@ -1,13 +1,20 @@
 cmake_minimum_required(VERSION 3.27)
 
 
-project(Compiler CXX)
+project(Compiler CXX C)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Find dependencies
 
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
+find_package(LLVM REQUIRED CONFIG)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+# Flex & Bison
 
 set(LEXER_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/codegen/lexer.l")
 set(PARSER_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/codegen/parser.y")
@@ -25,16 +32,24 @@ bison_target(PARSER ${PARSER_SOURCE} ${PARSER_OUTPUT_DIR}/parser.tab.cpp
 
 add_flex_bison_dependency(LEXER PARSER)
 
+
+# LLVM Defines
+
+separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+add_definitions(${LLVM_DEFINITIONS_LIST})
+
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/depends
     ${CMAKE_CURRENT_BINARY_DIR}
+    ${LLVM_INCLUDE_DIRS}
 )
+
+# Create executable
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 file(GLOB_RECURSE DEPENDENCIES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/depends/*.cpp")
 
-# Create executable
 add_executable(compiler
     ${BISON_PARSER_OUTPUTS}
     ${FLEX_LEXER_OUTPUTS}
@@ -46,3 +61,8 @@ set_target_properties(compiler PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )
+
+# Magically link to LLVM
+llvm_config(compiler USE_SHARED support core irreader)
+
+
