@@ -1,29 +1,69 @@
 #pragma once
 
+#include "location.hh"
 #include "printer.hpp"
+#include "type/type.hpp"
+#include "visitor/sym_table.hpp"
 #include "visitor/visitor.hpp"
 #include "llvm/IR/Value.h"
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
+#include <optional>
 #include <variant>
 
 namespace func {
 
 using namespace llvm;
 
-using llvm_result = std::variant<Value*, Function*>;
 
-class code_visitor : public visitor<llvm_result> {
+struct llvm_sym_info {
+    std::string name;
+    std::unique_ptr<func::type> type_obj;
+    std::optional<Value*> value;
+    yy::location declare_loc = yy::location{};
+    bool is_delimeter = false;
+
+    public:
+    llvm_sym_info(const std::string& name,
+                  const std::unique_ptr<func::type>& type_obj,
+                  std::optional<Value*> value = std::nullopt,
+                  yy::location declare_loc = yy::location{},
+                  bool is_delimeter = false)
+    : name{ name }, type_obj{ type_obj->clone() }, declare_loc{ declare_loc },
+      is_delimeter{ is_delimeter }, value{ value } {}
+    llvm_sym_info() = default;
+    llvm_sym_info(const llvm_sym_info& sym)
+    : name{ sym.name }, declare_loc{ sym.declare_loc },
+      is_delimeter{ sym.is_delimeter } {
+        if(sym.type_obj != nullptr)
+            type_obj = sym.type_obj->clone();
+    }
+};
+
+struct TypedValuePtr {
+    Value* ptr;
+    std::unique_ptr<type> type_obj;
+};
+
+struct TypedFunctionPtr {
+    Function* ptr;
+    std::unique_ptr<type> type_obj;
+};
+
+using llvm_result = std::variant<TypedValuePtr, TypedFunctionPtr, Function*>;
+
+class llvm_visitor : public visitor<llvm_result> {
     private:
     func::stream_proxy& debug_out;
     llvm_result result;
-    //   sym_table<sym_info> table;
+    sym_table<llvm_sym_info> table;
     LLVMContext ctx;
-    Module module;
-    IRBuilder<> builder;
+    Module module{ "func module", ctx };
+    IRBuilder<> builder{ ctx };
 
     public:
-    code_visitor(func::printer& printer);
+    llvm_visitor(func::printer& printer) : debug_out{ printer.debug } {}
+
 
     void visit(const binop_expression&) override;
     void visit(const unarop_expression&) override;
@@ -44,6 +84,8 @@ class code_visitor : public visitor<llvm_result> {
     llvm_result&& extract_result() override { return std::move(result); }
 
     private:
+    Type* llvm_get_type(types t);
+    FunctionType* llvm_get_function_type(const function_type& func_type);
 };
 
 } // namespace func

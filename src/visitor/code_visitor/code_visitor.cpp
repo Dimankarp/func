@@ -91,7 +91,7 @@ void code_visitor::visit(const function& f) {
         for(const auto& p : f.get_params()) {
             signature.push_back(p.get_type()->clone());
         }
-    signature.push_back(f.get_type()->clone());
+    signature.push_back(f.get_result_type()->clone());
 
     auto info = sym_info{ f.get_identifier(),
                           std::make_unique<func::function_type>(std::move(signature)),

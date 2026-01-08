@@ -59,7 +59,7 @@ void print_visitor::visit(const program& progr) {
 
 void print_visitor::visit(const function& func) {
 
-    *this << type_name[func.get_type()->get_type()] << " " << func.get_identifier() << " ";
+    *this << type_name[func.get_result_type()->get_type()] << " " << func.get_identifier() << " ";
 
     out << "\n";
     offset++;

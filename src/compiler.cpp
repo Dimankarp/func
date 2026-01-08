@@ -3,6 +3,7 @@
 #include "exception.hpp"
 #include "printer.hpp"
 #include "visitor/code_visitor/code_visitor.hpp"
+#include "visitor/llvm_visitor/llvm_visitor.hpp"
 #include "visitor/print_visitor/print_visitor.hpp"
 #include "visitor/visitor.hpp"
 
@@ -18,16 +19,23 @@ int main(int argc, char* argv[]) {
     bool debug_mode_flag;
     bool alloc_trace_flag;
     std::string output_file;
+    std::string target_arch;
     std::optional<std::reference_wrapper<std::ostream>> output_stream;
 
     cxxopts::Options options("compiler", "A compiler for a simple C-like language called FunC.");
 
-    options.add_options()("h,help", "Print help page")("p,print-ast", "Print AST to stdout")(
-    "trace-parsing", "Trace parsing")("trace-scanning",
-                                      "Trace scanning")("d,debug", "Include debug output")(
-    "a,alloc", "Include alloc traces")("o,output", "Output file",
-                                       cxxopts::value<std::string>());
-
+    // clang-format off
+    options.add_options()
+    ("h,help", "Print help page")
+    ("p,print-ast", "Print AST to stdout")
+    ("trace-parsing", "Trace parsing")
+    ("trace-scanning","Trace scanning")
+    ("d,debug", "Include debug output")
+    ("a,alloc", "Include alloc traces")
+    ("o,output", "Output file",cxxopts::value<std::string>())
+    ("arch", "Specify target architecture ([sim, x64]) defaults to x64",
+         cxxopts::value<std::string>()->default_value("x64"));
+    // clang-format on
     options.add_options()("source", "The .fc files to proccess",
                           cxxopts::value<std::vector<std::string>>());
     options.parse_positional({ "source" });
@@ -42,6 +50,8 @@ int main(int argc, char* argv[]) {
         drv.trace_scanning = result["trace-scanning"].as<bool>();
         debug_mode_flag = result["debug"].as<bool>();
         alloc_trace_flag = result["alloc"].as<bool>();
+        target_arch = result["arch"].as<string>();
+
 
         if(result.count("help")) {
             std::cout << options.help() << std::endl;
@@ -51,6 +61,7 @@ int main(int argc, char* argv[]) {
         if(result.count("output")) {
             output_file = result["output"].as<std::string>();
         }
+
 
         if(result.count("source")) {
             auto srcs = result["source"].as<std::vector<std::string>>();
@@ -90,8 +101,11 @@ int main(int argc, char* argv[]) {
         printer.print_debug = debug_mode_flag;
         printer.print_alloc = alloc_trace_flag;
 
-        func::code_visitor code_visitor{ printer };
-        tree->accept(code_visitor);
+        // func::code_visitor code_visitor{ printer };
+        // tree->accept(code_visitor);
+
+        func::llvm_visitor llvm_visitor{ printer };
+        tree->accept(llvm_visitor);
 
     } catch(func::unexpected_type_exception& e) {
         std::cerr << "Syntax error: unexpected type " << e << "\n";

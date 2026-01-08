@@ -63,6 +63,9 @@ class function_type : public type_impl<function_type, types::FUNCTION> {
     using type_impl::type_enum;
     function_type(std::vector<std::unique_ptr<type>>&& sign);
     const std::vector<std::unique_ptr<type>>& get_signature() const;
+    const std::unique_ptr<type>& get_return_type() const {
+        return signature.back();
+    }
     bool equals(const type& f) const override;
 };
 

@@ -39,20 +39,20 @@ class parameter {
 
 class function : public ast_node_impl<function> {
     using Base = ast_node_impl<function>;
-    unique_ptr<type> type_obj;
+    unique_ptr<type> result_type;
     std::string identifier;
     std::vector<parameter> param_list;
     unique_ptr<block_statement> block;
 
     public:
-    function(unique_ptr<type> type_obj,
+    function(unique_ptr<type> result_type,
              std::string& identifier,
              std::vector<parameter>&& param_list,
              unique_ptr<block_statement> block,
              yy::location loc)
-    : type_obj{ std::move(type_obj) }, identifier{ identifier },
+    : result_type{ std::move(result_type) }, identifier{ identifier },
       param_list{ std::move(param_list) }, block{ std::move(block) }, Base{ loc } {}
-    const unique_ptr<type>& get_type() const { return type_obj; }
+    const unique_ptr<type>& get_result_type() const { return result_type; }
     const std::string& get_identifier() const { return identifier; }
     const std::vector<parameter>& get_params() const { return param_list; }
     const unique_ptr<block_statement>& get_block() const { return block; }
