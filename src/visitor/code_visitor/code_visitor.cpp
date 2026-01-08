@@ -1,10 +1,10 @@
 #include "visitor/code_visitor/code_visitor.hpp"
 #include "exception.hpp"
-#include "node/function.hpp"
 #include "location.hh"
 #include "node/expression.hpp"
-#include "node/statement.hpp"
+#include "node/function.hpp"
 #include "node/program.hpp"
+#include "node/statement.hpp"
 #include "printer.hpp"
 #include "type/type.hpp"
 #include "type/type_checker.hpp"
@@ -17,473 +17,462 @@
 
 namespace func {
 
-code_visitor::code_visitor(func::printer &printer)
-    : debug_out{printer.debug}, alloc{printer.alloc}, writer{printer.code} {}
+code_visitor::code_visitor(func::printer& printer)
+: debug_out{ printer.debug }, alloc{ printer.alloc }, writer{ printer.code } {}
 
 void code_visitor::declare_write_func() {
-  auto func_addr = writer.get_next_addr();
+    auto func_addr = writer.get_next_addr();
 
-  writer.write_func(alloc);
+    writer.write_func(alloc);
 
-  std::vector<unique_ptr<func::type>> write_sign;
-  write_sign.push_back(std::make_unique<int_type>());
-  write_sign.push_back(std::make_unique<void_type>());
-  auto info = sym_info{
-      "write", std::make_unique<func::function_type>(std::move(write_sign)),
-      sym_info::ABS, func_addr};
-  table.add(std::move(info));
+    std::vector<unique_ptr<func::type>> write_sign;
+    write_sign.push_back(std::make_unique<int_type>());
+    write_sign.push_back(std::make_unique<void_type>());
+    auto info =
+    sym_info{ "write", std::make_unique<func::function_type>(std::move(write_sign)),
+              sym_info::ABS, func_addr };
+    table.add(std::move(info));
 }
 
 void code_visitor::declare_read_func() {
-  auto func_addr = writer.get_next_addr();
+    auto func_addr = writer.get_next_addr();
 
-  writer.read_func(alloc);
+    writer.read_func(alloc);
 
-  std::vector<unique_ptr<func::type>> read_sign;
-  read_sign.push_back(std::make_unique<void_type>());
-  read_sign.push_back(std::make_unique<int_type>());
-  auto info = sym_info{
-      "read", std::make_unique<func::function_type>(std::move(read_sign)),
-      sym_info::ABS, func_addr};
-  table.add(std::move(info));
+    std::vector<unique_ptr<func::type>> read_sign;
+    read_sign.push_back(std::make_unique<void_type>());
+    read_sign.push_back(std::make_unique<int_type>());
+    auto info =
+    sym_info{ "read", std::make_unique<func::function_type>(std::move(read_sign)),
+              sym_info::ABS, func_addr };
+    table.add(std::move(info));
 }
 
-void code_visitor::visit(const program &progr) {
-  debug_out << "# Enter program\n";
-  writer.label("_START");
-  writer.li(instr::SP, (1 << 16));
-  writer.li(instr::BP, (1 << 16));
-  auto r = alloc.alloc("Store addres for main");
-  writer.li_label(r, "main");
-  writer.call_start(alloc, 0);
-  writer.call_end(r);
-  alloc.dealloc(r);
-  writer.ebreak();
+void code_visitor::visit(const program& progr) {
+    debug_out << "# Enter program\n";
+    writer.label("_START");
+    writer.li(instr::SP, (1 << 16));
+    writer.li(instr::BP, (1 << 16));
+    auto r = alloc.alloc("Store addres for main");
+    writer.li_label(r, "main");
+    writer.call_start(alloc, 0);
+    writer.call_end(r);
+    alloc.dealloc(r);
+    writer.ebreak();
 
-  declare_write_func();
-  declare_read_func();
+    declare_write_func();
+    declare_read_func();
 
-  debug_out << "# Iterating through functions\n";
-  for (const auto &func : progr.get_funcs()) {
-    func->accept(*this);
-  }
-
-  // Main type & existance check
-
-  const auto &main_info = table.find("main");
-  std::vector<unique_ptr<type>> types_vec{};
-  types_vec.push_back(std::make_unique<void_type>());
-  types_vec.push_back(std::make_unique<void_type>());
-  const function_type main_expected_type = function_type{std::move(types_vec)};
-  if (!main_info.type_obj->equals(main_expected_type))
-    throw global_syntax_exception{"main must be a (void-void) function"};
-
-  debug_out << "# Done program\n";
-}
-
-void code_visitor::visit(const function &f) {
-  debug_out << "# Enter function " << f.get_identifier() << "\n";
-
-  auto signature = std::vector<unique_ptr<type>>();
-  if (f.get_params().empty())
-    signature.push_back(std::make_unique<void_type>());
-  else
-    for (const auto &p : f.get_params()) {
-      signature.push_back(p.get_type()->clone());
+    debug_out << "# Iterating through functions\n";
+    for(const auto& func : progr.get_funcs()) {
+        func->accept(*this);
     }
-  signature.push_back(f.get_type()->clone());
 
-  auto info =
-      sym_info{f.get_identifier(),
-               std::make_unique<func::function_type>(std::move(signature)),
-               sym_info::ABS, writer.get_next_addr()};
-  table.add(std::move(info));
+    // Main type & existance check
 
-  // Staring block for func param
-  table.start_block();
+    const auto& main_info = table.find("main");
+    std::vector<unique_ptr<type>> types_vec{};
+    types_vec.push_back(std::make_unique<void_type>());
+    types_vec.push_back(std::make_unique<void_type>());
+    const function_type main_expected_type = function_type{ std::move(types_vec) };
+    if(!main_info.type_obj->equals(main_expected_type))
+        throw global_syntax_exception{ "main must be a (void-void) function" };
 
-  for (int i = 0; i < f.get_params().size(); i++) {
-    auto &param = f.get_params()[i];
-
-    // Registering parameters
-    table.add(sym_info{param.get_identifier(), param.get_type()->clone(),
-                       sym_info::STACK, static_cast<uint16_t>(i + 1)});
-  }
-
-  writer.label(f.get_identifier());
-  this->stack_height = f.get_params().size();
-  f.get_block()->accept(*this);
-
-  // Ending block for func param
-  table.end_block();
-  debug_out << "# Done function " << f.get_identifier() << "\n";
+    debug_out << "# Done program\n";
 }
 
-void code_visitor::visit(const block_statement &b) {
-  debug_out << "# Enter block " << "\n";
-  table.start_block();
+void code_visitor::visit(const function& f) {
+    debug_out << "# Enter function " << f.get_identifier() << "\n";
 
-  for (const auto &st : b.get_statements()) {
-    st->accept(*this);
-  }
-  table.end_block();
-  debug_out << "# Done block " << "\n";
+    auto signature = std::vector<unique_ptr<type>>();
+    if(f.get_params().empty())
+        signature.push_back(std::make_unique<void_type>());
+    else
+        for(const auto& p : f.get_params()) {
+            signature.push_back(p.get_type()->clone());
+        }
+    signature.push_back(f.get_type()->clone());
+
+    auto info = sym_info{ f.get_identifier(),
+                          std::make_unique<func::function_type>(std::move(signature)),
+                          sym_info::ABS, writer.get_next_addr() };
+    table.add(std::move(info));
+
+    // Staring block for func param
+    table.start_block();
+
+    for(int i = 0; i < f.get_params().size(); i++) {
+        auto& param = f.get_params()[i];
+
+        // Registering parameters
+        table.add(sym_info{ param.get_identifier(), param.get_type()->clone(),
+                            sym_info::STACK, static_cast<uint16_t>(i + 1) });
+    }
+
+    writer.label(f.get_identifier());
+    this->stack_height = f.get_params().size();
+    f.get_block()->accept(*this);
+
+    // Ending block for func param
+    table.end_block();
+    debug_out << "# Done function " << f.get_identifier() << "\n";
+}
+
+void code_visitor::visit(const block_statement& b) {
+    debug_out << "# Enter block " << "\n";
+    table.start_block();
+
+    for(const auto& st : b.get_statements()) {
+        st->accept(*this);
+    }
+    table.end_block();
+    debug_out << "# Done block " << "\n";
 }
 
 namespace {
-std::vector<uint8_t> push_regs_before_call(instr::instruction_writer &w,
-                                           reg_allocator &alloc) {
-  auto regs = alloc.get_allocated_regs();
-  for (auto r : regs) {
-    w.push(r);
-  }
-  return regs;
+std::vector<uint8_t>
+push_regs_before_call(instr::instruction_writer& w, reg_allocator& alloc) {
+    auto regs = alloc.get_allocated_regs();
+    for(auto r : regs) {
+        w.push(r);
+    }
+    return regs;
 }
 
-void pop_regs_after_call(instr::instruction_writer &w,
-                         std::vector<uint8_t> &regs) {
-  auto iter = regs.rbegin();
-  while (iter != regs.rend()) {
-    w.pop(*iter);
-    iter++;
-  }
+void pop_regs_after_call(instr::instruction_writer& w, std::vector<uint8_t>& regs) {
+    auto iter = regs.rbegin();
+    while(iter != regs.rend()) {
+        w.pop(*iter);
+        iter++;
+    }
 }
 
-void load_variable(instr::instruction_writer &writer, uint8_t d,
-                   sym_info &sym) {
-  switch (sym.access_type) {
-  case sym_info::STACK:
-    writer.get_arg(d, sym.offset);
-    break;
-  case sym_info::ABS:
-    writer.li(d, sym.offset);
-    break;
-  }
+void load_variable(instr::instruction_writer& writer, uint8_t d, sym_info& sym) {
+    switch(sym.access_type) {
+    case sym_info::STACK: writer.get_arg(d, sym.offset); break;
+    case sym_info::ABS: writer.li(d, sym.offset); break;
+    }
 }
 
-void store_variable(instr::instruction_writer &writer, reg_allocator &alloc,
-                    uint8_t s, const sym_info &sym) {
-  switch (sym.access_type) {
-  case sym_info::STACK:
-    writer.put_arg(s, sym.offset);
-    break;
-  case sym_info::ABS:
-    auto r = alloc.alloc("Address of variable to store");
-    writer.li(r, sym.offset);
-    writer.sw(r, 0, s);
-    alloc.dealloc(r);
-    break;
-  }
+void store_variable(instr::instruction_writer& writer,
+                    reg_allocator& alloc,
+                    uint8_t s,
+                    const sym_info& sym) {
+    switch(sym.access_type) {
+    case sym_info::STACK: writer.put_arg(s, sym.offset); break;
+    case sym_info::ABS:
+        auto r = alloc.alloc("Address of variable to store");
+        writer.li(r, sym.offset);
+        writer.sw(r, 0, s);
+        alloc.dealloc(r);
+        break;
+    }
 }
 
 } // namespace
-void code_visitor::visit(const function_call &fc) {
-  debug_out << "# Enter function call" << "\n";
+void code_visitor::visit(const function_call& fc) {
+    debug_out << "# Enter function call" << "\n";
 
-  expr_result func = fc.get_func()->accept_with_result(*this);
+    expr_result func = fc.get_func()->accept_with_result(*this);
 
-  const auto &func_type = dynamic_cast<const function_type &>(*func.type_obj);
+    const auto& func_type = dynamic_cast<const function_type&>(*func.type_obj);
 
-  std::vector<uint8_t> arg_regs{};
-  const auto &args = fc.get_arg_list();
+    std::vector<uint8_t> arg_regs{};
+    const auto& args = fc.get_arg_list();
 
-  auto params_sz = func_type.get_signature().front()->get_type() == types::VOID
-                       ? 0
-                       : func_type.get_signature().size() - 1;
-  auto args_sz = args.size();
+    auto params_sz = func_type.get_signature().front()->get_type() == types::VOID ?
+    0 :
+    func_type.get_signature().size() - 1;
+    auto args_sz = args.size();
 
-  if (args_sz != params_sz)
-    throw syntax_exception{
-        "wrong number of arguments, expected: " + std::to_string(params_sz) +
-            ", but got " + std::to_string(args_sz),
-        fc.get_loc()};
+    if(args_sz != params_sz)
+        throw syntax_exception{ "wrong number of arguments, expected: " + std::to_string(params_sz) +
+                                ", but got " + std::to_string(args_sz),
+                                fc.get_loc() };
 
-  for (int i = 0; i < fc.get_arg_list().size(); i++) {
-    args[i]->accept(*this);
+    for(int i = 0; i < fc.get_arg_list().size(); i++) {
+        args[i]->accept(*this);
 
-    func::expect_types(*func_type.get_signature()[i], *result.type_obj,
-                       args[i]->get_loc());
+        func::expect_types(*func_type.get_signature()[i], *result.type_obj,
+                           args[i]->get_loc());
 
-    arg_regs.push_back(this->result.reg_num);
-  }
-  for (const auto &e : fc.get_arg_list()) {
-  }
+        arg_regs.push_back(this->result.reg_num);
+    }
+    for(const auto& e : fc.get_arg_list()) {
+    }
 
-  debug_out << "# Pushing regs" << "\n";
-  auto regs = push_regs_before_call(writer, alloc);
-  stack_height += regs.size();
+    debug_out << "# Pushing regs" << "\n";
+    auto regs = push_regs_before_call(writer, alloc);
+    stack_height += regs.size();
 
-  writer.call_start(alloc, arg_regs.size());
-  for (auto &arg : arg_regs) {
-    writer.push(arg);
-    alloc.dealloc(arg);
-  }
-  writer.call_end(func.reg_num);
-  alloc.dealloc(func.reg_num);
+    writer.call_start(alloc, arg_regs.size());
+    for(auto& arg : arg_regs) {
+        writer.push(arg);
+        alloc.dealloc(arg);
+    }
+    writer.call_end(func.reg_num);
+    alloc.dealloc(func.reg_num);
 
-  debug_out << "# Recovering regs" << "\n";
-  pop_regs_after_call(writer, regs);
-  stack_height -= regs.size();
+    debug_out << "# Recovering regs" << "\n";
+    pop_regs_after_call(writer, regs);
+    stack_height -= regs.size();
 
-  this->result.type_obj =
-      std::move((func_type).get_signature().back()->clone());
+    this->result.type_obj = std::move((func_type).get_signature().back()->clone());
 
-  auto r = alloc.alloc("Get function result from RR");
-  writer.mov(r, instr::RR);
-  this->result.reg_num = r;
+    auto r = alloc.alloc("Get function result from RR");
+    writer.mov(r, instr::RR);
+    this->result.reg_num = r;
 
-  debug_out << "# Done function call" << "\n";
+    debug_out << "# Done function call" << "\n";
 };
 
-void code_visitor::visit(const identifier_expression &id) {
-  debug_out << "# Enter identifier " << id.get_identificator() << "\n";
-  auto sym = table.find(id.get_identificator());
-  auto r = alloc.alloc("Identifier return register");
-  load_variable(writer, r, sym);
-  this->result.reg_num = r;
-  this->result.type_obj = std::move(sym.type_obj->clone());
+void code_visitor::visit(const identifier_expression& id) {
+    debug_out << "# Enter identifier " << id.get_identificator() << "\n";
+    auto sym = table.find(id.get_identificator());
+    auto r = alloc.alloc("Identifier return register");
+    load_variable(writer, r, sym);
+    this->result.reg_num = r;
+    this->result.type_obj = std::move(sym.type_obj->clone());
 
-  debug_out << "# Done identifier " << id.get_identificator() << "\n";
+    debug_out << "# Done identifier " << id.get_identificator() << "\n";
 };
 
-void code_visitor::visit(const literal_expression &lit) {
-  debug_out << "# Enter literal " << "\n";
-  func::lit_val val = lit.get_val();
-  auto r = alloc.alloc("Literal return register");
+void code_visitor::visit(const literal_expression& lit) {
+    debug_out << "# Enter literal " << "\n";
+    func::lit_val val = lit.get_val();
+    auto r = alloc.alloc("Literal return register");
 
-  if (auto *v = std::get_if<int>(&val)) {
-    writer.li(r, *v);
+    if(auto* v = std::get_if<int>(&val)) {
+        writer.li(r, *v);
+        result.type_obj = std::make_unique<int_type>();
+    } else if(auto* v = std::get_if<bool>(&val)) {
+        writer.li(r, *v ? 1 : 0);
+        result.type_obj = std::make_unique<bool_type>();
+    } else if(auto* v = std::get_if<std::string>(&val)) {
+        writer.push_str(alloc, *v);
+        this->stack_height += (v->length()) + 1;
+        writer.mov(r, instr::SP);
+        result.type_obj = std::make_unique<string_type>();
+    }
+
+    result.reg_num = r;
+    debug_out << "# Done literal " << "\n";
+};
+
+void code_visitor::visit(const return_statement& ret) {
+    debug_out << "# Enter return" << "\n";
+    if(ret.get_exp() != nullptr) {
+        ret.get_exp()->accept(*this);
+        writer.mov(instr::RR, result.reg_num);
+        alloc.dealloc(result.reg_num);
+    }
+    writer.ret(alloc);
+    debug_out << "# Done return" << "\n";
+};
+
+void code_visitor::visit(const binop_expression& bop) {
+    debug_out << "# Enter binop" << "\n";
+    expr_result left = bop.get_left()->accept_with_result(*this);
+    expr_result right = bop.get_right()->accept_with_result(*this);
+    try {
+        switch(bop.get_op()) {
+        case binop::ADD:
+            this->result = expr_add(writer, alloc, left, right);
+            break;
+        case binop::SUB:
+            this->result = expr_sub(writer, alloc, left, right);
+            break;
+        case binop::MUL:
+            this->result = expr_mul(writer, alloc, left, right);
+            break;
+        case binop::DIV:
+            this->result = expr_div(writer, alloc, left, right);
+            break;
+        case binop::MOD:
+            this->result = expr_rem(writer, alloc, left, right);
+            break;
+        case binop::LESS:
+            this->result = expr_less(writer, alloc, left, right);
+            break;
+        case binop::GRTR:
+            this->result = expr_grtr(writer, alloc, left, right);
+            break;
+        case binop::EQ:
+            this->result = expr_eq(writer, alloc, left, right);
+            break;
+        case binop::NEQ:
+            this->result = expr_neq(writer, alloc, left, right);
+            break;
+        case binop::OR:
+            this->result = expr_or(writer, alloc, left, right);
+            break;
+        case binop::AND:
+            this->result = expr_and(writer, alloc, left, right);
+            break;
+        }
+    } catch(unexpected_type_exception& e) {
+        e.loc = bop.get_loc();
+        throw e;
+    }
+    alloc.dealloc(left.reg_num);
+    alloc.dealloc(right.reg_num);
+    debug_out << "# Done binop" << "\n";
+};
+
+void code_visitor::visit(const assign_statement& stm) {
+    debug_out << "# Enter assing" << "\n";
+    /*
+    3 Variants:
+    int a;
+    int a = 42;
+    a = 42;
+    */
+
+    if(stm.get_type() != nullptr) {
+        // push on stack
+        writer.push(0);
+        stack_height++;
+        // add to sym_table
+        sym_info sym = sym_info{ stm.get_identifier(), stm.get_type()->clone(),
+                                 sym_info::STACK, stack_height };
+        table.add(std::move(sym));
+        debug_out << "# Done assign" << "\n";
+    }
+
+    const sym_info& sym = table.find(stm.get_identifier());
+
+    // evaluate expression and save result
+    if(stm.get_exp() != nullptr) {
+        stm.get_exp()->accept(*this);
+
+        func::expect_types(*sym.type_obj, *result.type_obj, stm.get_exp()->get_loc());
+
+        store_variable(writer, alloc, result.reg_num, sym);
+        alloc.dealloc(result.reg_num);
+    }
+};
+
+void code_visitor::visit(const unarop_expression& unop) {
+    expr_result res = unop.get_exp()->accept_with_result(*this);
+    try {
+        switch(unop.get_op()) {
+
+        case unarop::MINUS:
+            this->result = expr_minus(writer, alloc, res);
+            break;
+        case unarop::NOT: this->result = expr_not(writer, alloc, res); break;
+        }
+    } catch(unexpected_type_exception& e) {
+        e.loc = unop.get_loc();
+        throw e;
+    }
+    alloc.dealloc(res.reg_num);
+};
+
+void code_visitor::visit(const if_statement& stm) {
+    debug_out << "# Enter if" << "\n";
+    std::string then_end_label = "THEN_END_" + std::to_string(label_ind++);
+    std::string else_end_label = "ELSE_END_" + std::to_string(label_ind++);
+
+    stm.get_condition()->accept(*this);
+    // TODO: Typecheck result is bool
+    writer.beq(result.reg_num, 0, then_end_label);
+    alloc.dealloc(result.reg_num);
+
+    stm.get_then_block()->accept(*this);
+
+    if(stm.get_else_block() != nullptr) {
+        writer.jal_label(0, else_end_label);
+    }
+
+    writer.label(then_end_label);
+
+    if(stm.get_else_block() != nullptr) {
+        stm.get_else_block()->accept(*this);
+        writer.label(else_end_label);
+    }
+    debug_out << "# Done if" << "\n";
+};
+
+void code_visitor::visit(const while_statement& stm) {
+    debug_out << "# Enter while" << "\n";
+    std::string while_start_label = "WHILE_START_" + std::to_string(label_ind++);
+    std::string while_end_label = "WHILE_END_" + std::to_string(label_ind++);
+
+    writer.label(while_start_label);
+
+    stm.get_condition()->accept(*this);
+
+    func::expect_types(bool_type{}, *result.type_obj, stm.get_condition()->get_loc());
+
+    writer.beq(result.reg_num, 0, while_end_label);
+    alloc.dealloc(result.reg_num);
+
+    stm.get_block()->accept(*this);
+    writer.jal_label(0, while_start_label);
+
+    writer.label(while_end_label);
+    debug_out << "# Done while" << "\n";
+};
+
+void code_visitor::visit(const subscript_expression& sub) {
+    debug_out << "# Enter subscript" << "\n";
+    expr_result ptr = sub.get_pointer()->accept_with_result(*this);
+
+    if(ptr.type_obj->get_type() != types::STRING)
+        throw unexpected_type_exception{
+            { "expected string as subscript target", sub.get_pointer()->get_loc() }
+        };
+
+    expr_result idx = sub.get_index()->accept_with_result(*this);
+
+    if(idx.type_obj->get_type() != types::INT)
+        throw unexpected_type_exception{ { "expected int as subscript index",
+                                           sub.get_index()->get_loc() } };
+
+    auto r = alloc.alloc();
+
+    writer.add(ptr.reg_num, ptr.reg_num, idx.reg_num);
+    writer.lw(r, ptr.reg_num, 0);
+
+    alloc.dealloc(ptr.reg_num);
+    alloc.dealloc(idx.reg_num);
+    result.reg_num = r;
     result.type_obj = std::make_unique<int_type>();
-  } else if (auto *v = std::get_if<bool>(&val)) {
-    writer.li(r, *v ? 1 : 0);
-    result.type_obj = std::make_unique<bool_type>();
-  } else if (auto *v = std::get_if<std::string>(&val)) {
-    writer.push_str(alloc, *v);
-    this->stack_height += (v->length()) + 1;
-    writer.mov(r, instr::SP);
-    result.type_obj = std::make_unique<string_type>();
-  }
-
-  result.reg_num = r;
-  debug_out << "# Done literal " << "\n";
+    debug_out << "# Done subscript" << "\n";
 };
 
-void code_visitor::visit(const return_statement &ret) {
-  debug_out << "# Enter return" << "\n";
-  if (ret.get_exp() != nullptr) {
-    ret.get_exp()->accept(*this);
-    writer.mov(instr::RR, result.reg_num);
-    alloc.dealloc(result.reg_num);
-  }
-  writer.ret(alloc);
-  debug_out << "# Done return" << "\n";
-};
+void code_visitor::visit(const subscript_assign_statement& sub) {
+    debug_out << "# Enter subscript assign" << "\n";
 
-void code_visitor::visit(const binop_expression &bop) {
-  debug_out << "# Enter binop" << "\n";
-  expr_result left = bop.get_left()->accept_with_result(*this);
-  expr_result right = bop.get_right()->accept_with_result(*this);
-  try {
-    switch (bop.get_op()) {
-    case binop::ADD:
-      this->result = expr_add(writer, alloc, left, right);
-      break;
-    case binop::SUB:
-      this->result = expr_sub(writer, alloc, left, right);
-      break;
-    case binop::MUL:
-      this->result = expr_mul(writer, alloc, left, right);
-      break;
-    case binop::DIV:
-      this->result = expr_div(writer, alloc, left, right);
-      break;
-    case binop::MOD:
-      this->result = expr_rem(writer, alloc, left, right);
-      break;
-    case binop::LESS:
-      this->result = expr_less(writer, alloc, left, right);
-      break;
-    case binop::GRTR:
-      this->result = expr_grtr(writer, alloc, left, right);
-      break;
-    case binop::EQ:
-      this->result = expr_eq(writer, alloc, left, right);
-      break;
-    case binop::NEQ:
-      this->result = expr_neq(writer, alloc, left, right);
-      break;
-    case binop::OR:
-      this->result = expr_or(writer, alloc, left, right);
-      break;
-    case binop::AND:
-      this->result = expr_and(writer, alloc, left, right);
-      break;
-    }
-  } catch (unexpected_type_exception &e) {
-    e.loc = bop.get_loc();
-    throw e;
-  }
-  alloc.dealloc(left.reg_num);
-  alloc.dealloc(right.reg_num);
-  debug_out << "# Done binop" << "\n";
-};
+    expr_result ptr = sub.get_pointer()->accept_with_result(*this);
 
-void code_visitor::visit(const assign_statement &stm) {
-  debug_out << "# Enter assing" << "\n";
-  /*
-  3 Variants:
-  int a;
-  int a = 42;
-  a = 42;
-  */
+    if(ptr.type_obj->get_type() != types::STRING)
+        throw unexpected_type_exception{
+            { "expected string as subscript target", sub.get_pointer()->get_loc() }
+        };
 
-  if (stm.get_type() != nullptr) {
-    // push on stack
-    writer.push(0);
-    stack_height++;
-    // add to sym_table
-    sym_info sym = sym_info{stm.get_identifier(), stm.get_type()->clone(),
-                            sym_info::STACK, stack_height};
-    table.add(std::move(sym));
-    debug_out << "# Done assign" << "\n";
-  }
+    expr_result idx = sub.get_index()->accept_with_result(*this);
 
-  const sym_info &sym = table.find(stm.get_identifier());
+    if(idx.type_obj->get_type() != types::INT)
+        throw unexpected_type_exception{ { "expected int as subscript index",
+                                           sub.get_index()->get_loc() } };
 
-  // evaluate expression and save result
-  if (stm.get_exp() != nullptr) {
-    stm.get_exp()->accept(*this);
+    writer.add(ptr.reg_num, ptr.reg_num, idx.reg_num);
+    alloc.dealloc(idx.reg_num);
 
-    func::expect_types(*sym.type_obj, *result.type_obj,
-                       stm.get_exp()->get_loc());
+    expr_result exp = sub.get_exp()->accept_with_result(*this);
 
-    store_variable(writer, alloc, result.reg_num, sym);
-    alloc.dealloc(result.reg_num);
-  }
-};
+    if(exp.type_obj->get_type() != types::INT)
+        throw unexpected_type_exception{
+            { "expected int as assignee to string subscript", sub.get_exp()->get_loc() }
+        };
 
-void code_visitor::visit(const unarop_expression &unop) {
-  expr_result res = unop.get_exp()->accept_with_result(*this);
-  try {
-    switch (unop.get_op()) {
+    writer.sw(ptr.reg_num, 0, exp.reg_num);
 
-    case unarop::MINUS:
-      this->result = expr_minus(writer, alloc, res);
-      break;
-    case unarop::NOT:
-      this->result = expr_not(writer, alloc, res);
-      break;
-    }
-  } catch (unexpected_type_exception &e) {
-    e.loc = unop.get_loc();
-    throw e;
-  }
-  alloc.dealloc(res.reg_num);
-};
-
-void code_visitor::visit(const if_statement &stm) {
-  debug_out << "# Enter if" << "\n";
-  std::string then_end_label = "THEN_END_" + std::to_string(label_ind++);
-  std::string else_end_label = "ELSE_END_" + std::to_string(label_ind++);
-
-  stm.get_condition()->accept(*this);
-  // TODO: Typecheck result is bool
-  writer.beq(result.reg_num, 0, then_end_label);
-  alloc.dealloc(result.reg_num);
-
-  stm.get_then_block()->accept(*this);
-
-  if (stm.get_else_block() != nullptr) {
-    writer.jal_label(0, else_end_label);
-  }
-
-  writer.label(then_end_label);
-
-  if (stm.get_else_block() != nullptr) {
-    stm.get_else_block()->accept(*this);
-    writer.label(else_end_label);
-  }
-  debug_out << "# Done if" << "\n";
-};
-
-void code_visitor::visit(const while_statement &stm) {
-  debug_out << "# Enter while" << "\n";
-  std::string while_start_label = "WHILE_START_" + std::to_string(label_ind++);
-  std::string while_end_label = "WHILE_END_" + std::to_string(label_ind++);
-
-  writer.label(while_start_label);
-
-  stm.get_condition()->accept(*this);
-
-  func::expect_types(bool_type{}, *result.type_obj,
-                     stm.get_condition()->get_loc());
-
-  writer.beq(result.reg_num, 0, while_end_label);
-  alloc.dealloc(result.reg_num);
-
-  stm.get_block()->accept(*this);
-  writer.jal_label(0, while_start_label);
-
-  writer.label(while_end_label);
-  debug_out << "# Done while" << "\n";
-};
-
-void code_visitor::visit(const subscript_expression &sub) {
-  debug_out << "# Enter subscript" << "\n";
-  expr_result ptr = sub.get_pointer()->accept_with_result(*this);
-
-  if (ptr.type_obj->get_type() != types::STRING)
-    throw unexpected_type_exception{
-        {"expected string as subscript target", sub.get_pointer()->get_loc()}};
-
-  expr_result idx = sub.get_index()->accept_with_result(*this);
-
-  if (idx.type_obj->get_type() != types::INT)
-    throw unexpected_type_exception{
-        {"expected int as subscript index", sub.get_index()->get_loc()}};
-
-  auto r = alloc.alloc();
-
-  writer.add(ptr.reg_num, ptr.reg_num, idx.reg_num);
-  writer.lw(r, ptr.reg_num, 0);
-
-  alloc.dealloc(ptr.reg_num);
-  alloc.dealloc(idx.reg_num);
-  result.reg_num = r;
-  result.type_obj = std::make_unique<int_type>();
-  debug_out << "# Done subscript" << "\n";
-};
-
-void code_visitor::visit(const subscript_assign_statement &sub) {
-  debug_out << "# Enter subscript assign" << "\n";
-
-  expr_result ptr = sub.get_pointer()->accept_with_result(*this);
-
-  if (ptr.type_obj->get_type() != types::STRING)
-    throw unexpected_type_exception{
-        {"expected string as subscript target", sub.get_pointer()->get_loc()}};
-
-  expr_result idx = sub.get_index()->accept_with_result(*this);
-
-  if (idx.type_obj->get_type() != types::INT)
-    throw unexpected_type_exception{
-        {"expected int as subscript index", sub.get_index()->get_loc()}};
-
-  writer.add(ptr.reg_num, ptr.reg_num, idx.reg_num);
-  alloc.dealloc(idx.reg_num);
-
-  expr_result exp = sub.get_exp()->accept_with_result(*this);
-
-  if (exp.type_obj->get_type() != types::INT)
-    throw unexpected_type_exception{
-        {"expected int as assignee to string subscript",
-         sub.get_exp()->get_loc()}};
-
-  writer.sw(ptr.reg_num, 0, exp.reg_num);
-
-  alloc.dealloc(ptr.reg_num);
-  alloc.dealloc(exp.reg_num);
-  debug_out << "# Done subscript assign" << "\n";
+    alloc.dealloc(ptr.reg_num);
+    alloc.dealloc(exp.reg_num);
+    debug_out << "# Done subscript assign" << "\n";
 };
 
 } // namespace func
