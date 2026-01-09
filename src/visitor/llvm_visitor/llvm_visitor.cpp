@@ -158,10 +158,38 @@ void llvm_visitor::visit(const identifier_expression& node) {
     result = TypedValuePtr{ sym.value.value(), std::move(sym.type_obj) };
 };
 
+void llvm_visitor::visit(const literal_expression& lit) {
+    func::lit_val val = lit.get_val();
+
+    if(auto* v = std::get_if<int>(&val)) {
+        Value* res = ConstantInt::get(ctx, APInt(32, *v, true));
+        result = TypedValuePtr{ res, std::make_unique<int_type>()};
+    } else if(auto* v = std::get_if<bool>(&val)) {
+        int boolified_int = v ? 1 : 0;
+        Value* res = ConstantInt::get(ctx, APInt(boolified_int, *v, false));
+        result = TypedValuePtr{ res, std::make_unique<bool_type>()};
+    } else if(auto* v = std::get_if<std::string>(&val)) {
+        ArrayType* arr_ty = ArrayType::get(llvm_get_type(types::INT), v->length()+1);  // Size with null terminator
+        AllocaInst* stack_str = builder.CreateAlloca(arr_ty, nullptr, "stack_str"); 
+
+        for (int i = 0; i < v->length()+1; ++i) {
+            auto idx = ConstantInt::get(llvm_get_type(types::INT), i);
+            auto gep = builder.CreateGEP(arr_ty, stack_str, {ConstantInt::get(llvm_get_type(types::INT), 0), idx}, "str_" + std::to_string(i));
+            
+            char32_t symbol = '\0';
+            if (i != 0)
+                symbol = *(v->rbegin() + i - 1);
+            builder.CreateStore(ConstantInt::get(llvm_get_type(types::INT), symbol), gep);
+        }
+
+        Value* res = builder.CreateBitCast(stack_str, llvm_get_type(types::STRING));
+        result = TypedValuePtr{ res, std::make_unique<string_type>()};
+    }
+};
+
 
 void llvm_visitor::visit(const binop_expression&) {};
 void llvm_visitor::visit(const unarop_expression&) {};
-void llvm_visitor::visit(const literal_expression&) {};
 void llvm_visitor::visit(const subscript_expression&) {};
 
 void llvm_visitor::visit(const subscript_assign_statement&) {};
