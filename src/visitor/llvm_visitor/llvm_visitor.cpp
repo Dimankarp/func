@@ -1,16 +1,33 @@
 #include "visitor/llvm_visitor/llvm_visitor.hpp"
+#include "node/function.hpp"
 #include "node/program.hpp"
 #include "type/type.hpp"
 #include "type/type_checker.hpp"
+#include "visitor/sym_table.hpp"
 #include "llvm/IR/Verifier.h"
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Value.h>
+#include <memory>
+#include <optional>
 #include <variant>
 
 namespace func {
 
 void llvm_visitor::visit(const program& node) {
+
+    // Stdlib init
+    FunctionType* write_ft =
+    FunctionType::get(llvm_get_type(types::INT), { llvm_get_type(types::INT) }, false);
+    Function::Create(write_ft, Function::LinkageTypes::ExternalLinkage, "write", module);
+
+    std::vector<std::unique_ptr<type>> sign_vec;
+    sign_vec.push_back(std::make_unique<int_type>());
+    sign_vec.push_back(std::make_unique<int_type>());
+    table.add(llvm_sym_info{
+    "write", std::make_unique<function_type>(std::move(sign_vec)), std::nullopt });
+    
+
     for(const auto& func : node.get_funcs()) {
         func->accept(*this);
     }
@@ -37,7 +54,7 @@ void llvm_visitor::visit(const function& node) {
         params_type.push_back(llvm_get_type(p.get_type()->get_type()));
     }
     FunctionType* ft = FunctionType::get(result_type, params_type, false);
-    Function* f = Function::Create(ft, Function::LinkageTypes::InternalLinkage,
+    Function* f = Function::Create(ft, Function::LinkageTypes::ExternalLinkage,
                                    node.get_identifier(), module);
     int i = 0;
     const auto& params = node.get_params();
@@ -56,18 +73,18 @@ void llvm_visitor::visit(const function& node) {
 
     auto info =
     llvm_sym_info{ node.get_identifier(),
-                   std::make_unique<func::function_type>(std::move(signature)) };
+                   std::make_unique<func::function_type>(std::move(signature)),
+                   std::nullopt };
     table.add(std::move(info));
 
 
     table.start_block(); // start
-    for(int i = 0; i < node.get_params().size(); i++) {
-        const auto& param = node.get_params()[i];
+    auto* f_arg_vals = f->args().begin();
+    for(const auto& param : node.get_params()) {
         // Registering parameters
-        table.add(llvm_sym_info{
-        param.get_identifier(),
-        param.get_type()->clone(),
-        });
+        table.add(llvm_sym_info{ param.get_identifier(), param.get_type()->clone(),
+                                 std::make_optional(&(*f_arg_vals)) });
+        f_arg_vals++;
     }
 
     BasicBlock* bb = BasicBlock::Create(ctx, "entry", f);
@@ -135,13 +152,13 @@ void llvm_visitor::visit(const function_call& node) {
 
     if(std::holds_alternative<TypedFunctionPtr>(result)) {
         Function* function = std::get<TypedFunctionPtr>(result).ptr;
-        result = TypedValuePtr{ builder.CreateCall(function, argsV, "calltmp"),
+        result = TypedValuePtr{ builder.CreateCall(function, argsV),
                                 func_type.get_return_type()->clone() };
     } else {
         Value* function = std::get<TypedValuePtr>(result).ptr;
-        result = TypedValuePtr{ builder.CreateCall(llvm_get_function_type(func_type),
-                                                   function, argsV, "calltmp"),
-                                func_type.get_return_type()->clone() };
+        result =
+        TypedValuePtr{ builder.CreateCall(llvm_get_function_type(func_type), function, argsV),
+                       func_type.get_return_type()->clone() };
     }
 }
 
@@ -163,40 +180,43 @@ void llvm_visitor::visit(const literal_expression& lit) {
 
     if(auto* v = std::get_if<int>(&val)) {
         Value* res = ConstantInt::get(ctx, APInt(32, *v, true));
-        result = TypedValuePtr{ res, std::make_unique<int_type>()};
+        result = TypedValuePtr{ res, std::make_unique<int_type>() };
     } else if(auto* v = std::get_if<bool>(&val)) {
         int boolified_int = v ? 1 : 0;
         Value* res = ConstantInt::get(ctx, APInt(1, boolified_int, false));
-        result = TypedValuePtr{ res, std::make_unique<bool_type>()};
+        result = TypedValuePtr{ res, std::make_unique<bool_type>() };
     } else if(auto* v = std::get_if<std::string>(&val)) {
-        ArrayType* arr_ty = ArrayType::get(llvm_get_type(types::INT), v->length()+1);  // Size with null terminator
-        AllocaInst* stack_str = builder.CreateAlloca(arr_ty, nullptr, "stack_str"); 
+        ArrayType* arr_ty = ArrayType::get(llvm_get_type(types::INT), v->length() + 1); // Size with null terminator
+        AllocaInst* stack_str = builder.CreateAlloca(arr_ty, nullptr, "stack_str");
 
-        for (int i = 0; i < v->length()+1; ++i) {
+        for(int i = 0; i < v->length() + 1; ++i) {
             auto idx = ConstantInt::get(llvm_get_type(types::INT), i);
-            auto gep = builder.CreateGEP(arr_ty, stack_str, {ConstantInt::get(llvm_get_type(types::INT), 0), idx}, "str_" + std::to_string(i));
-            
+            auto gep =
+            builder.CreateGEP(arr_ty, stack_str,
+                              { ConstantInt::get(llvm_get_type(types::INT), 0), idx },
+                              "str_" + std::to_string(i));
+
             char symbol = '\0';
-            if (i != v->length())
+            if(i != v->length())
                 symbol = (*v)[i];
             builder.CreateStore(ConstantInt::get(llvm_get_type(types::INT), symbol), gep);
         }
 
         Value* res = builder.CreateBitCast(stack_str, llvm_get_type(types::STRING));
-        result = TypedValuePtr{ res, std::make_unique<string_type>()};
+        result = TypedValuePtr{ res, std::make_unique<string_type>() };
     }
 };
 
 void llvm_visitor::visit(const return_statement& node) {
     if(node.get_exp() == nullptr) {
         Value* res = builder.CreateRetVoid();
-        result = TypedValuePtr{ res, std::make_unique<void_type>()};
+        result = TypedValuePtr{ res, std::make_unique<void_type>() };
         return;
     }
 
     auto ret = std::get<TypedValuePtr>(node.get_exp()->accept_with_result(*this));
     Value* res = builder.CreateRet(ret.ptr);
-    result = TypedValuePtr{ res, ret.type_obj->clone()};
+    result = TypedValuePtr{ res, ret.type_obj->clone() };
 };
 
 

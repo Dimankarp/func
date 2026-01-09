@@ -26,7 +26,7 @@ struct llvm_sym_info {
     public:
     llvm_sym_info(const std::string& name,
                   const std::unique_ptr<func::type>& type_obj,
-                  std::optional<Value*> value = std::nullopt,
+                  std::optional<Value*> value,
                   yy::location declare_loc = yy::location{},
                   bool is_delimeter = false)
     : name{ name }, type_obj{ type_obj->clone() }, declare_loc{ declare_loc },
@@ -34,7 +34,7 @@ struct llvm_sym_info {
     llvm_sym_info() = default;
     llvm_sym_info(const llvm_sym_info& sym)
     : name{ sym.name }, declare_loc{ sym.declare_loc },
-      is_delimeter{ sym.is_delimeter } {
+      is_delimeter{ sym.is_delimeter }, value{ sym.value } {
         if(sym.type_obj != nullptr)
             type_obj = sym.type_obj->clone();
     }

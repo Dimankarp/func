@@ -1,20 +1,22 @@
 int foo(){
-
+    return 1;
 }
 
 int give_me_int(int a){
-    return 404;
+    return 97;
 }
 
 void give_me_str(string s){
-
+    return;
 }
 
 void main(){
     foo();
-    give_me_int(42);
+    // write(give_me_int(42));
+    write(10);
     give_me_int(0);
     // give_me_int(-34); // after unary operators
 
-    give_me_str("Hello");
+    // give_me_str("Hello");
+    return;
 }

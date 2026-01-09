@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
 
         std::ofstream out;
         if(output_file.empty()) {
-            std::cout << " ### Code visitor output:\n";
+            // std::cout << " ### Code visitor output:\n";
             output_stream = std::cout;
         } else {
             out = std::ofstream(output_file);
