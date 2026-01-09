@@ -187,13 +187,24 @@ void llvm_visitor::visit(const literal_expression& lit) {
     }
 };
 
+void llvm_visitor::visit(const return_statement& node) {
+    if(node.get_exp() == nullptr) {
+        Value* res = builder.CreateRetVoid();
+        result = TypedValuePtr{ res, std::make_unique<void_type>()};
+        return;
+    }
+
+    auto ret = std::get<TypedValuePtr>(node.get_exp()->accept_with_result(*this));
+    Value* res = builder.CreateRet(ret.ptr);
+    result = TypedValuePtr{ res, ret.type_obj->clone()};
+};
+
 
 void llvm_visitor::visit(const binop_expression&) {};
 void llvm_visitor::visit(const unarop_expression&) {};
 void llvm_visitor::visit(const subscript_expression&) {};
 
 void llvm_visitor::visit(const subscript_assign_statement&) {};
-void llvm_visitor::visit(const return_statement&) {};
 void llvm_visitor::visit(const assign_statement&) {};
 void llvm_visitor::visit(const if_statement&) {};
 void llvm_visitor::visit(const while_statement&) {};
