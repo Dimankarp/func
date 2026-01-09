@@ -15,4 +15,6 @@ void main(){
     give_me_int(42);
     give_me_int(0);
     // give_me_int(-34); // after unary operators
+
+    give_me_str("Hello");
 }

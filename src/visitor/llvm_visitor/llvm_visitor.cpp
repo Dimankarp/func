@@ -166,7 +166,7 @@ void llvm_visitor::visit(const literal_expression& lit) {
         result = TypedValuePtr{ res, std::make_unique<int_type>()};
     } else if(auto* v = std::get_if<bool>(&val)) {
         int boolified_int = v ? 1 : 0;
-        Value* res = ConstantInt::get(ctx, APInt(boolified_int, *v, false));
+        Value* res = ConstantInt::get(ctx, APInt(1, boolified_int, false));
         result = TypedValuePtr{ res, std::make_unique<bool_type>()};
     } else if(auto* v = std::get_if<std::string>(&val)) {
         ArrayType* arr_ty = ArrayType::get(llvm_get_type(types::INT), v->length()+1);  // Size with null terminator
@@ -176,9 +176,9 @@ void llvm_visitor::visit(const literal_expression& lit) {
             auto idx = ConstantInt::get(llvm_get_type(types::INT), i);
             auto gep = builder.CreateGEP(arr_ty, stack_str, {ConstantInt::get(llvm_get_type(types::INT), 0), idx}, "str_" + std::to_string(i));
             
-            char32_t symbol = '\0';
-            if (i != 0)
-                symbol = *(v->rbegin() + i - 1);
+            char symbol = '\0';
+            if (i != v->length())
+                symbol = (*v)[i];
             builder.CreateStore(ConstantInt::get(llvm_get_type(types::INT), symbol), gep);
         }
 
