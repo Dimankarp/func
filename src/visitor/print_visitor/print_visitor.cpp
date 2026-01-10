@@ -57,19 +57,24 @@ void print_visitor::visit(const program& progr) {
     offset--;
 }
 
+void print_visitor::visit(const declaration& decl) {
+     *this << "decl: " << type_name[decl.get_result_type()->get_type()] << " " << decl.get_identifier() << "\n";
+}
+
 void print_visitor::visit(const function& func) {
+    func.get_declaration()->accept(*this);
 
-    *this << type_name[func.get_result_type()->get_type()] << " " << func.get_identifier() << " ";
-
-    out << "\n";
     offset++;
     for(const auto& param : func.get_params()) {
         *this << type_name[param.get_type()->get_type()] << " "
               << param.get_identifier() << "\n";
     }
 
-    func.get_block()->accept(*this);
+    if (func.get_block())
+        func.get_block()->accept(*this);
     offset--;
+    
+    *this << "\n";
 }
 
 void print_visitor::visit(const block_statement& block) {

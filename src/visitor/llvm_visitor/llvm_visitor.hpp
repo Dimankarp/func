@@ -79,6 +79,7 @@ class llvm_visitor : public visitor<llvm_result> {
     void visit(const assign_statement&) override;
     void visit(const if_statement&) override;
     void visit(const while_statement&) override;
+    void visit(const declaration&) override;
     void visit(const function&) override;
 
     llvm_result&& extract_result() override { return std::move(result); }

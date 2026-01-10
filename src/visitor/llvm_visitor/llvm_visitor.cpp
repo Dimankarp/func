@@ -15,36 +15,6 @@
 namespace func {
 
 void llvm_visitor::visit(const program& node) {
-
-    // Stdlib init
-    FunctionType* write_ft =
-    FunctionType::get(llvm_get_type(types::INT), { llvm_get_type(types::INT) }, false);
-    Function::Create(write_ft, Function::LinkageTypes::ExternalLinkage, "write", module);
-
-    std::vector<std::unique_ptr<type>> sign_vec;
-    sign_vec.push_back(std::make_unique<int_type>());
-    sign_vec.push_back(std::make_unique<int_type>());
-    table.add(llvm_sym_info{
-    "write", std::make_unique<function_type>(std::move(sign_vec)), std::nullopt });
-
-
-    // Exit function
-    FunctionType* exit_ft =
-    FunctionType::get(llvm_get_type(types::VOID), { llvm_get_type(types::INT) }, false);
-    Function::Create(exit_ft, Function::LinkageTypes::ExternalLinkage, "exit", module);
-
-    Function* exit_func = module.getFunction("exit");
-    exit_func->addFnAttr(Attribute::NoReturn);  // cool but useless and still needs terminator after it
-    
-
-    std::vector<std::unique_ptr<type>> sign_vec_exit;
-    sign_vec_exit.push_back(std::make_unique<int_type>());
-    sign_vec_exit.push_back(std::make_unique<void_type>());
-    table.add(llvm_sym_info{
-    "exit", std::make_unique<function_type>(std::move(sign_vec_exit)), std::nullopt });
-    
-    
-
     for(const auto& func : node.get_funcs()) {
         func->accept(*this);
     }
@@ -64,21 +34,29 @@ Type* llvm_visitor::llvm_get_type(types t) {
 }
 
 
-void llvm_visitor::visit(const function& node) {
+void llvm_visitor::visit(const declaration& node) {
+    // construct llvm function type
     Type* result_type = llvm_get_type(node.get_result_type()->get_type());
     std::vector<Type*> params_type;
     for(const auto& p : node.get_params()) {
         params_type.push_back(llvm_get_type(p.get_type()->get_type()));
     }
     FunctionType* ft = FunctionType::get(result_type, params_type, false);
-    Function* f = Function::Create(ft, Function::LinkageTypes::ExternalLinkage,
-                                   node.get_identifier(), module);
-    int i = 0;
-    const auto& params = node.get_params();
-    for(auto& arg : f->args())
-        arg.setName(params[i++].get_identifier());
 
+    // Check if its already exists
+    if (Function* fm = module.getFunction(node.get_identifier())){
+        auto sym = table.find(node.get_identifier());
+        if (ft != fm->getFunctionType()){
+            throw symbol_redeclaratione_exception{ sym.name, node.get_loc(), sym.declare_loc };
+        }
+        result = fm;
+        return;
+    }
 
+    // Otherwise create new and register it 
+    Function* f = Function::Create(ft, Function::LinkageTypes::ExternalLinkage, node.get_identifier(), module);
+    
+    // register it in sym_table
     auto signature = std::vector<unique_ptr<type>>();
     if(node.get_params().empty())
         signature.push_back(std::make_unique<void_type>());
@@ -94,6 +72,16 @@ void llvm_visitor::visit(const function& node) {
                    std::nullopt };
     table.add(std::move(info));
 
+    result = f;
+}
+
+void llvm_visitor::visit(const function& node) {
+    Function* f = std::get<Function*>(node.get_declaration()->accept_with_result(*this));
+
+    if (node.get_block() == nullptr){
+        result = f;
+        return;
+    }
 
     table.start_block(); // start
     auto* f_arg_vals = f->args().begin();
@@ -110,8 +98,10 @@ void llvm_visitor::visit(const function& node) {
     node.get_block()->accept(*this);
 
     table.end_block(); // end
-
+    
     verifyFunction(*f);
+
+    // TODO: why don't we set insert block back?
 
     result = f;
 }

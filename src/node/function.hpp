@@ -37,24 +37,38 @@ class parameter {
     const std::string& get_identifier() const { return identifier; }
 };
 
-class function : public ast_node_impl<function> {
-    using Base = ast_node_impl<function>;
+class declaration : public ast_node_impl<declaration> {
+    using Base = ast_node_impl<declaration>;
     unique_ptr<type> result_type;
     std::string identifier;
     std::vector<parameter> param_list;
-    unique_ptr<block_statement> block;
 
     public:
-    function(unique_ptr<type> result_type,
+    declaration(unique_ptr<type> result_type,
              std::string& identifier,
              std::vector<parameter>&& param_list,
-             unique_ptr<block_statement> block,
              yy::location loc)
     : result_type{ std::move(result_type) }, identifier{ identifier },
-      param_list{ std::move(param_list) }, block{ std::move(block) }, Base{ loc } {}
+      param_list{ std::move(param_list) }, Base{ loc } {}
     const unique_ptr<type>& get_result_type() const { return result_type; }
     const std::string& get_identifier() const { return identifier; }
     const std::vector<parameter>& get_params() const { return param_list; }
+};
+
+class function : public ast_node_impl<function> {
+    using Base = ast_node_impl<function>;
+    unique_ptr<declaration> decl;
+    unique_ptr<block_statement> block;
+
+    public:
+    function(unique_ptr<declaration> declaration,
+             unique_ptr<block_statement> block,
+             yy::location loc)
+    : decl{ std::move(declaration) }, block{ std::move(block) }, Base{ loc } {}
+    const unique_ptr<declaration>& get_declaration() const { return decl;}
+    const unique_ptr<type>& get_result_type() const { return decl->get_result_type(); }
+    const std::string& get_identifier() const { return decl->get_identifier();; }
+    const std::vector<parameter>& get_params() const { return decl->get_params();; }
     const unique_ptr<block_statement>& get_block() const { return block; }
 };
 } // namespace func

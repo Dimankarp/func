@@ -83,6 +83,7 @@
 
 %type  <std::unique_ptr<func::function>> function
 %type  <std::vector<std::unique_ptr<func::function>>> functions
+%type  <std::unique_ptr<func::declaration>> declaration
 
 
 %type  <std::vector<func::parameter>> param_list
@@ -112,10 +113,17 @@ functions:
 };
 
 function:
-  func_res_type "id" "(" param_list ")" block {
-    $$ = std::make_unique<func::function>(std::move($1), $2, std::move($4), std::move($6), @$);
+  declaration ";" { 
+    $$ = std::make_unique<func::function>(std::move($1), nullptr, @$); 
+  }
+| declaration block {
+    $$ = std::make_unique<func::function>(std::move($1), std::move($2), @$);
   }
 
+declaration:
+  func_res_type "id" "(" param_list ")" { 
+    $$ = std::make_unique<func::declaration>(std::move($1), $2, std::move($4), @$);
+  }
 
 param_list:
   %empty {

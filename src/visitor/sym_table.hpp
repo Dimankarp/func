@@ -43,6 +43,7 @@ template <typename SymInfo> class sym_table {
         }
         throw symbol_not_found_exception({ sym, yy::location{} });
     }
+
 };
 
 } // namespace func

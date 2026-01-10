@@ -81,23 +81,37 @@ void code_visitor::visit(const program& progr) {
     debug_out << "# Done program\n";
 }
 
-void code_visitor::visit(const function& f) {
-    debug_out << "# Enter function " << f.get_identifier() << "\n";
+void code_visitor::visit(const declaration& d) {
+    debug_out << "# Enter declaration " << d.get_identifier() << "\n";
 
-    auto signature = std::vector<unique_ptr<type>>();
-    if(f.get_params().empty())
+        auto signature = std::vector<unique_ptr<type>>();
+    if(d.get_params().empty())
         signature.push_back(std::make_unique<void_type>());
     else
-        for(const auto& p : f.get_params()) {
+        for(const auto& p : d.get_params()) {
             signature.push_back(p.get_type()->clone());
         }
-    signature.push_back(f.get_result_type()->clone());
+    signature.push_back(d.get_result_type()->clone());
 
-    auto info = sym_info{ f.get_identifier(),
+    auto info = sym_info{ d.get_identifier(),
                           std::make_unique<func::function_type>(std::move(signature)),
                           sym_info::ABS, writer.get_next_addr() };
     table.add(std::move(info));
 
+    debug_out << "# Done declaration " << d.get_identifier() << "\n";
+}
+
+void code_visitor::visit(const function& f) {
+    debug_out << "# Enter function " << f.get_identifier() << "\n";
+
+    f.get_declaration()->accept(*this);
+    auto info = table.find(f.get_identifier());
+
+    if (f.get_block() == nullptr){
+        throw syntax_exception{ "unsupported operation 'function declaration' of '" + f.get_identifier() +
+                                "' for emulator",
+                                f.get_loc() };
+    }
     // Staring block for func param
     table.start_block();
 

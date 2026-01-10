@@ -1,0 +1,15 @@
+int func_decl(bool flag);
+
+int func_decl(bool flag){
+    return 1;
+}
+
+int func_decl(bool flag);
+
+int func_decl(bool flag) {
+    return 2;
+}
+
+void main(){
+    return;
+}
