@@ -53,7 +53,7 @@ void llvm_visitor::visit(const declaration& node) {
         return;
     }
 
-    // Otherwise create new and register it 
+    // Otherwise create new
     Function* f = Function::Create(ft, Function::LinkageTypes::ExternalLinkage, node.get_identifier(), module);
     
     // register it in sym_table
@@ -130,11 +130,11 @@ FunctionType* llvm_visitor::llvm_get_function_type(const function_type& func_typ
 
 
 void llvm_visitor::visit(const function_call& node) {
-    auto result = node.get_func()->accept_with_result(*this);
+    auto func = node.get_func()->accept_with_result(*this);
 
-    const function_type& func_type = std::holds_alternative<TypedFunctionPtr>(result) ?
-    dynamic_cast<const function_type&>(*std::get<TypedFunctionPtr>(result).type_obj) :
-    dynamic_cast<const function_type&>(*std::get<TypedValuePtr>(result).type_obj);
+    const function_type& func_type = std::holds_alternative<TypedFunctionPtr>(func) ?
+    dynamic_cast<const function_type&>(*std::get<TypedFunctionPtr>(func).type_obj) :
+    dynamic_cast<const function_type&>(*std::get<TypedValuePtr>(func).type_obj);
 
     const auto& args = node.get_arg_list();
     auto args_sz = args.size();
@@ -157,12 +157,12 @@ void llvm_visitor::visit(const function_call& node) {
     }
 
 
-    if(std::holds_alternative<TypedFunctionPtr>(result)) {
-        Function* function = std::get<TypedFunctionPtr>(result).ptr;
+    if(std::holds_alternative<TypedFunctionPtr>(func)) {
+        Function* function = std::get<TypedFunctionPtr>(func).ptr;
         result = TypedValuePtr{ builder.CreateCall(function, argsV),
                                 func_type.get_return_type()->clone() };
     } else {
-        Value* function = std::get<TypedValuePtr>(result).ptr;
+        Value* function = std::get<TypedValuePtr>(func).ptr;
         result =
         TypedValuePtr{ builder.CreateCall(llvm_get_function_type(func_type), function, argsV),
                        func_type.get_return_type()->clone() };
