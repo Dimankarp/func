@@ -2,11 +2,12 @@
 ; Linux x86_64 specific
 %define SYS_READ 0
 %define SYS_WRITE 1
+%define SYS_EXIT 60
 %define STD_IN 0
 %define STD_OUT 1
 
 section .text
-global write, read
+global write, read, exit
 
 
 write:
@@ -42,4 +43,9 @@ read:
 .fail:
     ; return rax
     add rsp, 16
+    ret
+
+exit:
+    mov rax, SYS_EXIT
+    syscall
     ret

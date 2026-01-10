@@ -26,6 +26,23 @@ void llvm_visitor::visit(const program& node) {
     sign_vec.push_back(std::make_unique<int_type>());
     table.add(llvm_sym_info{
     "write", std::make_unique<function_type>(std::move(sign_vec)), std::nullopt });
+
+
+    // Exit function
+    FunctionType* exit_ft =
+    FunctionType::get(llvm_get_type(types::VOID), { llvm_get_type(types::INT) }, false);
+    Function::Create(exit_ft, Function::LinkageTypes::ExternalLinkage, "exit", module);
+
+    Function* exit_func = module.getFunction("exit");
+    exit_func->addFnAttr(Attribute::NoReturn);  // cool but useless and still needs terminator after it
+    
+
+    std::vector<std::unique_ptr<type>> sign_vec_exit;
+    sign_vec_exit.push_back(std::make_unique<int_type>());
+    sign_vec_exit.push_back(std::make_unique<void_type>());
+    table.add(llvm_sym_info{
+    "exit", std::make_unique<function_type>(std::move(sign_vec_exit)), std::nullopt });
+    
     
 
     for(const auto& func : node.get_funcs()) {
