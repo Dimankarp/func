@@ -83,17 +83,27 @@ void llvm_visitor::visit(const function& node) {
         return;
     }
 
-    table.start_block(); // start
-    auto* f_arg_vals = f->args().begin();
-    for(const auto& param : node.get_params()) {
-        // Registering parameters
-        table.add(llvm_sym_info{ param.get_identifier(), param.get_type()->clone(),
-                                 std::make_optional(&(*f_arg_vals)) });
-        f_arg_vals++;
-    }
-
     BasicBlock* bb = BasicBlock::Create(ctx, "entry", f);
     builder.SetInsertPoint(bb);
+
+    table.start_block(); // start
+    IRBuilder<> temp_b(&f->getEntryBlock(), f->getEntryBlock().begin());
+    auto* f_arg_vals = f->args().begin();
+
+    int i = 0;
+    for (auto &arg : f->args()) {
+        auto& param = node.get_params()[i];
+
+        Value *alloc = temp_b.CreateAlloca(llvm_get_type(param.get_type()->get_type()), nullptr, param.get_identifier());
+        builder.CreateStore(&arg, alloc);
+
+        // Registering in sym_table
+        table.add(llvm_sym_info{ param.get_identifier(), param.get_type()->clone(),
+                                 alloc });
+        f_arg_vals++;
+
+        i++;
+    }
 
     node.get_block()->accept(*this);
 
@@ -190,7 +200,9 @@ void llvm_visitor::visit(const identifier_expression& node) {
         return;
     }
 
-    result = TypedValuePtr{ sym.value.value(), std::move(sym.type_obj) };
+    // if it's a value, it must be on the stack
+    result = TypedValuePtr{ builder.CreateLoad(llvm_get_type(sym.type_obj->get_type()), sym.value.value(), node.get_identificator()),
+                           std::move(sym.type_obj) };
 };
 
 void llvm_visitor::visit(const literal_expression& lit) {
@@ -237,13 +249,56 @@ void llvm_visitor::visit(const return_statement& node) {
     result = TypedValuePtr{ res, ret.type_obj->clone() };
 };
 
+void llvm_visitor::visit(const assign_statement& node) {
+    /*
+    3 Variants:
+    int a;
+    int a = 42;
+    a = 42;
+    */
+
+    if(node.get_type() != nullptr) {
+        // push on stack
+        Function* f = builder.GetInsertBlock()->getParent();
+        IRBuilder<> temp_b(&f->getEntryBlock(), f->getEntryBlock().begin());
+        Value *alloc = temp_b.CreateAlloca(llvm_get_type(node.get_type()->get_type()), nullptr, node.get_identifier());
+
+        // add to sym_table
+        table.add(llvm_sym_info{ node.get_identifier(), node.get_type()->clone(), alloc });
+    }
+
+    const llvm_sym_info& sym = table.find(node.get_identifier());
+
+    // evaluate expression and save result
+    if (node.get_exp() == nullptr)
+        return;
+    
+
+    // TODO: refactor
+    auto expr = node.get_exp()->accept_with_result(*this);
+    if (std::holds_alternative<TypedValuePtr>(expr)){
+        auto &v = std::get<TypedValuePtr>(expr);
+        func::expect_types(*sym.type_obj, *v.type_obj, node.get_exp()->get_loc());
+
+        builder.CreateStore(v.ptr, sym.value.value());
+        // result = TypedValuePtr{ v.ptr, v.type_obj->clone() };
+    } else if (std::holds_alternative<TypedFunctionPtr>(expr)){
+        auto &f = std::get<TypedFunctionPtr>(expr);
+        func::expect_types(*sym.type_obj, *f.type_obj, node.get_exp()->get_loc());
+
+        builder.CreateStore(f.ptr, sym.value.value());
+        // result = TypedValuePtr{ f.ptr, f.type_obj->clone() };
+    }
+    else {
+        throw syntax_exception{"Invalid assignment expression", node.get_loc()};
+    }
+};
 
 void llvm_visitor::visit(const binop_expression&) {};
 void llvm_visitor::visit(const unarop_expression&) {};
 void llvm_visitor::visit(const subscript_expression&) {};
 
 void llvm_visitor::visit(const subscript_assign_statement&) {};
-void llvm_visitor::visit(const assign_statement&) {};
 void llvm_visitor::visit(const if_statement&) {};
 void llvm_visitor::visit(const while_statement&) {};
 
