@@ -84,7 +84,7 @@ void code_visitor::visit(const program& progr) {
 void code_visitor::visit(const declaration& d) {
     debug_out << "# Enter declaration " << d.get_identifier() << "\n";
 
-        auto signature = std::vector<unique_ptr<type>>();
+    auto signature = std::vector<unique_ptr<type>>();
     if(d.get_params().empty())
         signature.push_back(std::make_unique<void_type>());
     else
@@ -107,16 +107,17 @@ void code_visitor::visit(const function& f) {
     f.get_declaration()->accept(*this);
     auto info = table.find(f.get_identifier());
 
-    if (f.get_block() == nullptr){
-        throw syntax_exception{ "unsupported operation 'function declaration' of '" + f.get_identifier() +
-                                "' for emulator",
+    if(f.get_block() == nullptr) {
+        throw syntax_exception{ "unsupported operation 'function declaration' "
+                                "of '" +
+                                f.get_identifier() + "' for emulator",
                                 f.get_loc() };
     }
     // Staring block for func param
     table.start_block();
 
     for(int i = 0; i < f.get_params().size(); i++) {
-        auto& param = f.get_params()[i];
+        const auto& param = f.get_params()[i];
 
         // Registering parameters
         table.add(sym_info{ param.get_identifier(), param.get_type()->clone(),
@@ -231,7 +232,7 @@ void code_visitor::visit(const function_call& fc) {
     pop_regs_after_call(writer, regs);
     stack_height -= regs.size();
 
-    this->result.type_obj = std::move((func_type).get_signature().back()->clone());
+    this->result.type_obj = (func_type).get_signature().back()->clone();
 
     auto r = alloc.alloc("Get function result from RR");
     writer.mov(r, instr::RR);
@@ -246,7 +247,7 @@ void code_visitor::visit(const identifier_expression& id) {
     auto r = alloc.alloc("Identifier return register");
     load_variable(writer, r, sym);
     this->result.reg_num = r;
-    this->result.type_obj = std::move(sym.type_obj->clone());
+    this->result.type_obj = sym.type_obj->clone();
 
     debug_out << "# Done identifier " << id.get_identificator() << "\n";
 };

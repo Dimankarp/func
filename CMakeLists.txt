@@ -61,7 +61,7 @@ set_target_properties(compiler PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )
-target_compile_options(compiler PRIVATE -Wall -Wextra -Wpedantic)
+target_compile_options(compiler PRIVATE -Wall -Wextra -Wpedantic -Wno-sign-compare)
 
 # Magically link to LLVM
 llvm_config(compiler USE_SHARED support core irreader)

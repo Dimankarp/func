@@ -2,10 +2,8 @@
 #include "driver.hpp"
 #include "exception.hpp"
 #include "printer.hpp"
-#include "visitor/code_visitor/code_visitor.hpp"
 #include "visitor/llvm_visitor/llvm_visitor.hpp"
 #include "visitor/print_visitor/print_visitor.hpp"
-#include "visitor/visitor.hpp"
 
 #include <fstream>
 #include <functional>
@@ -54,7 +52,7 @@ int main(int argc, char* argv[]) {
 
 
         if(result.count("help")) {
-            std::cout << options.help() << std::endl;
+            std::cout << options.help() << '\n';
             exit(0);
         }
 
@@ -73,7 +71,7 @@ int main(int argc, char* argv[]) {
             exit(0); // No input files were given.
         }
     } catch(const cxxopts::exceptions::exception& e) {
-        std::cerr << "Error parsing options: " << e.what() << std::endl;
+        std::cerr << "Error parsing options: " << e.what() << '\n';
         exit(1);
     }
 

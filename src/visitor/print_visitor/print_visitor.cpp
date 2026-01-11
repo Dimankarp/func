@@ -43,7 +43,7 @@ void print_visitor::print_type(func::type& type) {
     if(type.get_type() != func::types::FUNCTION)
         out << type_name[type.get_type()];
     else {
-        auto const& func = dynamic_cast<function_type&>(type);
+        auto const& _ = dynamic_cast<function_type&>(type);
         out << "<func>";
     }
 }
@@ -58,7 +58,8 @@ void print_visitor::visit(const program& progr) {
 }
 
 void print_visitor::visit(const declaration& decl) {
-     *this << "decl: " << type_name[decl.get_result_type()->get_type()] << " " << decl.get_identifier() << "\n";
+    *this << "decl: " << type_name[decl.get_result_type()->get_type()] << " "
+          << decl.get_identifier() << "\n";
 }
 
 void print_visitor::visit(const function& func) {
@@ -70,10 +71,10 @@ void print_visitor::visit(const function& func) {
               << param.get_identifier() << "\n";
     }
 
-    if (func.get_block())
+    if(func.get_block())
         func.get_block()->accept(*this);
     offset--;
-    
+
     *this << "\n";
 }
 

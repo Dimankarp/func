@@ -2,7 +2,7 @@
 #include "parser.tab.hpp"
 #include <string>
 
-driver::driver() {}
+driver::driver() = default;
 
 int driver::parse(const std::string& f) {
     file = f;

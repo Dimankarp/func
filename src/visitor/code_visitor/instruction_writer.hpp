@@ -35,7 +35,7 @@ class instruction_writer {
         next_addr += imm >= (1 << 20) ? 2 : 1;
     }
 
-    void li_label(uint8_t d, std::string label) {
+    void li_label(uint8_t d, const std::string& label) {
         out << "li " << reg(d) << ", " << label << "\n";
         next_addr += 2;
     }
@@ -141,7 +141,7 @@ class instruction_writer {
         next_addr++;
     }
 
-    void jal_label(uint8_t d, std::string label) {
+    void jal_label(uint8_t d, const std::string& label) {
         out << "jal " << reg(d) << ", " << label << "\n";
         next_addr++;
     }
@@ -215,7 +215,7 @@ class instruction_writer {
 
     void put_arg(uint8_t source, uint8_t offset) { sw(BP, -offset, source); }
 
-    void label(std::string label) { out << label << ": " << "\n"; }
+    void label(const std::string& label) { out << label << ": " << "\n"; }
 
     void mov(uint8_t dest, uint8_t src) { addi(dest, src, 0); }
 

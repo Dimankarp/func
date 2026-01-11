@@ -32,16 +32,16 @@ class assign_statement : public ast_node_impl<assign_statement> {
 
     public:
     assign_statement(unique_ptr<func::type> type, std::string& id, yy::location loc)
-    : identifier(id), Base(loc), type_obj{ std::move(type) } {}
+    : Base(loc), identifier(id), type_obj{ std::move(type) } {}
 
     assign_statement(unique_ptr<func::type> type,
                      std::string& id,
                      unique_ptr<ast_node> exp,
                      yy::location loc)
-    : identifier(id), exp(std::move(exp)), Base(loc), type_obj{ std::move(type) } {}
+    : Base(loc), identifier(id), exp(std::move(exp)), type_obj{ std::move(type) } {}
 
     assign_statement(std::string& id, unique_ptr<ast_node> exp, yy::location loc)
-    : identifier(id), exp(std::move(exp)), Base(loc) {}
+    : Base(loc), identifier(id), exp(std::move(exp)) {}
 
     const std::string& get_identifier() const { return identifier; }
     const unique_ptr<ast_node>& get_exp() const { return exp; }
@@ -58,7 +58,7 @@ class if_statement : public ast_node_impl<if_statement> {
 
     public:
     if_statement(unique_ptr<ast_node> cond, unique_ptr<block_statement> then, yy::location loc)
-    : condition(std::move(cond)), then_block(std::move(then)), Base(loc) {}
+    : Base(loc), condition(std::move(cond)), then_block(std::move(then)) {}
 
     void add_else(unique_ptr<block_statement> else_block) {
         this->else_block = std::move(else_block);
@@ -83,7 +83,7 @@ class while_statement : public ast_node_impl<while_statement> {
 
     public:
     while_statement(unique_ptr<ast_node> cond, unique_ptr<block_statement> block, yy::location loc)
-    : condition(std::move(cond)), block(std::move(block)), Base(loc) {}
+    : Base(loc), condition(std::move(cond)), block(std::move(block)) {}
     const unique_ptr<ast_node>& get_condition() const { return condition; }
     const unique_ptr<block_statement>& get_block() const { return block; }
 };
@@ -96,7 +96,7 @@ class return_statement : public ast_node_impl<return_statement> {
 
     public:
     return_statement(unique_ptr<ast_node> exp, yy::location loc)
-    : exp{ std::move(exp) }, Base{ loc } {}
+    : Base{ loc }, exp{ std::move(exp) } {}
     const unique_ptr<ast_node>& get_exp() const { return exp; }
 };
 
@@ -113,8 +113,8 @@ class subscript_assign_statement : public ast_node_impl<subscript_assign_stateme
                                unique_ptr<ast_node> index,
                                unique_ptr<ast_node> exp,
                                yy::location loc)
-    : pointer{ std::move(pointer) }, index{ std::move(index) },
-      exp{ std::move(exp) }, Base{ loc } {};
+    : Base{ loc }, pointer{ std::move(pointer) }, index{ std::move(index) },
+      exp{ std::move(exp) } {};
     const unique_ptr<ast_node>& get_pointer() const { return pointer; }
     const unique_ptr<ast_node>& get_index() const { return index; }
     const unique_ptr<ast_node>& get_exp() const { return exp; }

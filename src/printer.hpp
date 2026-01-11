@@ -27,8 +27,8 @@ class printer {
 
     public:
     printer(std::ostream& os)
-    : output_stream(os), code(os, print_code), debug(os, print_debug),
-      alloc(os, print_alloc) {}
+    : code(os, print_code), debug(os, print_debug), alloc(os, print_alloc),
+      output_stream(os) {}
 
     bool print_code{ true };
     bool print_debug{ true };

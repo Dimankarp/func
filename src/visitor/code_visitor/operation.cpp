@@ -1,8 +1,5 @@
 #include "visitor/code_visitor/operation.hpp"
-#include "node/expression.hpp"
 #include "type/type.hpp"
-#include <iostream>
-#include <variant>
 
 namespace func {
 

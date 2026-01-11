@@ -1,6 +1,5 @@
 #pragma once
 
-#include "exception.hpp"
 #include "location.hh"
 #include "printer.hpp"
 #include "type/type.hpp"
@@ -26,18 +25,19 @@ struct sym_info {
     std::unique_ptr<func::type> type_obj;
     enum : char { STACK, ABS } access_type;
     uint16_t offset;
-    yy::location declare_loc = yy::location{};
+    yy::location declare_loc;
     bool is_delimeter = false;
 
     public:
-    sym_info(const std::string& name,
+    sym_info(std::string name,
              const std::unique_ptr<func::type>& type_obj,
              decltype(STACK) access_type,
              uint16_t offset,
              yy::location declare_loc = yy::location{},
              bool is_delimeter = false)
-    : name{ name }, type_obj{ type_obj->clone() }, access_type{ access_type },
-      offset{ offset }, declare_loc{ declare_loc }, is_delimeter{ is_delimeter } {}
+    : name{ std::move(name) }, type_obj{ type_obj->clone() },
+      access_type{ access_type }, offset{ offset }, declare_loc{ declare_loc },
+      is_delimeter{ is_delimeter } {}
     sym_info() = default;
     sym_info(const sym_info& sym)
     : name{ sym.name }, access_type{ sym.access_type }, offset{ sym.offset },

@@ -13,7 +13,7 @@ class program : public ast_node_impl<program> {
 
     public:
     program(std::vector<unique_ptr<func::function>>&& funcs, yy::location loc)
-    : functions{ std::move(funcs) }, Base{ loc } {}
+    : Base{ loc }, functions{ std::move(funcs) } {}
     const std::vector<unique_ptr<func::function>>& get_funcs() const {
         return functions;
     }

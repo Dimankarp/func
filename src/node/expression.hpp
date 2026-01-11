@@ -35,7 +35,7 @@ class binop_expression : public ast_node_impl<binop_expression> {
 
     public:
     binop_expression(binop op, unique_ptr<ast_node> left, unique_ptr<ast_node> right, yy::location loc)
-    : op(op), left(std::move(left)), right(std::move(right)), Base(loc) {}
+    : Base(loc), op(op), left(std::move(left)), right(std::move(right)) {}
     binop get_op() const { return op; }
     const unique_ptr<ast_node>& get_left() const { return left; }
     const unique_ptr<ast_node>& get_right() const { return right; }
@@ -52,7 +52,7 @@ class unarop_expression : public ast_node_impl<unarop_expression> {
 
     public:
     unarop_expression(unarop op, unique_ptr<ast_node> exp, yy::location loc)
-    : op(op), exp(std::move(exp)), Base(loc) {};
+    : Base(loc), op(op), exp(std::move(exp)) {};
     unarop get_op() const { return op; }
     const unique_ptr<ast_node>& get_exp() const { return exp; }
 };
@@ -65,7 +65,7 @@ class literal_expression : public ast_node_impl<literal_expression> {
 
     public:
     literal_expression(lit_val val, yy::location loc)
-    : val(std::move(val)), Base(loc) {};
+    : Base(loc), val(std::move(val)) {};
     lit_val get_val() const { return val; }
 };
 
@@ -78,7 +78,7 @@ class identifier_expression : public ast_node_impl<identifier_expression> {
 
     public:
     identifier_expression(std::string identificator, yy::location loc)
-    : identificator(std::move(identificator)), Base(loc) {}
+    : Base(loc), identificator(std::move(identificator)) {}
     const std::string& get_identificator() const { return identificator; }
 };
 
@@ -91,7 +91,7 @@ class subscript_expression : public ast_node_impl<subscript_expression> {
 
     public:
     subscript_expression(unique_ptr<ast_node> pointer, unique_ptr<ast_node> index, yy::location loc)
-    : pointer{ std::move(pointer) }, index{ std::move(index) }, Base{ loc } {}
+    : Base{ loc }, pointer{ std::move(pointer) }, index{ std::move(index) } {}
 
     const unique_ptr<ast_node>& get_pointer() const { return pointer; }
     const unique_ptr<ast_node>& get_index() const { return index; }

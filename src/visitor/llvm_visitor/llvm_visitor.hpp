@@ -9,6 +9,7 @@
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
 #include <optional>
+#include <utility>
 #include <variant>
 
 namespace func {
@@ -20,21 +21,21 @@ struct llvm_sym_info {
     std::string name;
     std::unique_ptr<func::type> type_obj;
     std::optional<Value*> value;
-    yy::location declare_loc = yy::location{};
+    yy::location declare_loc;
     bool is_delimeter = false;
 
     public:
-    llvm_sym_info(const std::string& name,
+    llvm_sym_info(std::string name,
                   const std::unique_ptr<func::type>& type_obj,
                   std::optional<Value*> value,
                   yy::location declare_loc = yy::location{},
                   bool is_delimeter = false)
-    : name{ name }, type_obj{ type_obj->clone() }, declare_loc{ declare_loc },
-      is_delimeter{ is_delimeter }, value{ value } {}
+    : name{ std::move(name) }, type_obj{ type_obj->clone() }, value{ value },
+      declare_loc{ declare_loc }, is_delimeter{ is_delimeter } {}
     llvm_sym_info() = default;
     llvm_sym_info(const llvm_sym_info& sym)
-    : name{ sym.name }, declare_loc{ sym.declare_loc },
-      is_delimeter{ sym.is_delimeter }, value{ sym.value } {
+    : name{ sym.name }, value{ sym.value }, declare_loc{ sym.declare_loc },
+      is_delimeter{ sym.is_delimeter } {
         if(sym.type_obj != nullptr)
             type_obj = sym.type_obj->clone();
     }

@@ -44,9 +44,9 @@ void llvm_visitor::visit(const declaration& node) {
     FunctionType* ft = FunctionType::get(result_type, params_type, false);
 
     // Check if its already exists
-    if (Function* fm = module.getFunction(node.get_identifier())){
+    if(Function* fm = module.getFunction(node.get_identifier())) {
         auto sym = table.find(node.get_identifier());
-        if (ft != fm->getFunctionType()){
+        if(ft != fm->getFunctionType()) {
             throw symbol_redeclaratione_exception{ sym.name, node.get_loc(), sym.declare_loc };
         }
         result = fm;
@@ -54,8 +54,9 @@ void llvm_visitor::visit(const declaration& node) {
     }
 
     // Otherwise create new
-    Function* f = Function::Create(ft, Function::LinkageTypes::ExternalLinkage, node.get_identifier(), module);
-    
+    Function* f = Function::Create(ft, Function::LinkageTypes::ExternalLinkage,
+                                   node.get_identifier(), module);
+
     // register it in sym_table
     auto signature = std::vector<unique_ptr<type>>();
     if(node.get_params().empty())
@@ -78,7 +79,7 @@ void llvm_visitor::visit(const declaration& node) {
 void llvm_visitor::visit(const function& node) {
     Function* f = std::get<Function*>(node.get_declaration()->accept_with_result(*this));
 
-    if (node.get_block() == nullptr){
+    if(node.get_block() == nullptr) {
         result = f;
         return;
     }
@@ -109,19 +110,19 @@ void llvm_visitor::visit(const function& node) {
 
     table.end_block(); // end
 
-    
-    // Insert return for a root non basic block of a function if needed 
-    Instruction *terminator = bb->getTerminator();
-    if (terminator == nullptr && f->getReturnType()->isVoidTy()){
+
+    // Insert return for a root non basic block of a function if needed
+    Instruction* terminator = bb->getTerminator();
+    if(terminator == nullptr && f->getReturnType()->isVoidTy()) {
         builder.SetInsertPoint(bb);
         builder.CreateRetVoid();
     }
-    
+
     // Verify the function body
     std::string error_msg;
     llvm::raw_string_ostream os(error_msg);
-    if (llvm::verifyFunction(*f, &os)) {
-        throw syntax_exception{error_msg, node.get_loc()};
+    if(llvm::verifyFunction(*f, &os)) {
+        throw syntax_exception{ error_msg, node.get_loc() };
     }
 
     result = f;
