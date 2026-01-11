@@ -213,8 +213,6 @@ void code_visitor::visit(const function_call& fc) {
 
         arg_regs.push_back(this->result.reg_num);
     }
-    for(const auto& e : fc.get_arg_list()) {
-    }
 
     debug_out << "# Pushing regs" << "\n";
     auto regs = push_regs_before_call(writer, alloc);
