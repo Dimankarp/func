@@ -2,45 +2,13 @@ int write(int _);
 int read(int _);
 void exit(int _);
 
-void no_ret(){
-}
-
-int foo(){
-    return 1;
-}
-
-/*
-int give_me_int(int a){
-    return a;
-}
-*/
-
-void give_me_str(string s){
-    return;
-}
-
-int give_me_a(){
+int return_a(){
     return 97;
 }
 
-int buz(int a){
-    a = 116;
-    return a;
-}
-
-void main(){
-    int a = 1;
-    int b = buz(a);
-    write(b);
-    no_ret();
-
-    // foo();
-    // write(give_me_int(give_me_a()));
+void main(int a){
+    (void-int) ret = return_a;
+    write(ret());
     write(10);
-    // write(10);
-    // give_me_int(0);
-    // give_me_int(-34); // after unary operators
-
-    // give_me_str("Hello");
     exit(0);
 }

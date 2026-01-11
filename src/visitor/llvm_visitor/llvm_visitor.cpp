@@ -28,7 +28,7 @@ Type* llvm_visitor::llvm_get_type(types t) {
     case types::STRING: return PointerType::get(ctx, 0);
     case types::BOOL: return Type::getIntNTy(ctx, 1);
     case types::VOID: return Type::getVoidTy(ctx);
-    case types::FUNCTION: exit(10); // TODO
+    case types::FUNCTION: return PointerType::get(ctx, 0);
     default: exit(10);
     }
 }
@@ -89,19 +89,17 @@ void llvm_visitor::visit(const function& node) {
 
     table.start_block(); // start
     IRBuilder<> temp_b(&f->getEntryBlock(), f->getEntryBlock().begin());
-    auto* f_arg_vals = f->args().begin();
 
     int i = 0;
-    for (auto &arg : f->args()) {
-        auto& param = node.get_params()[i];
+    for(auto& arg : f->args()) {
+        const auto& param = node.get_params()[i];
 
-        Value *alloc = temp_b.CreateAlloca(llvm_get_type(param.get_type()->get_type()), nullptr, param.get_identifier());
+        Value* alloc = temp_b.CreateAlloca(llvm_get_type(param.get_type()->get_type()),
+                                           nullptr, param.get_identifier());
         builder.CreateStore(&arg, alloc);
 
         // Registering in sym_table
-        table.add(llvm_sym_info{ param.get_identifier(), param.get_type()->clone(),
-                                 alloc });
-        f_arg_vals++;
+        table.add(llvm_sym_info{ param.get_identifier(), param.get_type()->clone(), alloc });
 
         i++;
     }
@@ -143,8 +141,12 @@ FunctionType* llvm_visitor::llvm_get_function_type(const function_type& func_typ
     Type* result_type = llvm_get_type(func_type.get_return_type()->get_type());
     std::vector<Type*> params_type;
     const auto& signature = func_type.get_signature();
-    for(int i = 0; i < signature.size() - 1; i++) {
-        params_type.push_back(llvm_get_type(signature[i]->get_type()));
+    const bool has_params = signature.front()->get_type() != types::VOID;
+
+    if(has_params) {
+        for(int i = 0; i < signature.size() - 1; i++) {
+            params_type.push_back(llvm_get_type(signature[i]->get_type()));
+        }
     }
 
     return FunctionType::get(result_type, params_type, false);
@@ -202,8 +204,10 @@ void llvm_visitor::visit(const identifier_expression& node) {
     }
 
     // if it's a value, it must be on the stack
-    result = TypedValuePtr{ builder.CreateLoad(llvm_get_type(sym.type_obj->get_type()), sym.value.value(), node.get_identificator()),
-                           std::move(sym.type_obj) };
+    result =
+    TypedValuePtr{ builder.CreateLoad(llvm_get_type(sym.type_obj->get_type()),
+                                      sym.value.value(), node.get_identificator()),
+                   std::move(sym.type_obj) };
 };
 
 void llvm_visitor::visit(const literal_expression& lit) {
@@ -256,42 +260,44 @@ void llvm_visitor::visit(const assign_statement& node) {
     int a;
     int a = 42;
     a = 42;
+
+    (int-int) a = foo;
     */
 
     if(node.get_type() != nullptr) {
         // push on stack
         Function* f = builder.GetInsertBlock()->getParent();
         IRBuilder<> temp_b(&f->getEntryBlock(), f->getEntryBlock().begin());
-        Value *alloc = temp_b.CreateAlloca(llvm_get_type(node.get_type()->get_type()), nullptr, node.get_identifier());
+        Value* alloc = temp_b.CreateAlloca(llvm_get_type(node.get_type()->get_type()),
+                                           nullptr, node.get_identifier());
 
         // add to sym_table
         table.add(llvm_sym_info{ node.get_identifier(), node.get_type()->clone(), alloc });
     }
 
-    const llvm_sym_info& sym = table.find(node.get_identifier());
 
     // evaluate expression and save result
-    if (node.get_exp() == nullptr)
+    if(node.get_exp() == nullptr)
         return;
-    
+
+    const llvm_sym_info& sym = table.find(node.get_identifier());
 
     // TODO: refactor
     auto expr = node.get_exp()->accept_with_result(*this);
-    if (std::holds_alternative<TypedValuePtr>(expr)){
-        auto &v = std::get<TypedValuePtr>(expr);
+    if(std::holds_alternative<TypedValuePtr>(expr)) {
+        auto& v = std::get<TypedValuePtr>(expr);
         func::expect_types(*sym.type_obj, *v.type_obj, node.get_exp()->get_loc());
 
         builder.CreateStore(v.ptr, sym.value.value());
-        // result = TypedValuePtr{ v.ptr, v.type_obj->clone() };
-    } else if (std::holds_alternative<TypedFunctionPtr>(expr)){
-        auto &f = std::get<TypedFunctionPtr>(expr);
+    } else if(std::holds_alternative<TypedFunctionPtr>(expr)) {
+        auto& f = std::get<TypedFunctionPtr>(expr);
+
         func::expect_types(*sym.type_obj, *f.type_obj, node.get_exp()->get_loc());
 
-        builder.CreateStore(f.ptr, sym.value.value());
-        // result = TypedValuePtr{ f.ptr, f.type_obj->clone() };
-    }
-    else {
-        throw syntax_exception{"Invalid assignment expression", node.get_loc()};
+        Value* ptr = builder.CreateBitCast(f.ptr, PointerType::get(ctx, 0));
+        builder.CreateStore(ptr, sym.value.value());
+    } else {
+        throw syntax_exception{ "Invalid assignment expression", node.get_loc() };
     }
 };
 
