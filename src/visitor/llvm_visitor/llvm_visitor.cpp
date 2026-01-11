@@ -98,10 +98,21 @@ void llvm_visitor::visit(const function& node) {
     node.get_block()->accept(*this);
 
     table.end_block(); // end
-    
-    verifyFunction(*f);
 
-    // TODO: why don't we set insert block back?
+    
+    // Insert return for a root non basic block of a function if needed 
+    Instruction *terminator = bb->getTerminator();
+    if (terminator == nullptr && f->getReturnType()->isVoidTy()){
+        builder.SetInsertPoint(bb);
+        builder.CreateRetVoid();
+    }
+    
+    // Verify the function body
+    std::string error_msg;
+    llvm::raw_string_ostream os(error_msg);
+    if (llvm::verifyFunction(*f, &os)) {
+        throw syntax_exception{error_msg, node.get_loc()};
+    }
 
     result = f;
 }

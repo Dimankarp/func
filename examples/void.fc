@@ -2,6 +2,9 @@ int write(int _);
 int read(int _);
 void exit(int _);
 
+void no_ret(){
+}
+
 int foo(){
     return 1;
 }
@@ -19,6 +22,7 @@ int give_me_a(){
 }
 
 void main(){
+    no_ret();
     // foo();
     write(give_me_int(give_me_a()));
     write(10);
@@ -28,5 +32,4 @@ void main(){
 
     // give_me_str("Hello");
     exit(0);
-    return;
 }
