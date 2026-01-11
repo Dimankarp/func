@@ -221,8 +221,8 @@ void llvm_visitor::visit(const literal_expression& lit) {
         AllocaInst* stack_str = builder.CreateAlloca(arr_ty, nullptr, "stack_str");
 
         for(int i = 0; i < v->length() + 1; ++i) {
-            auto idx = ConstantInt::get(llvm_get_type(types::INT), i);
-            auto gep =
+            auto* idx = ConstantInt::get(llvm_get_type(types::INT), i);
+            auto* gep =
             builder.CreateGEP(arr_ty, stack_str,
                               { ConstantInt::get(llvm_get_type(types::INT), 0), idx },
                               "str_" + std::to_string(i));
