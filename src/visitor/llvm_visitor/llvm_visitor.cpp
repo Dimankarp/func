@@ -481,11 +481,11 @@ void llvm_visitor::visit(const while_statement& node) {
 
 
 void llvm_visitor::visit(const subscript_expression& node) {
-    const auto& ptr = std::get<TypedValuePtr>(node.get_pointer()->accept_with_result(*this));
+    auto ptr = std::get<TypedValuePtr>(node.get_pointer()->accept_with_result(*this));
 
     expect<string_type>(*ptr.type_obj);
 
-    const auto& idx = std::get<TypedValuePtr>(node.get_index()->accept_with_result(*this));
+    auto idx = std::get<TypedValuePtr>(node.get_index()->accept_with_result(*this));
 
     expect<int_type>(*idx.type_obj);
 
