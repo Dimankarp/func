@@ -5,6 +5,7 @@
 #include "type/type_checker.hpp"
 #include "visitor/sym_table.hpp"
 #include "llvm/IR/Verifier.h"
+#include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Value.h>
@@ -108,6 +109,9 @@ void llvm_visitor::visit(const function& node) {
 
     table.end_block(); // end
 
+
+    // Current basicblock might change during node.get_block()->accept(*this);
+    bb = builder.GetInsertBlock();
 
     // Insert return for a root non basic block of a function if needed
     Instruction* terminator = bb->getTerminator();
@@ -301,12 +305,58 @@ void llvm_visitor::visit(const assign_statement& node) {
     }
 };
 
-void llvm_visitor::visit(const binop_expression&) {};
-void llvm_visitor::visit(const unarop_expression&) {};
-void llvm_visitor::visit(const subscript_expression&) {};
 
+void llvm_visitor::visit(const if_statement& node) {
+
+    TypedValuePtr cond =
+    std::get<TypedValuePtr>(node.get_condition()->accept_with_result(*this));
+
+    expect_types(bool_type{}, *cond.type_obj, node.get_loc());
+
+    Function* function = builder.GetInsertBlock()->getParent();
+
+    BasicBlock* thenb = BasicBlock::Create(ctx, "then", function);
+    BasicBlock* elseb = BasicBlock::Create(ctx, "else");
+    BasicBlock* mergeb = BasicBlock::Create(ctx, "ifend");
+
+    builder.CreateCondBr(cond.ptr, thenb, elseb);
+
+    builder.SetInsertPoint(thenb);
+    node.get_then_block()->accept(*this);
+    builder.CreateBr(mergeb);
+
+    function->insert(function->end(), elseb);
+    builder.SetInsertPoint(elseb);
+    // Generating empty else block if else is omitted in original code
+    if(node.get_else_block() != nullptr)
+        node.get_else_block()->accept(*this);
+    builder.CreateBr(mergeb);
+
+    function->insert(function->end(), mergeb);
+    builder.SetInsertPoint(mergeb);
+}
+
+void llvm_visitor::visit(const binop_expression& node) {
+
+    auto left = std::get<TypedValuePtr>(node.get_left()->accept_with_result((*this)));
+    auto right = std::get<TypedValuePtr>(node.get_right()->accept_with_result((*this)));
+
+    switch(node.get_op()) {
+    case binop::NEQ: {
+        // TODO: Add typecheck
+        Value* res = builder.CreateICmpNE(left.ptr, right.ptr, "not_equal_cmp");
+        result = TypedValuePtr{ res, std::make_unique<bool_type>() };
+        break;
+    }
+    default: exit(10);
+    }
+};
+void llvm_visitor::visit(const unarop_expression&) {};
+
+void llvm_visitor::visit(const subscript_expression&) {};
 void llvm_visitor::visit(const subscript_assign_statement&) {};
-void llvm_visitor::visit(const if_statement&) {};
+
+
 void llvm_visitor::visit(const while_statement&) {};
 
 

@@ -6,9 +6,11 @@ int return_a(){
     return 97;
 }
 
-void main(int a){
-    (void-int) ret = return_a;
-    write(ret());
+void main(){
+    int a = read();
+    if(a != 97){
+        write(97);
+    }
     write(10);
     exit(0);
 }
