@@ -121,14 +121,14 @@ void llvm_visitor::visit(const function& node) {
         builder.CreateRetVoid();
     }
 
-    // // Verify the function body
-    // std::string error_msg;
-    // llvm::raw_string_ostream os(error_msg);
-    // if(llvm::verifyFunction(*f, &os)) {
-    //     throw syntax_exception{ error_msg, node.get_loc() };
-    // }
+    // Verify the function body
+    std::string error_msg;
+    llvm::raw_string_ostream os(error_msg);
+    if(llvm::verifyFunction(*f, &os)) {
+        throw syntax_exception{ error_msg, node.get_loc() };
+    }
 
-    // result = f;
+    result = f;
 }
 
 void llvm_visitor::visit(const block_statement& node) {
@@ -496,7 +496,26 @@ void llvm_visitor::visit(const subscript_expression& node) {
     this->result = TypedValuePtr{ loaded_val, std::make_unique<int_type>() };
 };
 
-void llvm_visitor::visit(const subscript_assign_statement&) {};
+void llvm_visitor::visit(const subscript_assign_statement& node) {
+
+    auto ptr = std::get<TypedValuePtr>(node.get_pointer()->accept_with_result(*this));
+
+    expect<string_type>(*ptr.type_obj);
+
+    auto idx = std::get<TypedValuePtr>(node.get_index()->accept_with_result(*this));
+
+    expect<int_type>(*idx.type_obj);
+
+    auto expr = std::get<TypedValuePtr>(node.get_exp()->accept_with_result(*this));
+
+    expect<int_type>(*expr.type_obj);
+
+
+    Value* elem_i_ptr = builder.CreateGEP(llvm_get_type(types::INT), ptr.ptr, {idx.ptr}, "array_elem_ptr");
+
+    builder.CreateStore(expr.ptr, elem_i_ptr);
+};
+
 
 
 } // namespace func

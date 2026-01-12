@@ -11,6 +11,7 @@ void main(int a){
     // write(ret());
 
     string sa = "Hello!";
+    sa[3] = 63;
     int ch = sa[3];
     write(ch);
 
