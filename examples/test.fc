@@ -10,12 +10,9 @@ void main(int a){
     (void-int) ret = return_a;
     // write(ret());
 
-    int ch = 68;
-    int nch = -67;
-    write(-nch);
-    write(--ch);
-    write(---nch);
-    write(----ch);
-    write(- - -  - -nch);
+    bool a = true;
+    bool b = false;
+
+    bool c = a == b;
     exit(0);
 }

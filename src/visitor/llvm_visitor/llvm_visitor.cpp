@@ -306,7 +306,7 @@ void llvm_visitor::visit(const assign_statement& node) {
     }
 };
 
-// TODO: do not use our tytpe check? 
+
 void llvm_visitor::visit(const binop_expression& node) {
     auto left = node.get_left()->accept_with_result(*this);
     auto right = node.get_right()->accept_with_result(*this);
@@ -319,34 +319,50 @@ void llvm_visitor::visit(const binop_expression& node) {
     const auto& lv = std::get<TypedValuePtr>(left);
     const auto& rv = std::get<TypedValuePtr>(right);
 
+    if (lv.type_obj->get_type() != rv.type_obj->get_type()) {
+        throw unexpected_type_exception{
+            { "Mismatched types in binary operation: " +
+                  func::types_to_string(lv.type_obj->get_type()) + " and " +
+                  func::types_to_string(rv.type_obj->get_type()),
+              node.get_loc() }
+        };
+    }
+
     Value* res;
     try {
         switch(node.get_op()) {
         case binop::ADD:
+            expect<int_type>(*lv.type_obj);
             res = builder.CreateAdd(lv.ptr, rv.ptr, "addtmp");
             this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
             break;
         case binop::SUB:
+            expect<int_type>(*lv.type_obj);
             res = builder.CreateSub(lv.ptr, rv.ptr, "subtmp");
             this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
             break;
         case binop::MUL:
+            expect<int_type>(*lv.type_obj);
             res = builder.CreateMul(lv.ptr, rv.ptr, "multmp");
             this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
             break;
         case binop::DIV:
+            expect<int_type>(*lv.type_obj);
             res = builder.CreateSDiv(lv.ptr, rv.ptr, "divtmp");
             this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
             break;
         case binop::MOD:
+            expect<int_type>(*lv.type_obj);
             res = builder.CreateSRem(lv.ptr, rv.ptr, "modtmp");
             this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
             break;
         case binop::LESS:
+            expect<int_type>(*lv.type_obj);
             res = builder.CreateICmp(CmpInst::ICMP_SLT, lv.ptr, rv.ptr, "lstmp");
             this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
             break;
         case binop::GRTR:
+            expect<int_type>(*lv.type_obj);
             res = builder.CreateICmp(CmpInst::ICMP_SGT, lv.ptr, rv.ptr, "grtmp");
             this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
             break;
@@ -359,10 +375,12 @@ void llvm_visitor::visit(const binop_expression& node) {
             this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
             break;
         case binop::OR:
+            expect<bool_type>(*lv.type_obj);
             res = builder.CreateOr(lv.ptr, rv.ptr, "ortmp");
             this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
             break;
         case binop::AND:
+            expect<bool_type>(*lv.type_obj);
             res = builder.CreateAnd(lv.ptr, rv.ptr, "andtmp");
             this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
             break;
@@ -386,12 +404,14 @@ void llvm_visitor::visit(const unarop_expression& node) {
     try {
         switch(node.get_op()) {
         case unarop::MINUS: {
+            expect<int_type>(*val.type_obj);
             Value* zero = ConstantInt::get(ctx, APInt(32, 0, true));
             res = builder.CreateSub(zero, val.ptr, "negtmp");
             this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
             break;
         }
         case unarop::NOT: {
+            expect<bool_type>(*val.type_obj);
             Value* one = ConstantInt::get(ctx, APInt(1, 1, true));
             res = builder.CreateXor(one, val.ptr, "nottmp");
             this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };

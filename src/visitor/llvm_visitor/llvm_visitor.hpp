@@ -16,6 +16,14 @@ namespace func {
 
 using namespace llvm;
 
+template <typename T> T expect(const type& type) {
+    if(type.get_type() != T::type_enum)
+        throw unexpected_type_exception(
+        { func::types_to_string(type.get_type()) + " but expected " +
+          func::types_to_string(T::type_enum),
+          yy::location{} });
+    return dynamic_cast<const T&>(type);
+}
 
 struct llvm_sym_info {
     std::string name;
