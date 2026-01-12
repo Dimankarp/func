@@ -6,8 +6,11 @@
 #include "visitor/sym_table.hpp"
 #include "visitor/visitor.hpp"
 #include "llvm/IR/Value.h"
+#include "llvm/Transforms/Utils/Mem2Reg.h"
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
+#include <llvm/IR/PassManager.h>
+#include <llvm/Passes/PassBuilder.h>
 #include <optional>
 #include <utility>
 #include <variant>
@@ -18,10 +21,9 @@ using namespace llvm;
 
 template <typename T> T expect(const type& type) {
     if(type.get_type() != T::type_enum)
-        throw unexpected_type_exception(
-        { func::types_to_string(type.get_type()) + " but expected " +
-          func::types_to_string(T::type_enum),
-          yy::location{} });
+        throw unexpected_type_exception({ func::types_to_string(type.get_type()) + " but expected " +
+                                          func::types_to_string(T::type_enum),
+                                          yy::location{} });
     return dynamic_cast<const T&>(type);
 }
 
@@ -69,9 +71,15 @@ class llvm_visitor : public visitor<llvm_result> {
     LLVMContext ctx;
     Module module{ "func module", ctx };
     IRBuilder<> builder{ ctx };
+    FunctionPassManager fpm;
+    FunctionAnalysisManager fam;
 
     public:
-    llvm_visitor(func::printer& printer) : debug_out{ printer.debug } {}
+    llvm_visitor(func::printer& printer) : debug_out{ printer.debug } {
+        fpm.addPass(PromotePass());
+        PassBuilder PB;
+        PB.registerFunctionAnalyses(fam);
+    }
 
 
     void visit(const binop_expression&) override;

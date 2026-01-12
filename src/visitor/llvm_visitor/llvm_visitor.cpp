@@ -6,8 +6,9 @@
 #include "visitor/sym_table.hpp"
 #include "llvm/IR/Verifier.h"
 #include <llvm/IR/BasicBlock.h>
-#include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Value.h>
 #include <memory>
@@ -128,6 +129,8 @@ void llvm_visitor::visit(const function& node) {
         throw syntax_exception{ error_msg, node.get_loc() };
     }
 
+    fpm.run(*f, fam);
+
     result = f;
 }
 
@@ -136,6 +139,9 @@ void llvm_visitor::visit(const block_statement& node) {
 
     for(const auto& st : node.get_statements()) {
         st->accept(*this);
+
+        if(builder.GetInsertBlock()->getTerminator() != nullptr)
+            break;
     }
 
     table.end_block(); // end
@@ -311,19 +317,20 @@ void llvm_visitor::visit(const binop_expression& node) {
     auto left = node.get_left()->accept_with_result(*this);
     auto right = node.get_right()->accept_with_result(*this);
 
-    if (std::holds_alternative<TypedFunctionPtr>(left) ||
-        std::holds_alternative<TypedFunctionPtr>(right)) {
-        throw syntax_exception{ "Invalid binary operation on function type", node.get_loc() };
+    if(std::holds_alternative<TypedFunctionPtr>(left) ||
+       std::holds_alternative<TypedFunctionPtr>(right)) {
+        throw syntax_exception{ "Invalid binary operation on function type",
+                                node.get_loc() };
     }
 
     const auto& lv = std::get<TypedValuePtr>(left);
     const auto& rv = std::get<TypedValuePtr>(right);
 
-    if (lv.type_obj->get_type() != rv.type_obj->get_type()) {
+    if(lv.type_obj->get_type() != rv.type_obj->get_type()) {
         throw unexpected_type_exception{
             { "Mismatched types in binary operation: " +
-                  func::types_to_string(lv.type_obj->get_type()) + " and " +
-                  func::types_to_string(rv.type_obj->get_type()),
+              func::types_to_string(lv.type_obj->get_type()) + " and " +
+              func::types_to_string(rv.type_obj->get_type()),
               node.get_loc() }
         };
     }
@@ -394,7 +401,7 @@ void llvm_visitor::visit(const binop_expression& node) {
 void llvm_visitor::visit(const unarop_expression& node) {
     auto expr = node.get_exp()->accept_with_result(*this);
 
-    if (std::holds_alternative<TypedFunctionPtr>(expr)) {
+    if(std::holds_alternative<TypedFunctionPtr>(expr)) {
         throw syntax_exception{ "Invalid unary operation on function type", node.get_loc() };
     }
 
@@ -425,6 +432,13 @@ void llvm_visitor::visit(const unarop_expression& node) {
 };
 
 
+namespace {
+void CreateBrIfNotTerminated(IRBuilder<>& builder, BasicBlock* dest) {
+    if(builder.GetInsertBlock()->getTerminator() == nullptr)
+        builder.CreateBr(dest);
+}
+} // namespace
+
 void llvm_visitor::visit(const if_statement& node) {
 
     TypedValuePtr cond =
@@ -442,14 +456,14 @@ void llvm_visitor::visit(const if_statement& node) {
 
     builder.SetInsertPoint(thenb);
     node.get_then_block()->accept(*this);
-    builder.CreateBr(mergeb);
+    CreateBrIfNotTerminated(builder, mergeb);
 
     function->insert(function->end(), elseb);
     builder.SetInsertPoint(elseb);
     // Generating empty else block if else is omitted in original code
     if(node.get_else_block() != nullptr)
         node.get_else_block()->accept(*this);
-    builder.CreateBr(mergeb);
+    CreateBrIfNotTerminated(builder, mergeb);
 
     function->insert(function->end(), mergeb);
     builder.SetInsertPoint(mergeb);
@@ -473,7 +487,7 @@ void llvm_visitor::visit(const while_statement& node) {
     function->insert(function->end(), loopb);
     builder.SetInsertPoint(loopb);
     node.get_block()->accept(*this);
-    builder.CreateBr(condb);
+    CreateBrIfNotTerminated(builder, condb);
 
     function->insert(function->end(), endb);
     builder.SetInsertPoint(endb);
@@ -489,9 +503,11 @@ void llvm_visitor::visit(const subscript_expression& node) {
 
     expect<int_type>(*idx.type_obj);
 
-    Value* elem_i_ptr = builder.CreateGEP(llvm_get_type(types::INT), ptr.ptr, {idx.ptr}, "array_elem_ptr");
+    Value* elem_i_ptr = builder.CreateGEP(llvm_get_type(types::INT), ptr.ptr,
+                                          { idx.ptr }, "array_elem_ptr");
 
-    Value* loaded_val = builder.CreateLoad(llvm_get_type(types::INT), elem_i_ptr, "loaded_elem");
+    Value* loaded_val =
+    builder.CreateLoad(llvm_get_type(types::INT), elem_i_ptr, "loaded_elem");
 
     this->result = TypedValuePtr{ loaded_val, std::make_unique<int_type>() };
 };
@@ -511,11 +527,11 @@ void llvm_visitor::visit(const subscript_assign_statement& node) {
     expect<int_type>(*expr.type_obj);
 
 
-    Value* elem_i_ptr = builder.CreateGEP(llvm_get_type(types::INT), ptr.ptr, {idx.ptr}, "array_elem_ptr");
+    Value* elem_i_ptr = builder.CreateGEP(llvm_get_type(types::INT), ptr.ptr,
+                                          { idx.ptr }, "array_elem_ptr");
 
     builder.CreateStore(expr.ptr, elem_i_ptr);
 };
-
 
 
 } // namespace func

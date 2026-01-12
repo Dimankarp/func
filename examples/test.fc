@@ -2,22 +2,23 @@ int write(int _);
 int read();
 void exit(int _);
 
-int return_a(){
-    return 97;
+int even_are_bigger_compare(int a, int b) {
+  if (a % 2 == 0 && b % 2 != 0)
+    return 1;
+  if (a % 2 != 0 && b % 2 == 0)
+    return -1;
+  return a - b;
 }
 
-void main(int a){
-    (void-int) ret = return_a;
-    // write(ret());
-
-    string sa = "Hello!";
-    sa[3] = 63;
-    int ch = sa[3];
-    write(ch);
-
-
-    // int ch = str[4];
-
+void print((void-int) gen){
+    write(gen());
     write(10);
+}
+
+void main(){
+    if(true){
+        return;
+    }
+    print(even_are_bigger_compare);
     exit(0);
 }
