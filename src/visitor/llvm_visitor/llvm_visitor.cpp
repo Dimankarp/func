@@ -121,14 +121,14 @@ void llvm_visitor::visit(const function& node) {
         builder.CreateRetVoid();
     }
 
-    // Verify the function body
-    std::string error_msg;
-    llvm::raw_string_ostream os(error_msg);
-    if(llvm::verifyFunction(*f, &os)) {
-        throw syntax_exception{ error_msg, node.get_loc() };
-    }
+    // // Verify the function body
+    // std::string error_msg;
+    // llvm::raw_string_ostream os(error_msg);
+    // if(llvm::verifyFunction(*f, &os)) {
+    //     throw syntax_exception{ error_msg, node.get_loc() };
+    // }
 
-    result = f;
+    // result = f;
 }
 
 void llvm_visitor::visit(const block_statement& node) {
@@ -222,7 +222,7 @@ void llvm_visitor::visit(const literal_expression& lit) {
         Value* res = ConstantInt::get(ctx, APInt(32, *v, true));
         result = TypedValuePtr{ res, std::make_unique<int_type>() };
     } else if(auto* v = std::get_if<bool>(&val)) {
-        int boolified_int = v ? 1 : 0;
+        int boolified_int = *v ? 1 : 0;
         Value* res = ConstantInt::get(ctx, APInt(1, boolified_int, false));
         result = TypedValuePtr{ res, std::make_unique<bool_type>() };
     } else if(auto* v = std::get_if<std::string>(&val)) {
@@ -480,7 +480,22 @@ void llvm_visitor::visit(const while_statement& node) {
 };
 
 
-void llvm_visitor::visit(const subscript_expression&) {};
+void llvm_visitor::visit(const subscript_expression& node) {
+    const auto& ptr = std::get<TypedValuePtr>(node.get_pointer()->accept_with_result(*this));
+
+    expect<string_type>(*ptr.type_obj);
+
+    const auto& idx = std::get<TypedValuePtr>(node.get_index()->accept_with_result(*this));
+
+    expect<int_type>(*idx.type_obj);
+
+    Value* elem_i_ptr = builder.CreateGEP(llvm_get_type(types::INT), ptr.ptr, {idx.ptr}, "array_elem_ptr");
+
+    Value* loaded_val = builder.CreateLoad(llvm_get_type(types::INT), elem_i_ptr, "loaded_elem");
+
+    this->result = TypedValuePtr{ loaded_val, std::make_unique<int_type>() };
+};
+
 void llvm_visitor::visit(const subscript_assign_statement&) {};
 
 

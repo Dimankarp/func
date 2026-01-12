@@ -10,9 +10,13 @@ void main(int a){
     (void-int) ret = return_a;
     // write(ret());
 
-    bool a = true;
-    bool b = false;
+    string sa = "Hello!";
+    int ch = sa[3];
+    write(ch);
 
-    bool c = a == b;
+
+    // int ch = str[4];
+
+    write(10);
     exit(0);
 }
