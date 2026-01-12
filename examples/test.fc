@@ -8,7 +8,14 @@ int return_a(){
 
 void main(int a){
     (void-int) ret = return_a;
-    write(ret());
-    write(10);
+    // write(ret());
+
+    int ch = 68;
+    int nch = -67;
+    write(-nch);
+    write(--ch);
+    write(---nch);
+    write(----ch);
+    write(- - -  - -nch);
     exit(0);
 }

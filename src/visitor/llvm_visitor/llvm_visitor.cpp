@@ -6,6 +6,7 @@
 #include "visitor/sym_table.hpp"
 #include "llvm/IR/Verifier.h"
 #include <llvm/IR/BasicBlock.h>
+#include <llvm-18/llvm/IR/InstrTypes.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Value.h>
@@ -305,6 +306,104 @@ void llvm_visitor::visit(const assign_statement& node) {
     }
 };
 
+// TODO: do not use our tytpe check? 
+void llvm_visitor::visit(const binop_expression& node) {
+    auto left = node.get_left()->accept_with_result(*this);
+    auto right = node.get_right()->accept_with_result(*this);
+
+    if (std::holds_alternative<TypedFunctionPtr>(left) ||
+        std::holds_alternative<TypedFunctionPtr>(right)) {
+        throw syntax_exception{ "Invalid binary operation on function type", node.get_loc() };
+    }
+
+    const auto& lv = std::get<TypedValuePtr>(left);
+    const auto& rv = std::get<TypedValuePtr>(right);
+
+    Value* res;
+    try {
+        switch(node.get_op()) {
+        case binop::ADD:
+            res = builder.CreateAdd(lv.ptr, rv.ptr, "addtmp");
+            this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
+            break;
+        case binop::SUB:
+            res = builder.CreateSub(lv.ptr, rv.ptr, "subtmp");
+            this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
+            break;
+        case binop::MUL:
+            res = builder.CreateMul(lv.ptr, rv.ptr, "multmp");
+            this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
+            break;
+        case binop::DIV:
+            res = builder.CreateSDiv(lv.ptr, rv.ptr, "divtmp");
+            this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
+            break;
+        case binop::MOD:
+            res = builder.CreateSRem(lv.ptr, rv.ptr, "modtmp");
+            this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
+            break;
+        case binop::LESS:
+            res = builder.CreateICmp(CmpInst::ICMP_SLT, lv.ptr, rv.ptr, "lstmp");
+            this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
+            break;
+        case binop::GRTR:
+            res = builder.CreateICmp(CmpInst::ICMP_SGT, lv.ptr, rv.ptr, "grtmp");
+            this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
+            break;
+        case binop::EQ:
+            res = builder.CreateICmp(CmpInst::ICMP_EQ, lv.ptr, rv.ptr, "eqstmp");
+            this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
+            break;
+        case binop::NEQ:
+            res = builder.CreateICmp(CmpInst::ICMP_NE, lv.ptr, rv.ptr, "netmp");
+            this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
+            break;
+        case binop::OR:
+            res = builder.CreateOr(lv.ptr, rv.ptr, "ortmp");
+            this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
+            break;
+        case binop::AND:
+            res = builder.CreateAnd(lv.ptr, rv.ptr, "andtmp");
+            this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
+            break;
+        }
+    } catch(unexpected_type_exception& e) {
+        e.loc = node.get_loc();
+        throw e;
+    }
+};
+
+void llvm_visitor::visit(const unarop_expression& node) {
+    auto expr = node.get_exp()->accept_with_result(*this);
+
+    if (std::holds_alternative<TypedFunctionPtr>(expr)) {
+        throw syntax_exception{ "Invalid unary operation on function type", node.get_loc() };
+    }
+
+    const auto& val = std::get<TypedValuePtr>(expr);
+
+    Value* res;
+    try {
+        switch(node.get_op()) {
+        case unarop::MINUS: {
+            Value* zero = ConstantInt::get(ctx, APInt(32, 0, true));
+            res = builder.CreateSub(zero, val.ptr, "negtmp");
+            this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
+            break;
+        }
+        case unarop::NOT: {
+            Value* one = ConstantInt::get(ctx, APInt(1, 1, true));
+            res = builder.CreateXor(one, val.ptr, "nottmp");
+            this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
+            break;
+        }
+        }
+    } catch(unexpected_type_exception& e) {
+        e.loc = node.get_loc();
+        throw e;
+    }
+};
+
 
 void llvm_visitor::visit(const if_statement& node) {
 
@@ -360,23 +459,6 @@ void llvm_visitor::visit(const while_statement& node) {
     builder.SetInsertPoint(endb);
 };
 
-
-void llvm_visitor::visit(const binop_expression& node) {
-
-    auto left = std::get<TypedValuePtr>(node.get_left()->accept_with_result((*this)));
-    auto right = std::get<TypedValuePtr>(node.get_right()->accept_with_result((*this)));
-
-    switch(node.get_op()) {
-    case binop::NEQ: {
-        // TODO: Add typecheck
-        Value* res = builder.CreateICmpNE(left.ptr, right.ptr, "not_equal_cmp");
-        result = TypedValuePtr{ res, std::make_unique<bool_type>() };
-        break;
-    }
-    default: exit(10);
-    }
-};
-void llvm_visitor::visit(const unarop_expression&) {};
 
 void llvm_visitor::visit(const subscript_expression&) {};
 void llvm_visitor::visit(const subscript_assign_statement&) {};
