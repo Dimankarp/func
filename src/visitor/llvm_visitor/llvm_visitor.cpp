@@ -6,7 +6,7 @@
 #include "visitor/sym_table.hpp"
 #include "llvm/IR/Verifier.h"
 #include <llvm/IR/BasicBlock.h>
-#include <llvm-18/llvm/IR/InstrTypes.h>
+#include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Value.h>
