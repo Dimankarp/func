@@ -336,6 +336,31 @@ void llvm_visitor::visit(const if_statement& node) {
     builder.SetInsertPoint(mergeb);
 }
 
+void llvm_visitor::visit(const while_statement& node) {
+
+    Function* function = builder.GetInsertBlock()->getParent();
+
+    BasicBlock* condb = BasicBlock::Create(ctx, "while_cond", function);
+    BasicBlock* loopb = BasicBlock::Create(ctx, "while_loop");
+    BasicBlock* endb = BasicBlock::Create(ctx, "while_end");
+
+    builder.CreateBr(condb);
+    builder.SetInsertPoint(condb);
+    TypedValuePtr cond =
+    std::get<TypedValuePtr>(node.get_condition()->accept_with_result(*this));
+    expect_types(bool_type{}, *cond.type_obj, node.get_loc());
+    builder.CreateCondBr(cond.ptr, loopb, endb);
+
+    function->insert(function->end(), loopb);
+    builder.SetInsertPoint(loopb);
+    node.get_block()->accept(*this);
+    builder.CreateBr(condb);
+
+    function->insert(function->end(), endb);
+    builder.SetInsertPoint(endb);
+};
+
+
 void llvm_visitor::visit(const binop_expression& node) {
 
     auto left = std::get<TypedValuePtr>(node.get_left()->accept_with_result((*this)));
@@ -355,9 +380,6 @@ void llvm_visitor::visit(const unarop_expression&) {};
 
 void llvm_visitor::visit(const subscript_expression&) {};
 void llvm_visitor::visit(const subscript_assign_statement&) {};
-
-
-void llvm_visitor::visit(const while_statement&) {};
 
 
 } // namespace func
