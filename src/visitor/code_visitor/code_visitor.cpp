@@ -1,6 +1,6 @@
 #include "visitor/code_visitor/code_visitor.hpp"
+#include "codegen/location.hh"
 #include "exception.hpp"
-#include "location.hh"
 #include "node/expression.hpp"
 #include "node/function.hpp"
 #include "node/program.hpp"

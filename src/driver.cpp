@@ -1,5 +1,5 @@
 #include "driver.hpp"
-#include "parser.tab.hpp"
+#include "codegen/parser.tab.hpp"
 #include <string>
 
 driver::driver() = default;

@@ -1,7 +1,7 @@
 #ifndef NODE_AST_HPP_
 #define NODE_AST_HPP_
 
-#include "location.hh"
+#include "codegen/location.hh"
 #include "visitor/visitor.hpp"
 #include <memory>
 

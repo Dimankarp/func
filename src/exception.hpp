@@ -1,6 +1,6 @@
 #pragma once
 
-#include "location.hh"
+#include "codegen/location.hh"
 #include <ostream>
 #include <sstream>
 #include <string>

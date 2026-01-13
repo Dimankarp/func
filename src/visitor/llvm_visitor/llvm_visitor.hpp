@@ -1,6 +1,6 @@
 #pragma once
 
-#include "location.hh"
+#include "codegen/location.hh"
 #include "printer.hpp"
 #include "type/type.hpp"
 #include "visitor/sym_table.hpp"

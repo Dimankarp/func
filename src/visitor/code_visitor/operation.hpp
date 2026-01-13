@@ -1,7 +1,7 @@
 #pragma once
 
+#include "codegen/location.hh"
 #include "exception.hpp"
-#include "location.hh"
 #include "type/type.hpp"
 #include "visitor/code_visitor/code_visitor.hpp"
 #include "visitor/code_visitor/instruction_writer.hpp"

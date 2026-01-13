@@ -1,5 +1,5 @@
 #pragma once
-#include "location.hh"
+#include "codegen/location.hh"
 #include "node/ast.hpp"
 #include "node/expression.hpp"
 #include "type/type.hpp"

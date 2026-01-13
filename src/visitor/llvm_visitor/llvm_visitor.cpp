@@ -4,6 +4,7 @@
 #include "node/program.hpp"
 #include "type/type.hpp"
 #include "type/type_checker.hpp"
+#include "utils.hpp"
 #include "visitor/sym_table.hpp"
 #include "llvm/IR/Verifier.h"
 #include <llvm/IR/BasicBlock.h>
@@ -33,7 +34,7 @@ Type* llvm_visitor::llvm_get_type(types t) {
     case types::BOOL: return Type::getIntNTy(ctx, 1);
     case types::VOID: return Type::getVoidTy(ctx);
     case types::FUNCTION: return PointerType::get(ctx, 0);
-    default: exit(10);
+    default: panic(1, "Invalid type in llvm_get_type: %d", t);
     }
 }
 

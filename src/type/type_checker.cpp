@@ -1,6 +1,6 @@
 #include "type/type_checker.hpp"
+#include "codegen/location.hh"
 #include "exception.hpp"
-#include "location.hh"
 #include "type/type.hpp"
 
 namespace func {

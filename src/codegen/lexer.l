@@ -4,7 +4,7 @@
 # include <cstdlib>
 # include <string>
 # include "driver.hpp"
-# include "parser.tab.hpp"
+# include "codegen/parser.tab.hpp"
 
 
 // Pacify warnings in yy_init_buffer (observed with Flex 2.6.4)

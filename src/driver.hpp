@@ -1,8 +1,8 @@
 #pragma once
 
-#include "location.hh"
+#include "codegen/location.hh"
+#include "codegen/parser.tab.hpp"
 #include "node/ast.hpp"
-#include "parser.tab.hpp"
 #include <memory>
 #include <string>
 
