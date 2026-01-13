@@ -337,37 +337,37 @@ void llvm_visitor::visit(const binop_expression& node) {
     try {
         switch(node.get_op()) {
         case binop::ADD:
-            expect<int_type>(*lv.type_obj);
+            expect_types(int_type{}, *lv.type_obj, node.get_loc());
             res = builder.CreateAdd(lv.ptr, rv.ptr, "addtmp");
             this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
             break;
         case binop::SUB:
-            expect<int_type>(*lv.type_obj);
+            expect_types(int_type{}, *lv.type_obj, node.get_loc());
             res = builder.CreateSub(lv.ptr, rv.ptr, "subtmp");
             this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
             break;
         case binop::MUL:
-            expect<int_type>(*lv.type_obj);
+            expect_types(int_type{}, *lv.type_obj, node.get_loc());
             res = builder.CreateMul(lv.ptr, rv.ptr, "multmp");
             this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
             break;
         case binop::DIV:
-            expect<int_type>(*lv.type_obj);
+            expect_types(int_type{}, *lv.type_obj, node.get_loc());
             res = builder.CreateSDiv(lv.ptr, rv.ptr, "divtmp");
             this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
             break;
         case binop::MOD:
-            expect<int_type>(*lv.type_obj);
+            expect_types(int_type{}, *lv.type_obj, node.get_loc());
             res = builder.CreateSRem(lv.ptr, rv.ptr, "modtmp");
             this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
             break;
         case binop::LESS:
-            expect<int_type>(*lv.type_obj);
+            expect_types(int_type{}, *lv.type_obj, node.get_loc());
             res = builder.CreateICmp(CmpInst::ICMP_SLT, lv.ptr, rv.ptr, "lstmp");
             this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
             break;
         case binop::GRTR:
-            expect<int_type>(*lv.type_obj);
+            expect_types(int_type{}, *lv.type_obj, node.get_loc());
             res = builder.CreateICmp(CmpInst::ICMP_SGT, lv.ptr, rv.ptr, "grtmp");
             this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
             break;
@@ -380,12 +380,12 @@ void llvm_visitor::visit(const binop_expression& node) {
             this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
             break;
         case binop::OR:
-            expect<bool_type>(*lv.type_obj);
+            expect_types(bool_type{}, *lv.type_obj, node.get_loc());
             res = builder.CreateOr(lv.ptr, rv.ptr, "ortmp");
             this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
             break;
         case binop::AND:
-            expect<bool_type>(*lv.type_obj);
+            expect_types(bool_type{}, *lv.type_obj, node.get_loc());
             res = builder.CreateAnd(lv.ptr, rv.ptr, "andtmp");
             this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
             break;
@@ -409,14 +409,14 @@ void llvm_visitor::visit(const unarop_expression& node) {
     try {
         switch(node.get_op()) {
         case unarop::MINUS: {
-            expect<int_type>(*val.type_obj);
+            expect_types(int_type{}, *val.type_obj, node.get_loc());
             Value* zero = ConstantInt::get(ctx, APInt(32, 0, true));
             res = builder.CreateSub(zero, val.ptr, "negtmp");
             this->result = TypedValuePtr{ res, std::make_unique<int_type>() };
             break;
         }
         case unarop::NOT: {
-            expect<bool_type>(*val.type_obj);
+            expect_types(bool_type{}, *val.type_obj, node.get_loc());
             Value* one = ConstantInt::get(ctx, APInt(1, 1, true));
             res = builder.CreateXor(one, val.ptr, "nottmp");
             this->result = TypedValuePtr{ res, std::make_unique<bool_type>() };
@@ -494,12 +494,10 @@ void llvm_visitor::visit(const while_statement& node) {
 
 void llvm_visitor::visit(const subscript_expression& node) {
     auto ptr = std::get<TypedValuePtr>(node.get_pointer()->accept_with_result(*this));
-
-    expect<string_type>(*ptr.type_obj);
+    expect_types(string_type{}, *ptr.type_obj, node.get_loc());
 
     auto idx = std::get<TypedValuePtr>(node.get_index()->accept_with_result(*this));
-
-    expect<int_type>(*idx.type_obj);
+    expect_types(int_type{}, *idx.type_obj, node.get_loc());
 
     Value* elem_i_ptr = builder.CreateGEP(llvm_get_type(types::INT), ptr.ptr,
                                           { idx.ptr }, "array_elem_ptr");
@@ -513,17 +511,13 @@ void llvm_visitor::visit(const subscript_expression& node) {
 void llvm_visitor::visit(const subscript_assign_statement& node) {
 
     auto ptr = std::get<TypedValuePtr>(node.get_pointer()->accept_with_result(*this));
-
-    expect<string_type>(*ptr.type_obj);
+    expect_types(string_type{}, *ptr.type_obj, node.get_loc());
 
     auto idx = std::get<TypedValuePtr>(node.get_index()->accept_with_result(*this));
-
-    expect<int_type>(*idx.type_obj);
+    expect_types(int_type{}, *idx.type_obj, node.get_loc());
 
     auto expr = std::get<TypedValuePtr>(node.get_exp()->accept_with_result(*this));
-
-    expect<int_type>(*expr.type_obj);
-
+    expect_types(int_type{}, *expr.type_obj, node.get_loc());
 
     Value* elem_i_ptr = builder.CreateGEP(llvm_get_type(types::INT), ptr.ptr,
                                           { idx.ptr }, "array_elem_ptr");

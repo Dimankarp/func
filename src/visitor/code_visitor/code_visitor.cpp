@@ -388,7 +388,8 @@ void code_visitor::visit(const if_statement& stm) {
     std::string else_end_label = "ELSE_END_" + std::to_string(label_ind++);
 
     stm.get_condition()->accept(*this);
-    // TODO: Typecheck result is bool
+    expect_types(bool_type{}, *result.type_obj, stm.get_condition()->get_loc());
+    
     writer.beq(result.reg_num, 0, then_end_label);
     alloc.dealloc(result.reg_num);
 

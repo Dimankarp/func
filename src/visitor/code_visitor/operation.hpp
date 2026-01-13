@@ -9,15 +9,6 @@
 #include <memory>
 namespace func {
 
-template <typename T> T expect(const expr_result& exp) {
-    if(exp.type_obj->get_type() != T::type_enum)
-        throw unexpected_type_exception(
-        { func::types_to_string(exp.type_obj->get_type()) + " but expected " +
-          func::types_to_string(T::type_enum),
-          yy::location{} });
-    return dynamic_cast<const T&>(*exp.type_obj);
-}
-
 expr_result expr_add(instr::instruction_writer& w,
                      reg_allocator& alloc,
                      const expr_result& a,

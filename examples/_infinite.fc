@@ -7,11 +7,17 @@ void print((void-int) gen){
     write(10);
 }
 
-int get(int a){
-  return a;
+void get(int a){
+    return;
+}
+
+int foo(bool b){
+    return 42;
 }
 
 void main(){
-    print(get);
+    (int-int) g;
+    g = foo;
+    // print(get);
     exit(0);
 }
