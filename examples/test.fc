@@ -2,23 +2,16 @@ int write(int _);
 int read();
 void exit(int _);
 
-int even_are_bigger_compare(int a, int b) {
-  if (a % 2 == 0 && b % 2 != 0)
-    return 1;
-  if (a % 2 != 0 && b % 2 == 0)
-    return -1;
-  return a - b;
-}
-
-void print((void-int) gen){
-    write(gen());
-    write(10);
+void print_a((int-int) wr){
+    wr(65);
 }
 
 void main(){
-    if(true){
-        return;
-    }
-    print(even_are_bigger_compare);
+    (int-int) f = write;
+    print_a(f);
+
+    print_a(write);
+
+    write(10);
     exit(0);
 }

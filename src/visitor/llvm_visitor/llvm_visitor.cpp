@@ -1,4 +1,5 @@
 #include "visitor/llvm_visitor/llvm_visitor.hpp"
+#include "exception.hpp"
 #include "node/function.hpp"
 #include "node/program.hpp"
 #include "type/type.hpp"
@@ -184,11 +185,9 @@ void llvm_visitor::visit(const function_call& node) {
 
     std::vector<Value*> argsV;
     for(int i = 0; i < node.get_arg_list().size(); i++) {
-        auto a = std::get<TypedValuePtr>(args[i]->accept_with_result(*this));
-
-        expect_types(*func_type.get_signature()[i], *a.type_obj, args[i]->get_loc());
-
-        argsV.push_back(a.ptr);
+        auto arg = turn_to_typed_value_ptr(args[i]->accept_with_result(*this));
+        expect_types(*func_type.get_signature()[i], *arg.type_obj, args[i]->get_loc());
+        argsV.push_back(arg.ptr);
     }
 
 
@@ -286,32 +285,30 @@ void llvm_visitor::visit(const assign_statement& node) {
         table.add(llvm_sym_info{ node.get_identifier(), node.get_type()->clone(), alloc });
     }
 
-
     // evaluate expression and save result
     if(node.get_exp() == nullptr)
         return;
 
     const llvm_sym_info& sym = table.find(node.get_identifier());
 
-    // TODO: refactor
-    auto expr = node.get_exp()->accept_with_result(*this);
-    if(std::holds_alternative<TypedValuePtr>(expr)) {
-        auto& v = std::get<TypedValuePtr>(expr);
-        func::expect_types(*sym.type_obj, *v.type_obj, node.get_exp()->get_loc());
-
-        builder.CreateStore(v.ptr, sym.value.value());
-    } else if(std::holds_alternative<TypedFunctionPtr>(expr)) {
-        auto& f = std::get<TypedFunctionPtr>(expr);
-
-        func::expect_types(*sym.type_obj, *f.type_obj, node.get_exp()->get_loc());
-
-        Value* ptr = builder.CreateBitCast(f.ptr, PointerType::get(ctx, 0));
-        builder.CreateStore(ptr, sym.value.value());
-    } else {
-        throw syntax_exception{ "Invalid assignment expression", node.get_loc() };
-    }
+    auto expr = turn_to_typed_value_ptr(node.get_exp()->accept_with_result(*this));
+    expect_types(*sym.type_obj, *expr.type_obj, node.get_exp()->get_loc());
+    builder.CreateStore(expr.ptr, sym.value.value());
 };
 
+TypedValuePtr llvm_visitor::turn_to_typed_value_ptr(llvm_result res) {
+    if(std::holds_alternative<TypedValuePtr>(res)) {
+        return std::move(std::get<TypedValuePtr>(res));
+    }
+
+    if(std::holds_alternative<TypedFunctionPtr>(res)) {
+        auto f = std::move(std::get<TypedFunctionPtr>(res));
+        Value* ptr = builder.CreateBitCast(f.ptr, PointerType::get(ctx, 0));
+        return TypedValuePtr{ ptr, std::move(f.type_obj) };
+    }
+
+    throw global_syntax_exception{ "Can't turn result into typed value." };
+}
 
 void llvm_visitor::visit(const binop_expression& node) {
     auto left = node.get_left()->accept_with_result(*this);

@@ -1,0 +1,17 @@
+int write(int _);
+int read();
+void exit(int _);
+
+void print((void-int) gen){
+    write(gen());
+    write(10);
+}
+
+int get(int a){
+  return a;
+}
+
+void main(){
+    print(get);
+    exit(0);
+}

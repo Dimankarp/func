@@ -104,6 +104,7 @@ class llvm_visitor : public visitor<llvm_result> {
     private:
     Type* llvm_get_type(types t);
     FunctionType* llvm_get_function_type(const function_type& func_type);
+    TypedValuePtr turn_to_typed_value_ptr(llvm_result res);
 };
 
 } // namespace func
