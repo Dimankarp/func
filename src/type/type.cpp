@@ -57,6 +57,7 @@ std::string type_to_string(const func::type& t) {
     iter++;
     while(iter != fun.get_signature().end()) {
         res.append("-" + func::type_to_string(**iter));
+        iter++;
     }
     res.append(")");
     return res;
