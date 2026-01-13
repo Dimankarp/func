@@ -24,11 +24,9 @@ class stream_proxy {
 };
 
 class printer {
-
     public:
     printer(std::ostream& os)
-    : code(os, print_code), debug(os, print_debug), alloc(os, print_alloc),
-      output_stream(os) {}
+    : code(os, print_code), debug(os, print_debug), alloc(os, print_alloc){}
 
     bool print_code{ true };
     bool print_debug{ true };
@@ -38,8 +36,6 @@ class printer {
     stream_proxy debug;
     stream_proxy alloc;
 
-    private:
-    std::ostream& output_stream;
 };
 
 template <typename T> stream_proxy& stream_proxy::operator<<(const T& value) {
