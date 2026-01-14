@@ -291,6 +291,9 @@ void llvm_visitor::visit(const assign_statement& node) {
         return;
 
     const llvm_sym_info& sym = table.find(node.get_identifier());
+    if (!sym.value.has_value()) {
+        throw syntax_exception{ "assignment to declared function '" + sym.name + "'.", node.get_loc() };
+    }
 
     auto expr = turn_to_typed_value_ptr(node.get_exp()->accept_with_result(*this));
     expect_types(*sym.type_obj, *expr.type_obj, node.get_exp()->get_loc());
