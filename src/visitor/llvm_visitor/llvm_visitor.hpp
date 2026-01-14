@@ -58,6 +58,7 @@ using llvm_result = std::variant<TypedValuePtr, TypedFunctionPtr, Function*>;
 class llvm_visitor : public visitor<llvm_result> {
     private:
     func::stream_proxy& debug_out;
+    func::llvm_stream_proxy code_out;
     llvm_result result;
     sym_table<llvm_sym_info> table;
     LLVMContext ctx;
@@ -67,7 +68,8 @@ class llvm_visitor : public visitor<llvm_result> {
     FunctionAnalysisManager fam;
 
     public:
-    llvm_visitor(func::printer& printer) : debug_out{ printer.debug } {
+    llvm_visitor(func::printer& printer)
+    : debug_out{ printer.debug }, code_out{ llvm_stream_proxy{ printer.code } } {
         fpm.addPass(PromotePass());
         PassBuilder PB;
         PB.registerFunctionAnalyses(fam);

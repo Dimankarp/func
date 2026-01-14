@@ -23,7 +23,7 @@ void llvm_visitor::visit(const program& node) {
     for(const auto& func : node.get_funcs()) {
         func->accept(*this);
     }
-    module.print(outs(), nullptr);
+    module.print(code_out, nullptr);
 }
 
 
