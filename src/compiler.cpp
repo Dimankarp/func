@@ -68,7 +68,11 @@ int main(int argc, char* argv[]) {
 
         if(result.count("source")) {
             auto srcs = result["source"].as<std::vector<std::string>>();
-            if(drv.parse(srcs[0]) != 0) { // Only process the first file for now.
+            if (srcs.size() > 1) {
+                std::cerr << "Module can be compiled from only one source file.\n";
+                exit(1);
+            }
+            if(drv.parse(srcs[0]) != 0) {
                 std::cerr << "Failed to parse - exiting.\n";
                 exit(1);
             }
