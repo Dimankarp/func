@@ -1,0 +1,163 @@
+int write(int _);
+int read();
+void exit(int _);
+
+int strlen(string s);
+void write_str(string s, int len);
+void write_int(int n);
+int read_int();
+
+void write_cstr(string s) {
+  write_str(s, strlen(s) - 1);
+  return;
+}
+
+bool is_taken(int cell) {
+  return (cell == 88) || (cell == 79);
+}
+
+void print_board(string b) {
+  write(b[0]); write(124); write(b[1]); write(124); write(b[2]); write(10);
+  write(45); write(43); write(45); write(43); write(45); write(10);
+  write(b[3]); write(124); write(b[4]); write(124); write(b[5]); write(10);
+  write(45); write(43); write(45); write(43); write(45); write(10);
+  write(b[6]); write(124); write(b[7]); write(124); write(b[8]); write(10);
+  return;
+}
+
+bool win_line(string b, int c, int i, int j, int k) {
+  return (b[i] == c) && (b[j] == c) && (b[k] == c);
+}
+
+bool check_win(string b, int c) {
+  if (win_line(b, c, 0, 1, 2)) return true;
+  if (win_line(b, c, 3, 4, 5)) return true;
+  if (win_line(b, c, 6, 7, 8)) return true;
+  if (win_line(b, c, 0, 3, 6)) return true;
+  if (win_line(b, c, 1, 4, 7)) return true;
+  if (win_line(b, c, 2, 5, 8)) return true;
+  if (win_line(b, c, 0, 4, 8)) return true;
+  if (win_line(b, c, 2, 4, 6)) return true;
+  return false;
+}
+
+int read_move(string b, int player_char) {
+  while (true) {
+    int n = read_int();
+    int idx = n - 1;
+
+    if ((idx > -1 && idx < 9) && (is_taken(b[idx]) == false))
+      return idx;
+
+    write_cstr("Invalid move. Choose 1-9 for an empty cell.\n");
+    if (player_char == 88) write_cstr("X> ");
+    else write_cstr("O> ");
+  }
+  return 0;
+}
+
+int find_winning_move(string b, int player_char) {
+  int i = 0;
+  while (i < 9) {
+    if (is_taken(b[i]) == false) {
+      int orig = b[i];
+      b[i] = player_char;
+      bool win = check_win(b, player_char);
+      b[i] = orig;
+      if (win) return i;
+    }
+    i = i + 1;
+  }
+  return -1;
+}
+
+int bot_move(string b, int me, int opp) {
+  int win = find_winning_move(b, me);
+  if (win > -1) return win;
+
+  int block = find_winning_move(b, opp);
+  if (block > -1) return block;
+
+  if (is_taken(b[4]) == false) return 4;
+
+  if (is_taken(b[0]) == false) return 0;
+  if (is_taken(b[2]) == false) return 2;
+  if (is_taken(b[6]) == false) return 6;
+  if (is_taken(b[8]) == false) return 8;
+
+  if (is_taken(b[1]) == false) return 1;
+  if (is_taken(b[3]) == false) return 3;
+  if (is_taken(b[5]) == false) return 5;
+  if (is_taken(b[7]) == false) return 7;
+
+  return 0;
+}
+
+int menu_mode() {
+  write_cstr("Choose mode:\n");
+  write_cstr("  1) Human vs Human\n");
+  write_cstr("  2) Human (X) vs Bot (O)\n");
+  write_cstr("  3) Bot (X) vs Human (O)\n");
+  write_cstr("> ");
+
+  while (true) {
+    int m = read_int();
+    if ((m > 0) && (m < 4)) return m;
+    write_cstr("Please enter 1, 2, or 3.\n> ");
+  }
+  return 1;
+}
+
+void main() {
+  // Board stores ASCII codes in a mutable string.
+  string board = "123456789";
+
+  write_cstr("Tic-Tac-Toe\n");
+  write_cstr("Enter a number 1-9 to place your mark.\n\n");
+
+  int mode = menu_mode();
+
+  int turn = 0;
+  int player = 88; // 'X'
+
+  while (turn < 9) {
+    print_board(board);
+    write(10);
+
+    bool player_is_bot = false;
+    if (mode == 1) player_is_bot = false;
+    if (mode == 2) player_is_bot = (player == 79);
+    if (mode == 3) player_is_bot = (player == 88);
+
+    int move = 0;
+    if (player_is_bot) {
+      int opp = 79;
+      if (player == 79) opp = 88;
+      move = bot_move(board, player, opp);
+      write_cstr("Bot plays ");
+      write_int(move + 1);
+      write(10);
+    } else {
+      if (player == 88) write_cstr("X> ");
+      else write_cstr("O> ");
+      move = read_move(board, player);
+    }
+
+    board[move] = player;
+
+    if (check_win(board, player)) {
+      print_board(board);
+      if (player == 88) write_cstr("X wins!\n");
+      else write_cstr("O wins!\n");
+      exit(0);
+    }
+
+    if (player == 88) player = 79;
+    else player = 88;
+    turn = turn + 1;
+  }
+
+  print_board(board);
+  write_cstr("Draw.\n");
+  exit(0);
+}

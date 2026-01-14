@@ -37,7 +37,7 @@ void write_int(int n) {
   return;
 }
 
-bool is_digit(int n) { return ((n > 47) && (n < 56)); }
+bool is_digit(int n) { return ((n > 47) && (n < 58)); }
 
 int read_int() {
   int n = 0;

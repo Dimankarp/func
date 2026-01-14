@@ -46,11 +46,7 @@ while [[ $# -gt 0 ]]; do
       compiler_args+=("--arch" "$1")
       shift
       ;;
-    --arch=*)
-      compiler_args+=("$1")
-      shift
-      ;;
-
+      
     -h|--help)
       usage
       exit 0

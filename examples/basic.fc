@@ -1,6 +1,6 @@
 int write(int _);
 int read();
-int exit(int _);
+void exit(int _);
 
 void main(){
     string c = "c";
