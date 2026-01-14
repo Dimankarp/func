@@ -2,6 +2,7 @@
 #include "driver.hpp"
 #include "exception.hpp"
 #include "printer.hpp"
+#include "visitor/code_visitor/code_visitor.hpp"
 #include "visitor/llvm_visitor/llvm_visitor.hpp"
 #include "visitor/print_visitor/print_visitor.hpp"
 
@@ -11,13 +12,18 @@
 #include <memory>
 #include <optional>
 
+enum class Arch{
+    SIM,
+    X64
+};
+
 int main(int argc, char* argv[]) {
     driver drv;
     bool print_ast_flag;
     bool debug_mode_flag;
     bool alloc_trace_flag;
     std::string output_file;
-    std::string target_arch;
+    Arch target_arch;
     std::optional<std::reference_wrapper<std::ostream>> output_stream;
 
     cxxopts::Options options("compiler", "A compiler for a simple C-like language called FunC.");
@@ -48,7 +54,6 @@ int main(int argc, char* argv[]) {
         drv.trace_scanning = result["trace-scanning"].as<bool>();
         debug_mode_flag = result["debug"].as<bool>();
         alloc_trace_flag = result["alloc"].as<bool>();
-        target_arch = result["arch"].as<string>();
 
 
         if(result.count("help")) {
@@ -70,6 +75,17 @@ int main(int argc, char* argv[]) {
         } else {
             exit(0); // No input files were given.
         }
+
+        std::string arch_str = result["arch"].as<std::string>();
+        if (arch_str == "sim") {
+            target_arch = Arch::SIM;
+        } else if (arch_str == "x64") {
+            target_arch = Arch::X64;
+        } else {
+            std::cerr << "Unknown architecture: " << arch_str << "\n";
+            exit(1);
+        }
+
     } catch(const cxxopts::exceptions::exception& e) {
         std::cerr << "Error parsing options: " << e.what() << '\n';
         exit(1);
@@ -99,11 +115,22 @@ int main(int argc, char* argv[]) {
         printer.print_debug = debug_mode_flag;
         printer.print_alloc = alloc_trace_flag;
 
-        // func::code_visitor code_visitor{ printer };
-        // tree->accept(code_visitor);
-
-        func::llvm_visitor llvm_visitor{ printer };
-        tree->accept(llvm_visitor);
+        switch (target_arch) {
+            case Arch::SIM: {
+                func::code_visitor code_visitor{ printer };
+                tree->accept(code_visitor);
+                break;
+            }
+            case Arch::X64: {
+                func::llvm_visitor llvm_visitor{ printer };
+                tree->accept(llvm_visitor);
+                break;
+            }
+            default: {
+                std::cerr << "Unsupported architecture\n";
+                exit(1);
+            }
+        }
 
     } catch(func::unexpected_type_exception& e) {
         std::cerr << "Syntax error: unexpected type " << e << "\n";
