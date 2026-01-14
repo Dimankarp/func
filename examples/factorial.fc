@@ -2,6 +2,14 @@ int write(int _);
 int read();
 int exit(int _);
 
+
+int strlen(string s);
+void write_str(string s, int len);
+int itoascii(int n);
+void write_int(int n);
+bool is_digit(int n);
+int read_int();
+
 int strlen(string s) {
   int len = 0;
   while (s[len] != 0)

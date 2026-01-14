@@ -1,5 +1,9 @@
+int write(int _);
+int read();
+int exit(int _);
+
 void main(){
     string c = "c";
     write(c[0]);
-    return;
+    exit(0);
 }

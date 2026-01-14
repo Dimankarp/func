@@ -1,3 +1,7 @@
+int write(int _);
+int read();
+int exit(int _);
+
 /* Output
 bbbbb
 */
@@ -9,5 +13,6 @@ void main(){
         write(a);
         i = i + 1;
     }
+    exit(0);
     return;
 } 

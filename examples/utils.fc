@@ -1,3 +1,7 @@
+int write(int _);
+int read();
+void exit(int _);
+
 int strlen(string s) {
   int len = 0;
   while (s[len] != 0)
