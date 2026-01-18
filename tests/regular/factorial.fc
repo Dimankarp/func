@@ -1,0 +1,29 @@
+// test: factorial-test
+// input: "10"
+// output: "3628800"
+// exit-code: 0
+
+int write(int _);
+int read();
+void exit(int _);
+
+
+int strlen(string s);
+void write_str(string s, int len);
+int itoascii(int n);
+void write_int(int n);
+bool is_digit(int n);
+int read_int();
+
+int factorial(int n) {
+  if (n == 1 || n == 0)
+    return 1;
+  return n * factorial(n - 1);
+}
+
+void main() {
+  int res = factorial(read_int());
+  write_int(res);
+  exit(0);
+  return;
+}

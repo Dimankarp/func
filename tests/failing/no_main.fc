@@ -1,0 +1,8 @@
+// test: no-main-test
+// compile_fail: true
+
+void exit(int _);
+
+void glavnaya(){
+    exit(0);
+}

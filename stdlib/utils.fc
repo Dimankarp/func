@@ -10,6 +10,11 @@ int strlen(string s) {
   return len;
 }
 
+// Doesn't count null-term
+int cstrlen(string s){
+  return strlen(s) - 1;
+}
+
 void write_str(string s, int len) {
   int i = 0;
   while (i < len) {

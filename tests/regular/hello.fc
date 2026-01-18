@@ -1,0 +1,16 @@
+// test: hello-test
+// input: ""
+// output: "Hello, cruel world!"
+// exit-code: 0
+
+int write(int _);
+int read();
+void exit(int _);
+int cstrlen(string s);
+void write_str(string s, int len);
+
+void main(){
+    string hello = "Hello, cruel world!";
+    write_str(hello, cstrlen(hello));
+    exit(0);
+}
