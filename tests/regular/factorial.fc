@@ -1,6 +1,6 @@
 // test: factorial-test
-// input: "10"
-// output: "3628800"
+// input: "1" "10"
+// output: "1" "3628800"
 // exit-code: 0
 
 int write(int _);

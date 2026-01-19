@@ -52,6 +52,16 @@ class RunResult:
 
 _QUOTED_STRING_RE = re.compile(r'"(?:\\.|[^"\\])*"')
 
+def _split_by_delimiter_ignore_quotes(text: str, delimiter=' ') -> list[str]:
+    escaped_delim = re.escape(delimiter)
+    
+    pattern = r'{}(?=(?:[^"]*"[^"]*")*[^"]*$)'.format(escaped_delim)
+    
+    res = re.split(pattern, text)
+    
+    return [r for r in res if r != '']
+
+
 def _parse_quoted_string(value: str) -> str:
     m = _QUOTED_STRING_RE.search(value)
     if not m:
@@ -67,10 +77,13 @@ def _parse_quoted_string(value: str) -> str:
         return literal.strip('"')
 
 
-def parse_test_metadata(path: Path) -> TestCase:
+
+    
+
+def parse_test_metadata(path: Path) -> list[TestCase]:
     name = "test"
-    stdin = ""
-    expected_stdout = ""
+    stdin = []
+    expected_stdout = []
     expected_exit_code = 0
     compilation_should_fail = False
 
@@ -93,22 +106,25 @@ def parse_test_metadata(path: Path) -> TestCase:
             if key == "test":
                 name = val if val else name
             elif key == "input":
-                stdin = _parse_quoted_string(val)
+                stdin = [_parse_quoted_string(v) for v in _split_by_delimiter_ignore_quotes(val)]
             elif key == "output":
-                expected_stdout = _parse_quoted_string(val)
+                expected_stdout = [_parse_quoted_string(v) for v in _split_by_delimiter_ignore_quotes(val)]
             elif key == "exit-code":
                 expected_exit_code = int(val)
             elif key == "compile_fail":
                  compilation_should_fail = bool(val)
+    
+    if len(stdin) != len(expected_stdout):
+        raise Exception(f"Amount of Input({len(stdin)}) and Output({len(expected_stdout)}) args must be the same.")
 
-    return TestCase(
+    return [TestCase(
         path=path,
         name=name,
-        stdin=stdin,
-        expected_stdout=expected_stdout,
+        stdin=inp,
+        expected_stdout=outp,
         expected_exit_code=expected_exit_code,
         compilation_should_fail = compilation_should_fail
-    )
+    ) for (inp, outp) in zip(stdin, expected_stdout)]
 
 
 TEST_NUM = 1
@@ -185,15 +201,15 @@ def run_one(compiled: CompiledTest, root: Path) -> RunResult:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
-        description="FunC test runner: compiles .fc tests and runs them in parallel"
+        description="FunC test runner: compiles .fc test_files and runs them in parallel"
     )
-    parser.add_argument("tests", nargs="+", help="One or more .fc test files")
+    parser.add_argument("test_file", nargs="+", help="One or more .fc test files")
     args = parser.parse_args(argv)
 
     root = Path(__file__).resolve().parent
 
     cases: list[TestCase] = []
-    for t in args.tests:
+    for t in args.test_file:
         p = Path(t)
         if not p.is_absolute():
             p = (root / p).resolve()
@@ -202,7 +218,7 @@ def main(argv: list[str]) -> int:
             print(err_text("ERROR") + f" test file not found: {t}", file=sys.stderr)
             return 1
 
-        cases.append(parse_test_metadata(p))
+        cases.extend(parse_test_metadata(p))
 
     compiled_tests: list[CompiledTest] = []
     any_failed = False
