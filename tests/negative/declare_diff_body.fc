@@ -1,0 +1,17 @@
+// test: declare-with-different-body-test
+// compile_fail: true
+
+void exit(int _);
+
+int foo(int arg){
+    return 1;
+};
+
+int foo(int arg){
+    return 2;
+};
+
+void main(){
+    exit(0);
+}
+

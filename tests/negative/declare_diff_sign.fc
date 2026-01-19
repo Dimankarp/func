@@ -1,0 +1,12 @@
+// test: declare-with-different-signature-test
+// compile_fail: true
+
+void exit(int _);
+
+int foo(bool arg);
+int foo(int arg);
+
+void main(){
+    exit(0);
+}
+

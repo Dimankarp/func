@@ -82,8 +82,8 @@ def _parse_quoted_string(value: str) -> str:
 
 def parse_test_metadata(path: Path) -> list[TestCase]:
     name = "test"
-    stdin = []
-    expected_stdout = []
+    stdin = [""]
+    expected_stdout = [""]
     expected_exit_code = 0
     compilation_should_fail = False
 
