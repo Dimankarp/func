@@ -1,5 +1,6 @@
 // test: no-main-test
 // compile-fail: true
+// exit-code: 1
 
 void exit(int _);
 

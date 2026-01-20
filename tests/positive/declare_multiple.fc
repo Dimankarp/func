@@ -1,5 +1,4 @@
 // test: declare-multiple-test
-// exit-code: 0
 
 void exit(int _);
 

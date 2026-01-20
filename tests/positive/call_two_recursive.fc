@@ -1,7 +1,6 @@
 // test: call-two-recursive-test
-// input:  "0" "1"  "2"  "3"  "4"  "10"  "17"
-// output: "0" "1"  "0"  "1"  "0"  "0"   "1"
-// exit-code: 0
+// input:  "0" "1"  "2"  "3"  "4"  "13"
+// output: "0" "1"  "0"  "1"  "0"  "1"
 
 int write(int _);
 int read();

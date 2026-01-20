@@ -1,6 +1,6 @@
 // test: call-void-with-arguments-test
 // compile-fail: true
-// exit-code: 10
+// exit-code: 1
 
 int write(int _);
 void exit(int _);

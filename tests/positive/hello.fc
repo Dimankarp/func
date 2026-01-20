@@ -1,7 +1,6 @@
 // test: hello-test
 // input: ""
 // output: "Hello, cruel world!"
-// exit-code: 0
 
 int write(int _);
 int read();

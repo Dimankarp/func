@@ -135,7 +135,7 @@ def next_num() -> int:
     TEST_NUM+=1
     return temp
 
-def compile_test(root: Path, case: TestCase) -> tuple[CompiledTest | None, str | None]:
+def compile_test(root: Path, case: TestCase) -> tuple[CompiledTest | None, str | None, int]:
 
     testrun_dir = root / "build" / "testrun"
     testrun_dir.mkdir(parents=True, exist_ok=True)
@@ -169,9 +169,9 @@ def compile_test(root: Path, case: TestCase) -> tuple[CompiledTest | None, str |
             f"stdout:\n{proc.stdout}\n"
             f"stderr:\n{proc.stderr}\n"
         )
-        return None, msg
+        return None, msg, proc.returncode
 
-    return CompiledTest(num=test_num, case=case, exe_path=exe_path), None
+    return CompiledTest(num=test_num, case=case, exe_path=exe_path), None, proc.returncode
 
 
 def run_one(compiled: CompiledTest, root: Path) -> RunResult:
@@ -224,10 +224,13 @@ def main(argv: list[str]) -> int:
     any_failed = False
 
     for case in cases:
-        compiled, err = compile_test(root, case)
+        compiled, err, code = compile_test(root, case)
 
         if case.compilation_should_fail: 
-            if err is not None:
+            if case.expected_exit_code != code:
+                any_failed = True
+                print(err_text("ERROR") + f" {case.name} ({case.path})\n Expected to fail with exit code {case.expected_exit_code}, but got {code}. ")
+            elif err is not None:
                 print(ok_text("OK") + f" {case.name} ({case.path})")
             else:
                 any_failed = True
