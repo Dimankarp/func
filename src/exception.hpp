@@ -15,8 +15,8 @@ struct undeclared_variable_exception : public syntax_exception {};
 
 struct unexpected_type_exception : public syntax_exception {};
 
-struct symbol_redeclaratione_exception : public syntax_exception {
-    symbol_redeclaratione_exception(const std::string& sym,
+struct symbol_redeclaration_exception : public syntax_exception {
+    symbol_redeclaration_exception(const std::string& sym,
                                     yy::location origin_loc,
                                     yy::location current_loc) {
         this->loc = current_loc;

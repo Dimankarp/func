@@ -52,7 +52,7 @@ void llvm_visitor::visit(const declaration& node) {
     if(Function* fm = module.getFunction(node.get_identifier())) {
         auto sym = table.find(node.get_identifier());
         if(ft != fm->getFunctionType()) {
-            throw symbol_redeclaratione_exception{ sym.name, node.get_loc(), sym.declare_loc };
+            throw symbol_redeclaration_exception{ sym.name, node.get_loc(), sym.declare_loc };
         }
         result = fm;
         return;

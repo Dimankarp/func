@@ -27,7 +27,7 @@ template <typename SymInfo> class sym_table {
         auto iter = table.rbegin();
         while(iter != table.rend() && !iter->is_delimeter) {
             if(iter->name == sym.name)
-                throw symbol_redeclaratione_exception{ sym.name, iter->declare_loc,
+                throw symbol_redeclaration_exception{ sym.name, iter->declare_loc,
                                                        sym.declare_loc };
             iter++;
         }
