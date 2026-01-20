@@ -1,0 +1,10 @@
+// test: call-undeclared-func-test
+// compile-fail: true
+
+int write(int _);
+void exit(int _);
+
+void main(){
+    foo(4);
+    exit(0);
+}

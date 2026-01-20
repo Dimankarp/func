@@ -1,0 +1,15 @@
+// test: call-non-void-with-no-arguments-test
+// compile-fail: true
+
+int write(int _);
+void exit(int _);
+
+int foo(int a, int b){
+    return a * b;
+}
+
+void main(){
+    int res = foo();
+    write(res);
+    exit(0);
+}

@@ -111,7 +111,7 @@ def parse_test_metadata(path: Path) -> list[TestCase]:
                 expected_stdout = [_parse_quoted_string(v) for v in _split_by_delimiter_ignore_quotes(val)]
             elif key == "exit-code":
                 expected_exit_code = int(val)
-            elif key == "compile_fail":
+            elif key == "compile-fail":
                  compilation_should_fail = bool(val)
     
     if len(stdin) != len(expected_stdout):

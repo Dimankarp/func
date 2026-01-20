@@ -1,5 +1,5 @@
 // test: declare-with-different-body-test
-// compile_fail: true
+// compile-fail: true
 
 void exit(int _);
 

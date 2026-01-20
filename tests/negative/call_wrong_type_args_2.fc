@@ -1,0 +1,17 @@
+// test: call-with-wrong-type-of-func-arguments-test
+// compile-fail: true
+
+int write(int _);
+void exit(int _);
+
+void foo(int a, int b, (int-int) print){
+    print(a * b);
+    return;
+}
+
+void main(){
+    (int-void) func = exit;
+    int res = foo(10, 20, func);
+    write(res);
+    exit(0);
+}

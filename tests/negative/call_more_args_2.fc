@@ -1,0 +1,16 @@
+// test: call-void-with-arguments-test
+// compile-fail: true
+// exit-code: 10
+
+int write(int _);
+void exit(int _);
+
+int foo(){
+    return 42;
+}
+
+void main(){
+    int res = foo(10);
+    write(res);
+    exit(0);
+}
