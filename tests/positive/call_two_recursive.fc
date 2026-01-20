@@ -1,0 +1,40 @@
+// test: call-two-recursive-test
+// input:  "0" "1"  "2"  "3"  "4"  "10"  "17"
+// output: "0" "1"  "0"  "1"  "0"  "0"   "1"
+// exit-code: 0
+
+int write(int _);
+int read();
+void exit(int _);
+
+
+int strlen(string s);
+void write_str(string s, int len);
+int itoascii(int n);
+void write_int(int n);
+bool is_digit(int n);
+int read_int();
+
+
+int foo(int _);
+int buz(int _);
+
+int foo(int a){
+  if (a < 0 || a == 0)
+    return a;
+  
+  return buz(a);
+}
+
+int buz(int a){
+  if (a == 1)
+    return a;
+  
+  return foo(a - 2);
+}
+
+void main() {
+  int res = foo(read_int());
+  write_int(res);
+  exit(0);
+}

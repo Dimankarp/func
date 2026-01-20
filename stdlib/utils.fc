@@ -27,8 +27,16 @@ void write_str(string s, int len) {
 int itoascii(int n) { return n + 48; }
 
 void write_int(int n) {
-  string buf = "10000000000";
+  string buf = "00000000000";
   int i = 0;
+  if (n < 0){
+    write(45);
+    n = -1 * n;
+  }
+  if (n == 0){
+    buf[i] = 0;
+    i = i + 1;
+  }
   while (n > 0) {
     buf[i] = n % 10;
     n = n / 10;
