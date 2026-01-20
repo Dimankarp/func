@@ -1,14 +1,26 @@
+// test: sort-test
+// input: "1\n"             "153462\n"
+// output: "1 \n1 \n1 \n"   "1 2 3 4 5 6 \n6 5 4 3 2 1 \n1 3 5 2 4 6 \n"
+
+  /* Returns:
+  string s = "153462798";
+  1 2 3 4 5 6 7 8 9 
+  9 8 7 6 5 4 3 2 1 
+  1 3 5 7 9 2 4 6 8 
+  */
+
 int write(int _);
 int read();
 void exit(int _);
 
 
-int strlen(string s);
+int cstrlen(string s);
 void write_str(string s, int len);
 int itoascii(int n);
 void write_int(int n);
 bool is_digit(int n);
 int read_int();
+void write_int(int n);
 
 int regular_compare(int a, int b) { return a - b; }
 
@@ -35,7 +47,6 @@ void insertion_sort(string arr, int n, (int - int - int)compare) {
     arr[j + 1] = cur;
     i = i + 1;
   }
-  return;
 }
 
 void print_arr(string s, int len) {
@@ -49,18 +60,25 @@ void print_arr(string s, int len) {
 }
 
 void main() {
-  string s = "153462798";
-  int len = strlen(s) - 1;
+  string s = "0123456789";
+
+  int num = 0;
+  int len = 0;
+  int max_len = cstrlen(s);
+  while(len < max_len  && num != 10){
+    num = read();
+    s[len] = num;
+    len = len + 1;
+  }
+  s[len] = 0;
+  len = len - 1;
+
   insertion_sort(s, len, regular_compare);
   print_arr(s, len);
   insertion_sort(s, len, reverse_compare);
   print_arr(s, len);
   insertion_sort(s, len, even_are_bigger_compare);
   print_arr(s, len);
-  return;
-  /* Returns:
-  1 2 3 4 5 6 7 8 9 
-  9 8 7 6 5 4 3 2 1 
-  1 3 5 7 9 2 4 6 8 
-  */
+  exit(0);
+
 }

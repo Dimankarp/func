@@ -1,0 +1,19 @@
+// test: variable-shadowing
+// input: ""
+// output: "abcda"
+
+int write(int _);
+void exit(int _);
+
+void main(){
+    int a = 97;
+    write(a);
+    int i = 0;
+    while (i < 3){
+        int a = 98 + i;
+        write(a);
+        i = i + 1;
+    }
+    write(a);
+    exit(0);
+}

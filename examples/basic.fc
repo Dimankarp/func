@@ -1,9 +1,0 @@
-int write(int _);
-int read();
-void exit(int _);
-
-void main(){
-    string c = "c";
-    write(c[0]);
-    exit(0);
-}

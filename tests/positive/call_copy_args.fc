@@ -1,0 +1,18 @@
+// test: call_copy_arguments
+// input:  "a"
+// output: "a"
+
+int write(int _);
+void exit(int _);
+
+int foo(int arg){
+    arg = 0;
+    return arg;
+}
+
+void main(){
+    int a = 97;
+    foo(a);
+    write(a);
+    exit(0);
+}
