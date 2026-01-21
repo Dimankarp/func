@@ -1,0 +1,38 @@
+// test: math-operations-test
+// input: "1 2"                 "5 -3"
+// output: "3 -1 2 0 1 -1 -2 "  "2 8 -15 -1 2 -5 3 "
+
+int write(int _);
+int read();
+void exit(int _);
+
+int read_int();
+void write_int(int n);
+
+void main(){
+    int a = read_int();
+    int b = read_int();
+
+    write_int(a + b); 
+    write(32);
+
+    write_int(a - b); 
+    write(32);
+
+    write_int(a * b); 
+    write(32);
+
+    write_int(a / b); 
+    write(32);
+
+    write_int(a % b); 
+    write(32);
+
+    write_int(-a); 
+    write(32);
+
+    write_int(-(--b)); 
+    write(32);
+    
+    exit(0);
+}

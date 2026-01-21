@@ -1,0 +1,45 @@
+// test: bool-operations-test
+// input: "0 0"        "0 1"       "1 0"       "1 1"
+// output: "0 0 1 1 "  "0 1 1 0 "  "0 1 0 1 "  "1 1 0 0 "
+
+int write(int _);
+int read();
+void exit(int _);
+
+int read_int();
+void write_int(int n);
+
+void write_bool(bool b){
+    if (b)
+        write_int(1);
+    else
+        write_int(0); 
+}
+
+void main(){
+    int num;
+    bool a = true;
+    bool b = true;
+
+    num = read_int();
+    if (num == 0 || num < 0)
+        a = false;
+    
+    num = read_int();
+    if (num == 0 || num < 0)
+        b = false;
+
+    write_bool(a && b); 
+    write(32);
+
+    write_bool(a || b); 
+    write(32);
+
+    write_bool(!a); 
+    write(32);
+
+    write_bool(!(!!b)); 
+    write(32);
+
+    exit(0);
+}

@@ -1,0 +1,13 @@
+// test: compare-int-to-bool
+// compile-fail: true
+// exit-code: 3
+
+void exit(int _);
+
+void main(){
+    int a = 1;
+    bool b = true;
+    if (a == b)
+        exit(1);
+    exit(0);
+}

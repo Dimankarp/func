@@ -1,0 +1,36 @@
+// test: compare-operations-test
+// input: "0 0"        "42 1"      "-3 -3"      "-100 8"
+// output: "1 0 0 0 "  "0 1 1 0 "  "1 0 0 0 "   "0 1 0 1 "
+
+int write(int _);
+int read();
+void exit(int _);
+
+int read_int();
+void write_int(int n);
+
+void write_bool(bool b){
+    if (b)
+        write_int(1);
+    else
+        write_int(0); 
+}
+
+void main(){
+    int a = read_int();
+    int b = read_int();
+
+    write_bool(a == b); 
+    write(32);
+
+    write_bool(a != b); 
+    write(32);
+
+    write_bool(a > b); 
+    write(32);
+
+    write_bool(a < b); 
+    write(32);
+
+    exit(0);
+}
