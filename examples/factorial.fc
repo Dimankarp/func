@@ -10,24 +10,6 @@ void write_int(int n);
 bool is_digit(int n);
 int read_int();
 
-int strlen(string s) {
-  int len = 0;
-  while (s[len] != 0)
-    len = len + 1;
-  len = len + 1;
-  return len;
-}
-
-void write_str(string s, int len) {
-  int i = 0;
-  while (i < len) {
-    write(s[i]);
-    i = i + 1;
-  }
-  return;
-}
-
-int itoascii(int n) { return n + 48; }
 
 int factorial(int n) {
   if (n == 1 || n == 0)
@@ -35,39 +17,11 @@ int factorial(int n) {
   return n * factorial(n - 1);
 }
 
-void write_int(int n) {
-  string buf = "10000000000";
-  int i = 0;
-  while (n > 0) {
-    buf[i] = n % 10;
-    n = n / 10;
-    i = i + 1;
-  }
-  i = i - 1;
-  while (i > -1) {
-    write(itoascii(buf[i]));
-    i = i - 1;
-  }
-  return;
-}
-
-bool is_digit(int n) { return ((n > 47) && (n < 56)); }
-
-int read_int() {
-  int n = 0;
-  int last = read();
-  while (is_digit(last)) {
-    n = n * 10;
-    n = n + last - 48;
-    last = read();
-  }
-  return n;
-}
-
 void main() {
   string msg = "Please, enter number:\n";
   write_str(msg, strlen(msg) - 1);
   int res = factorial(read_int());
   write_int(res);
+  write(10);
   exit(0);
 }

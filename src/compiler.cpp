@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
     ("d,debug", "Include debug output")
     ("a,alloc", "Include alloc traces")
     ("o,output", "Output file",cxxopts::value<std::string>())
-    ("arch", "Specify target architecture ([sim, x64]) defaults to x64",
+    ("arch", "Specify target architecture: sim | x64",
          cxxopts::value<std::string>()->default_value("x64"));
     // clang-format on
     options.add_options()("source", "The .fc files to proccess",
