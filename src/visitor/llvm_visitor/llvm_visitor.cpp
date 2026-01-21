@@ -320,17 +320,9 @@ TypedValuePtr llvm_visitor::turn_to_typed_value_ptr(llvm_result res) {
 }
 
 void llvm_visitor::visit(const binop_expression& node) {
-    auto left = node.get_left()->accept_with_result(*this);
-    auto right = node.get_right()->accept_with_result(*this);
+    auto lv = turn_to_typed_value_ptr(node.get_left()->accept_with_result(*this));
+    auto rv = turn_to_typed_value_ptr(node.get_right()->accept_with_result(*this));
 
-    if(std::holds_alternative<TypedFunctionPtr>(left) ||
-       std::holds_alternative<TypedFunctionPtr>(right)) {
-        throw syntax_exception{ "Invalid binary operation on function type",
-                                node.get_loc() };
-    }
-
-    const auto& lv = std::get<TypedValuePtr>(left);
-    const auto& rv = std::get<TypedValuePtr>(right);
 
     if(lv.type_obj->get_type() != rv.type_obj->get_type()) {
         throw unexpected_type_exception{

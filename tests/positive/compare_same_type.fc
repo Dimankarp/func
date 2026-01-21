@@ -1,0 +1,31 @@
+// test: compare-same-type-test
+
+int write(int _);
+int read();
+void exit(int _);
+
+void main(){
+    int i1 = 10;
+    int i2 = (i1 + 20) / 3;
+    if (i1 != i2)
+        exit(1);
+
+    bool b1 = true;
+    bool b2 = false || b1;
+    if (b1 != b2)
+        exit(2);
+
+    string s1 = "Hello";
+    string s2 = s1;
+    if (s1 != s2)
+        exit(3);
+
+    (int-int) f1 = write;
+    (int-int) f2 = f1;
+    if (f1 != f2 || f1 != write || f2 != write)
+        exit(4);
+    if (f1 == exit || f2 == exit)
+        exit(5);
+
+    exit(0);
+}
