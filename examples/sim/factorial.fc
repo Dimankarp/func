@@ -1,0 +1,42 @@
+int itoascii(int n) { return n + 48; }
+
+int factorial(int n) {
+  if (n == 1 || n == 0)
+    return 1;
+  return n * factorial(n - 1);
+}
+
+void write_int(int n) {
+  string buf = "10000000000";
+  int i = 0;
+  while (n > 0) {
+    buf[i] = n % 10;
+    n = n / 10;
+    i = i + 1;
+  }
+  i = i - 1;
+  while (i > -1) {
+    write(itoascii(buf[i]));
+    i = i - 1;
+  }
+  return;
+}
+
+bool is_digit(int n) { return ((n > 47) && (n < 56)); }
+
+int read_int() {
+  int n = 0;
+  int last = read();
+  while (is_digit(last)) {
+    n = n * 10;
+    n = n + last - 48;
+    last = read();
+  }
+  return n;
+}
+
+void main() {
+  int res = factorial(read_int());
+  write_int(res);
+  return;
+}

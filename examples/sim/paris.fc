@@ -1,0 +1,27 @@
+int strlen(string s){
+    int len = 0;
+    while(s[len] != 0)
+        len = len + 1;
+    return len;
+}
+
+void write_str(string s, int len){
+    int i = 0;
+    while(i < len){
+        write(s[i]);
+        i = i + 1;
+    }
+    return;
+}
+
+void main(){
+    string a = "i love Paris  in the morning";
+    string b = "Moscow";
+    int i = 7;
+    while(i < strlen("Moscow") + 7){
+        a[i] = b[i-7];
+        i = i + 1;
+    }
+    write_str(a, strlen(a));
+    return;
+}

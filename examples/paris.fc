@@ -3,7 +3,7 @@ int read();
 void exit(int _);
 
 
-int strlen(string s);
+int cstrlen(string s);
 void write_str(string s, int len);
 int itoascii(int n);
 void write_int(int n);
@@ -14,10 +14,11 @@ void main(){
     string a = "i love Paris  in the morning";
     string b = "Moscow";
     int i = 7;
-    while(i < strlen("Moscow") - 1 + 7){
+    while(i < cstrlen("Moscow") + 7){
         a[i] = b[i-7];
         i = i + 1;
     }
-    write_str(a, strlen(a));
+    write_str(a, cstrlen(a));
+    write(10);
     exit(0);
 }

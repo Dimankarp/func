@@ -1,14 +1,48 @@
-int write(int _);
-int read();
-void exit(int _);
+int strlen(string s) {
+  int len = 0;
+  while (s[len] != 0)
+    len = len + 1;
+  return len;
+}
 
+void write_str(string s, int len) {
+  int i = 0;
+  while (i < len) {
+    write(s[i]);
+    i = i + 1;
+  }
+  return;
+}
 
-int cstrlen(string s);
-void write_str(string s, int len);
-int itoascii(int n);
-void write_int(int n);
-bool is_digit(int n);
-int read_int();
+int itoascii(int n) { return n + 48; }
+bool is_digit(int n) { return ((n > 47) && (n < 56)); }
+
+int read_int() {
+  int n = 0;
+  int last = read();
+  while (is_digit(last)) {
+    n = n * 10;
+    n = n + last - 48;
+    last = read();
+  }
+  return n;
+}
+
+void write_int(int n) {
+  string buf = "10000000000";
+  int i = 0;
+  while (n > 0) {
+    buf[i] = n % 10;
+    n = n / 10;
+    i = i + 1;
+  }
+  i = i - 1;
+  while (i > -1) {
+    write(itoascii(buf[i]));
+    i = i - 1;
+  }
+  return;
+}
 
 int regular_compare(int a, int b) { return a - b; }
 
@@ -35,6 +69,7 @@ void insertion_sort(string arr, int n, (int - int - int)compare) {
     arr[j + 1] = cur;
     i = i + 1;
   }
+  return;
 }
 
 void print_arr(string s, int len) {
@@ -45,18 +80,19 @@ void print_arr(string s, int len) {
     i = i + 1;
   }
   write(10);
+  return;
 }
 
 void main() {
   string s = "153462798";
-  int len = cstrlen(s);
+  int len = strlen(s);
   insertion_sort(s, len, regular_compare);
   print_arr(s, len);
   insertion_sort(s, len, reverse_compare);
   print_arr(s, len);
   insertion_sort(s, len, even_are_bigger_compare);
   print_arr(s, len);
-  exit(0);
+  return;
   /* Returns:
   1 2 3 4 5 6 7 8 9 
   9 8 7 6 5 4 3 2 1 
