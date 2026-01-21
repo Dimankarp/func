@@ -1,8 +1,0 @@
-int write(int _);
-int read();
-void exit(int _);
-
-void main(){
-    int a = 5 + true;
-    return;
-}

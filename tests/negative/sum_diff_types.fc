@@ -1,0 +1,11 @@
+// test: assign-string-to-int-test
+// compile-fail: true
+// exit-code: 3
+
+void exit(int _);
+
+void main(){
+    int a = 5;
+    a = a + true;
+    exit(0);
+}

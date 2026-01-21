@@ -1,0 +1,9 @@
+// test: no-semicolon-test
+// compile-fail: true
+// exit-code: 1
+
+void exit(int _);
+
+void main(){
+    exit(0)
+}

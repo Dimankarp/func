@@ -1,0 +1,15 @@
+// test: assign-string-to-int-test
+// compile-fail: true
+// exit-code: 2
+
+void exit(int _);
+
+int foo(int a);
+
+void main(){
+    exit(foo(4));
+}
+
+int foo(int b){
+    return a;
+}
