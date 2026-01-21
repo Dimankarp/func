@@ -6,6 +6,14 @@
 #include <string>
 namespace func {
 
+enum error_codes{
+    E_SYTNTAX = 1,
+    E_SYMBOL = 2,
+    E_TYPE = 3,
+    E_PARAMS = 4,
+    E_OTHER = 5,
+};
+
 struct syntax_exception {
     std::string reason;
     yy::location loc;

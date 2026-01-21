@@ -70,11 +70,11 @@ int main(int argc, char* argv[]) {
             auto srcs = result["source"].as<std::vector<std::string>>();
             if (srcs.size() > 1) {
                 std::cerr << "Module can be compiled from only one source file.\n";
-                exit(1);
+                exit(func::error_codes::E_PARAMS);
             }
             if(drv.parse(srcs[0]) != 0) {
                 std::cerr << "Failed to parse - exiting.\n";
-                exit(1);
+                exit(func::error_codes::E_SYTNTAX);
             }
         } else {
             exit(0); // No input files were given.
@@ -87,12 +87,12 @@ int main(int argc, char* argv[]) {
             target_arch = Arch::X64;
         } else {
             std::cerr << "Unknown architecture: " << arch_str << "\n";
-            exit(1);
+            exit(func::error_codes::E_PARAMS);
         }
 
     } catch(const cxxopts::exceptions::exception& e) {
         std::cerr << "Error parsing options: " << e.what() << '\n';
-        exit(1);
+        exit(func::error_codes::E_PARAMS);
     }
 
     func::print_visitor print_visitor{ std::cout };
@@ -132,21 +132,24 @@ int main(int argc, char* argv[]) {
             }
             default: {
                 std::cerr << "Unsupported architecture\n";
-                exit(1);
+                exit(func::error_codes::E_PARAMS);
             }
         }
 
     } catch(func::unexpected_type_exception& e) {
         std::cerr << "Syntax error: unexpected type " << e << "\n";
-        exit(1);
+        exit(func::error_codes::E_TYPE);
     } catch(func::symbol_not_found_exception& e) {
         std::cerr << "Syntax error: symbol not found " << e << "\n";
-        exit(1);
+        exit(func::error_codes::E_SYMBOL);
+    } catch(func::symbol_redeclaration_exception& e) {
+        std::cerr << "Syntax error: symbol redeclaration " << e << "\n";
+        exit(func::error_codes::E_SYMBOL);
     } catch(func::syntax_exception& e) {
         std::cerr << "Syntax error: " << e << "\n";
-        exit(1);
+        exit(func::error_codes::E_SYTNTAX);
     } catch(func::global_syntax_exception& e) {
         std::cerr << "Syntax error: " << e << "\n";
-        exit(1);
+        exit(func::error_codes::E_SYTNTAX);
     }
 }

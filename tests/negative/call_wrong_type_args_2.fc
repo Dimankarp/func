@@ -1,6 +1,6 @@
 // test: call-with-wrong-type-of-func-arguments-test
 // compile-fail: true
-// exit-code: 1
+// exit-code: 3
 
 int write(int _);
 void exit(int _);

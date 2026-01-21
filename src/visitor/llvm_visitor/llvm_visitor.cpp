@@ -89,6 +89,11 @@ void llvm_visitor::visit(const function& node) {
         return;
     }
 
+    if (!f->empty()){
+        throw syntax_exception{ "Multiple defenition of function '" + node.get_identifier() + "'.",
+                                node.get_loc() };
+    }
+
     BasicBlock* bb = BasicBlock::Create(ctx, "entry", f);
     builder.SetInsertPoint(bb);
 
@@ -128,7 +133,7 @@ void llvm_visitor::visit(const function& node) {
     std::string error_msg;
     llvm::raw_string_ostream os(error_msg);
     if(llvm::verifyFunction(*f, &os)) {
-        throw syntax_exception{ error_msg, node.get_loc() };
+        throw unexpected_type_exception {error_msg, node.get_loc()};
     }
 
     fpm.run(*f, fam);

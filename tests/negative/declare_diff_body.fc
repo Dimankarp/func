@@ -2,17 +2,19 @@
 // compile-fail: true
 // exit-code: 1
 
+int write(int _);
 void exit(int _);
 
-int foo(int arg){
-    return 1;
-};
+int foo(){
+    return 97;
+}
 
-int foo(int arg){
-    return 2;
-};
+int foo(){
+    return 98;
+}
 
 void main(){
+    write(foo());
     exit(0);
 }
 
