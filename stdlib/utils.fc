@@ -54,11 +54,18 @@ bool is_digit(int n) { return ((n > 47) && (n < 58)); }
 
 int read_int() {
   int n = 0;
+  int sign = 1;
+
   int last = read();
+  if (last == 45){
+    sign = -1;
+    last = read();
+  }
+  
   while (is_digit(last)) {
     n = n * 10;
     n = n + last - 48;
     last = read();
   }
-  return n;
+  return n * sign;
 }
