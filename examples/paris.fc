@@ -20,5 +20,4 @@ void main(){
     }
     write_str(a, strlen(a));
     exit(0);
-    return;
 }

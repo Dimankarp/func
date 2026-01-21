@@ -69,5 +69,5 @@ void main() {
   write_str(msg, strlen(msg) - 1);
   int res = factorial(read_int());
   write_int(res);
-  return;
+  exit(0);
 }

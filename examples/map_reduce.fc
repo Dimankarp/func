@@ -60,5 +60,4 @@ void main() {
   write(10);
   write_int(sum);
   exit(0);
-  return;
 }
