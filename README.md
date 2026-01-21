@@ -40,7 +40,10 @@ Please, enter number:
 12
 479001600
 ```
-
+Команда запуска компилятора `FunC` для эмулятора `risc` процессора:
+```bash
+$> ./build/compiler --arch sim -o ./build/out ./examples/sim/paris.fc 
+```
 ## Особенности
 
 1. Строгая статическая типизация.
